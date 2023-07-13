@@ -14,6 +14,7 @@ for inst in control{0,1,2}; do
       "$dir/admin.kubeconfig" \
       "$dir/kube-controller-manager.kubeconfig" \
       "$dir/kube-scheduler.kubeconfig" \
+      "$dir/encryption-config.yaml" \
       ubuntu@${inst}:~
 done
 
