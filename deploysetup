@@ -1,0 +1,9 @@
+#!/usr/bin/env zsh
+
+set -xe
+dir="$(dirname $0)"
+
+for inst in control{0,1,2}; do
+  scp -o UserKnownHostsFile="$dir/$inst/ssh_known_hosts" setupcontrol ubuntu@${inst}:~
+done
+

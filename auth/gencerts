@@ -21,7 +21,7 @@ gencert kube-proxy-csr.json | cfssljson -bare kube-proxy
 gencert kube-scheduler-csr.json | cfssljson -bare kube-scheduler
 gencert service-account-csr.json | cfssljson -bare service-account
 
-kubeapi_ips=10.32.0.1,10.240.0.10,10.240.0.11,10.240.0.12,192.168.64.14,127.0.0.1
+kubeapi_ips=10.32.0.1,192.168.64.10,192.168.64.11,192.168.64.12,192.168.64.14,127.0.0.1
 kubeapi_hostnames=kubegate,kubegate.kubenet,kubernetes,kubernetes.default,kubernetes.default.svc,kubernetes.default.svc.cluster,kubernetes.default.svc.cluster.local
 gencert -hostname=$kubeapi_ips,$kubeapi_hostnames kubernetes-csr.json | cfssljson -bare kubernetes
 
