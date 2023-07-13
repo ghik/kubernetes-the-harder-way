@@ -1,0 +1,27 @@
+#!/usr/bin/env zsh
+
+set -xe
+
+cfssl gencert -initca ca-csr.json | cfssljson -bare ca
+
+gencert() {
+  cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=kubernetes $*
+}
+
+gencert admin-csr.json | cfssljson -bare admin
+
+for i in 0 1 2; do
+  inst=worker$i
+  ip=192.168.64.$(($i + 20))
+  gencert -hostname=$inst,${inst}.kubenet,$ip $inst-csr.json | cfssljson -bare $inst
+done
+
+gencert kube-controller-manager-csr.json | cfssljson -bare kube-controller-manager
+gencert kube-proxy-csr.json | cfssljson -bare kube-proxy
+gencert kube-scheduler-csr.json | cfssljson -bare kube-scheduler
+gencert service-account-csr.json | cfssljson -bare service-account
+
+kubeapi_ips=10.32.0.1,10.240.0.10,10.240.0.11,10.240.0.12,192.168.64.14,127.0.0.1
+kubeapi_hostnames=kubegate,kubegate.kubenet,kubernetes,kubernetes.default,kubernetes.default.svc,kubernetes.default.svc.cluster,kubernetes.default.svc.cluster.local
+gencert -hostname=$kubeapi_ips,$kubeapi_hostnames kubernetes-csr.json | cfssljson -bare kubernetes
+

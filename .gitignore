@@ -1,6 +1,8 @@
 gateway*/
 control*/
 worker*/
+certs/*.csr
+certs/*.pem
 *.img
 *.swp
 *~
