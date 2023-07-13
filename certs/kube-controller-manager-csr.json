@@ -1,0 +1,16 @@
+{
+  "CN": "system:kube-controller-manager",
+  "key": {
+    "algo": "rsa",
+    "size": 2048
+  },
+  "names": [
+    {
+      "C": "PL",
+      "L": "Krakow",
+      "O": "system:kube-controller-manager",
+      "OU": "kubenet",
+      "ST": "Lesser Poland"
+    }
+  ]
+}

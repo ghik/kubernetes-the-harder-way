@@ -1,0 +1,120 @@
+#!/usr/bin/env zsh
+
+set -xe
+
+source "$(dirname $0)/vmparseargs"
+
+# prepare main directory
+mkdir -p "$inst"
+
+# create VM disk image, backed by the official ubuntu cloud image
+qemu-img create -F qcow2 -b ../jammy-server-cloudimg-arm64.img -f qcow2 "$inst/disk.qcow2" 128G
+
+# create UEFI variables file
+dd if=/dev/zero of="$inst/efi-vars.fd" bs=1M count=64
+
+# select apt packaages to install
+
+if [[ $prefix == gateway ]]; then
+  moreinit="
+packages:
+  - ipvsadm
+  - ldirectord
+write_files:
+  - path: /etc/ha.d/ldirectord.cf
+    content: |
+      checktimeout=5
+      checkinterval=1
+      autoreload=yes
+      quiescent=yes
+
+      virtual=kubegate:80
+          servicename=LBTestApache
+          real=control0:80 gate
+          real=control1:80 gate
+          real=control2:80 gate
+          scheduler=wrr
+          checktype=negotiate
+          service=http
+          request=\"health\"
+          receive=\"healthy\"
+"
+fi
+
+if [[ $prefix == control ]]; then
+  moreinit="
+packages: 
+  - apache2
+write_files:
+  - path: /etc/sysctl.d/50-vip-arp.conf
+    content: |
+      net.ipv4.conf.all.arp_announce = 2
+      net.ipv4.conf.all.arp_ignore = 1
+  - path: /var/www/html/health
+    content: healthy
+runcmd:
+  - sysctl -p /etc/sysctl.d/50-vip-arp.conf
+"
+fi
+
+# create cloud-init data for the VM
+cat << EOF > "$inst/user-data"
+#cloud-config
+password: margaryna
+chpasswd:
+  expire: False
+ssh_authorized_keys:
+  - $(cat ~/.ssh/id_rsa.pub)
+
+package_update: true
+package_upgrade: true
+package_reboot_if_required: false
+
+$moreinit
+
+EOF
+
+cat << EOF > "$inst/meta-data"
+instance-id: kubenet/$inst
+local-hostname: $inst
+hostname: $inst
+
+EOF
+
+hostip=192.168.64.1
+vip=192.168.64.14
+enaddrs=192.168.64.$ipidx/24
+
+if [[ $prefix == gateway ]]; then
+  enaddrs="$enaddrs,$vip/32"
+elif [[ $prefix == control ]]; then
+  loaddrs="$vip/32"
+fi
+
+cat << EOF > "$inst/network-config"
+network:
+  version: 2
+  ethernets:
+    lo:
+      match:
+        name: lo
+      addresses: [${loaddrs}]
+    enp0s1:
+      match:
+        name: enp0s1
+      dhcp4: false
+      addresses: [${enaddrs}]
+      gateway4: ${hostip}
+      nameservers:
+        search: [kubenet]
+        addresses: [${hostip}]
+EOF
+
+touch "$inst/vendor-data"
+
+# prepare ISO drive for cloud-init
+mkisofs -output "$inst/cidata.iso" -volid cidata -joliet -rock "$inst"/{user-data,meta-data,vendor-data,network-config}
+
+# clean up cloud-init files
+# rm "$inst"/{user-data,meta-data,vendor-data,network-config}
+

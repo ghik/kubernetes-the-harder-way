@@ -1,0 +1,17 @@
+{
+  "CN": "system:kube-scheduler",
+  "key": {
+    "algo": "rsa",
+    "size": 2048
+  },
+  "names": [
+    {
+      "C": "PL",
+      "L": "Krakow",
+      "O": "system:kube-scheduler",
+      "OU": "kubenet",
+      "ST": "Lesser Poland"
+    }
+  ]
+}
+

@@ -1,0 +1,6 @@
+gateway*/
+control*/
+worker*/
+*.img
+*.swp
+*~

@@ -1,0 +1,25 @@
+#!/usr/bin/env zsh
+
+set -xe
+dir="$(dirname $0)"
+certs="$dir/certs"
+
+for inst in control{0,1,2}; do
+  scp -o UserKnownHostsFile="$dir/$inst/ssh_known_hosts" \
+      "$certs/ca.pem" \
+      "$certs/ca-key.pem" \
+      "$certs/kubernetes-key.pem" \
+      "$certs/kubernetes.pem" \
+      "$certs/service-account-key.pem" \
+      "$certs/service-account.pem" \
+      ubuntu@${inst}:~
+done
+
+for inst in worker{0,1,2}; do
+  scp -o UserKnownHostsFile="$dir/$inst/ssh_known_hosts" \
+      "$certs/ca.pem" \
+      "$certs/$inst.pem" \
+      "$certs/$inst-key.pem" \
+      ubuntu@${inst}:~
+done
+

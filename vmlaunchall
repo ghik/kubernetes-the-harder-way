@@ -1,0 +1,66 @@
+#!/usr/bin/env zsh
+
+set -xe
+
+dir=$(dirname $0)
+sname=$1
+if [[ -z $sname ]]; then
+  echo "usage: $(basename $0) <tmux-session-name>"
+  exit 1
+fi
+
+controls=(control{0,1,2})
+workers=(worker{0,1,2})
+instances=($controls gateway0 $workers)
+
+if $(tmux has-session -t $sname 2> /dev/null); then
+  tmux kill-session -t $sname
+fi
+
+for inst in $instances; do
+  $dir/vmclean $inst
+  $dir/vmsetup $inst
+done
+
+tmux new-session -s $sname -n qemu -d
+
+for inst in $instances; do
+  tmux send-keys -t $sname "inst=$inst" C-m
+  if [[ $inst != ${instances[-1]} ]]; then
+    tmux split-window -t $sname -v
+  fi
+  tmux select-layout -t $sname tiled
+done
+
+tmux set-window-option -t $sname synchronize-panes on
+tmux send-keys -t $sname 'sudo ~/kubenet/vmlaunch $inst' C-m
+
+connect() {
+  tmux send-keys -t $sname "inst=$1" C-m
+  tmux send-keys -t $sname '~/kubenet/vmsetupssh $inst' C-m
+  tmux send-keys -t $sname 'ssh -o UserKnownHostsFile=~/kubenet/$inst/ssh_known_hosts ubuntu@$inst' C-m
+}
+
+tmux new-window -t $sname -n ssh-gateway
+connect gateway0
+
+tmux new-window -t $sname -n ssh-controls
+for inst in $controls; do
+  connect $inst
+  if [[ $inst != ${controls[-1]} ]]; then
+    tmux split-window -t $sname -v
+  fi
+done
+tmux select-layout -t $sname even-vertical
+
+tmux new-window -t $sname -n ssh-workers
+for inst in $workers; do
+  connect $inst
+  if [[ $inst != ${workers[-1]} ]]; then
+    tmux split-window -t $sname -v
+  fi
+done
+tmux select-layout -t $sname even-vertical
+
+tmux attach -t ${sname}:qemu
+

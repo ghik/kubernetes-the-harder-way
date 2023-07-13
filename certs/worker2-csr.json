@@ -1,0 +1,16 @@
+{
+  "CN": "system:node:worker2",
+  "key": {
+    "algo": "rsa",
+    "size": 2048
+  },
+  "names": [
+    {
+      "C": "PL",
+      "L": "Krakow",
+      "O": "system:nodes",
+      "OU": "kubenet",
+      "ST": "Lesser Poland"
+    }
+  ]
+}

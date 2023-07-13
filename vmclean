@@ -1,0 +1,10 @@
+#!/usr/bin/env zsh
+
+set -xe
+
+source "$(dirname $0)"/vmparseargs
+
+rm -rf "$inst"
+sed -i.bak "/^$inst/d" ~/.ssh/known_hosts
+rm ~/.ssh/known_hosts.bak
+
