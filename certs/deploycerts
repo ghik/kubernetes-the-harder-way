@@ -2,24 +2,23 @@
 
 set -xe
 dir="$(dirname $0)"
-certs="$dir/certs"
 
 for inst in control{0,1,2}; do
-  scp -o UserKnownHostsFile="$dir/$inst/ssh_known_hosts" \
-      "$certs/ca.pem" \
-      "$certs/ca-key.pem" \
-      "$certs/kubernetes-key.pem" \
-      "$certs/kubernetes.pem" \
-      "$certs/service-account-key.pem" \
-      "$certs/service-account.pem" \
+  scp -o UserKnownHostsFile="$dir/../$inst/ssh_known_hosts" \
+      "$dir/ca.pem" \
+      "$dir/ca-key.pem" \
+      "$dir/kubernetes-key.pem" \
+      "$dir/kubernetes.pem" \
+      "$dir/service-account-key.pem" \
+      "$dir/service-account.pem" \
       ubuntu@${inst}:~
 done
 
 for inst in worker{0,1,2}; do
-  scp -o UserKnownHostsFile="$dir/$inst/ssh_known_hosts" \
-      "$certs/ca.pem" \
-      "$certs/$inst.pem" \
-      "$certs/$inst-key.pem" \
+  scp -o UserKnownHostsFile="$dir/../$inst/ssh_known_hosts" \
+      "$dir/ca.pem" \
+      "$dir/$inst.pem" \
+      "$dir/$inst-key.pem" \
       ubuntu@${inst}:~
 done
 
