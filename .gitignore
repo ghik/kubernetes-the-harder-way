@@ -3,6 +3,7 @@ control*/
 worker*/
 certs/*.csr
 certs/*.pem
+certs/*.kubeconfig
 *.img
 *.swp
 *~
