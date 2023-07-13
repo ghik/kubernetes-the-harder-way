@@ -1,9 +1,9 @@
 gateway*/
 control*/
 worker*/
-certs/*.csr
-certs/*.pem
-certs/*.kubeconfig
+auth/*.csr
+auth/*.pem
+auth/*.kubeconfig
 *.img
 *.swp
 *~
