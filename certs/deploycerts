@@ -11,6 +11,9 @@ for inst in control{0,1,2}; do
       "$dir/kubernetes.pem" \
       "$dir/service-account-key.pem" \
       "$dir/service-account.pem" \
+      "$dir/admin.kubeconfig" \
+      "$dir/kube-controller-manager.kubeconfig" \
+      "$dir/kube-scheduler.kubeconfig" \
       ubuntu@${inst}:~
 done
 
@@ -19,6 +22,8 @@ for inst in worker{0,1,2}; do
       "$dir/ca.pem" \
       "$dir/$inst.pem" \
       "$dir/$inst-key.pem" \
+      "$dir/${inst}.kubeconfig" \
+      "$dir/kube-proxy.kubeconfig" \
       ubuntu@${inst}:~
 done
 
