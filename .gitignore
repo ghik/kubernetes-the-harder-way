@@ -4,6 +4,7 @@ worker*/
 auth/*.csr
 auth/*.pem
 auth/*.kubeconfig
+auth/encryption-config.yaml
 *.img
 *.swp
 *~

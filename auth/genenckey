@@ -1,0 +1,20 @@
+#!/usr/bin/env zsh
+
+set -xe
+
+key=$(head -c 32 /dev/urandom | base64)
+
+cat > encryption-config.yaml <<EOF
+kind: EncryptionConfig
+apiVersion: v1
+resources:
+  - resources:
+      - secrets
+    providers:
+      - aescbc:
+          keys:
+            - name: key1
+              secret: $key
+      - identity: {}
+EOF
+
