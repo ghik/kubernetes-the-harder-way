@@ -2,7 +2,13 @@
 
 set -xe
 
-source "$(dirname $0)/vmparseargs"
+dir="$(dirname $0)"
+source "$dir/vmparseargs"
+
+if [[ ! -n "$dir/auth/ca.pem" ]]; then
+  echo "$dir/auth/ca.pem not found (have you run $dir/auth/gencerts?)"
+  exit 1
+fi 
 
 # prepare main directory
 mkdir -p "$inst"
@@ -13,13 +19,17 @@ qemu-img create -F qcow2 -b ../jammy-server-cloudimg-arm64.img -f qcow2 "$inst/d
 # create UEFI variables file
 dd if=/dev/zero of="$inst/efi-vars.fd" bs=1M count=64
 
-# select apt packaages to install
+# write cloud-init data for the VMs
 
 if [[ $prefix == gateway ]]; then
   moreinit="
 packages:
   - ipvsadm
   - ldirectord
+ca_certs:
+  trusted:
+    - |
+$(sed "s/^/      /g" "$dir/auth/ca.pem")
 write_files:
   - path: /etc/ha.d/ldirectord.cf
     content: |
@@ -28,23 +38,21 @@ write_files:
       autoreload=yes
       quiescent=yes
 
-      virtual=kubegate:80
-          servicename=LBTestApache
-          real=control0:80 gate
-          real=control1:80 gate
-          real=control2:80 gate
+      virtual=kubegate:6443
+          servicename=kube-apiserver
+          real=control0:6443 gate
+          real=control1:6443 gate
+          real=control2:6443 gate
           scheduler=wrr
           checktype=negotiate
-          service=http
-          request=\"health\"
-          receive=\"healthy\"
+          service=https
+          request=\"healthz\"
+          receive=\"ok\"
 "
 fi
 
 if [[ $prefix == control ]]; then
   moreinit="
-packages: 
-  - apache2
 write_files:
   - path: /etc/sysctl.d/50-vip-arp.conf
     content: |
@@ -57,7 +65,15 @@ runcmd:
 "
 fi
 
-# create cloud-init data for the VM
+if [[ $prefix == worker ]]; then
+  moreinit="
+packages:
+  - socat
+  - conntrack
+  - ipset
+"
+fi
+
 cat << EOF > "$inst/user-data"
 #cloud-config
 password: margaryna
