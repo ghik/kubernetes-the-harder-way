@@ -1,0 +1,6 @@
+#!/usr/bin/env zsh
+
+set -xe
+
+helm install -n kube-system coredns coredns/coredns --set service.clusterIP=10.32.0.10 --set replicaCount=2
+
