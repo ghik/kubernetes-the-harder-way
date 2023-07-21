@@ -1,33 +1,39 @@
 repositories:
-- name: coredns
-  url: https://coredns.github.io/helm
-- name: nfs-provisioner
-  url: https://kubernetes-sigs.github.io/nfs-subdir-external-provisioner/
+  - name: cilium
+    url: https://helm.cilium.io/
+  - name: coredns
+    url: https://coredns.github.io/helm
+  - name: nfs-provisioner
+    url: https://kubernetes-sigs.github.io/nfs-subdir-external-provisioner/
 
 releases:
-- name: coredns
-  namespace: kube-system
-  chart: coredns/coredns
-  set:
-  - name: service.clusterIP
-    value: 10.32.0.10
-  - name: replicaCount
-    value: 2
-- name: nfs-provisioner
-  namespace: kube-system
-  chart: nfs-provisioner/nfs-subdir-external-provisioner
-  set:
-  - name: nfs.server
-    value: 192.168.64.1
-  - name: nfs.path
-    value: /Users/rjghik/kubenet/nfs-pvs
-  - name: storageClass.defaultClass
-    value: true
-- name: redis
-  namespace: default
-  chart: oci://registry-1.docker.io/bitnamicharts/redis
-  version: 17.13.2
-  set:
-  - name: replica.replicaCount
-    value: 2
+  - name: cilium
+    namespace: kube-system
+    chart: cilium/cilium
+    version: 1.13.4
+  - name: coredns
+    namespace: kube-system
+    chart: coredns/coredns
+    set:
+      - name: service.clusterIP
+        value: 10.32.0.10
+      - name: replicaCount
+        value: 2
+  - name: nfs-provisioner
+    namespace: kube-system
+    chart: nfs-provisioner/nfs-subdir-external-provisioner
+    set:
+      - name: nfs.server
+        value: 192.168.64.1
+      - name: nfs.path
+        value: /Users/rjghik/kubenet/nfs-pvs
+      - name: storageClass.defaultClass
+        value: true
+  - name: redis
+    namespace: default
+    chart: oci://registry-1.docker.io/bitnamicharts/redis
+    version: 17.13.2
+    set:
+      - name: replica.replicaCount
+        value: 2
 
