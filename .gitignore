@@ -5,6 +5,7 @@ auth/*.csr
 auth/*.pem
 auth/*.kubeconfig
 auth/encryption-config.yaml
+nfs-pvs/
 *.img
 *.swp
 *~

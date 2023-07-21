@@ -71,7 +71,9 @@ packages:
   - socat
   - conntrack
   - ipset
+  - nfs-common
 runcmd:
+  - modprobe br_netfilter
   - mkdir /sys/fs/cgroup/systemd
   - mount -t cgroup -o none,name=systemd cgroup /sys/fs/cgroup/systemd
 "
