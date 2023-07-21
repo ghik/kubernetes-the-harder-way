@@ -1,9 +1,0 @@
-#!/usr/bin/env zsh
-
-set -xe
-
-sudo -v
-for i in 0 1 2; do
-  sudo route -n add -net 10.200.${i}.0/24 192.168.64.2${i}
-done
-
