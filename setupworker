@@ -33,6 +33,7 @@ sudo cp containerd/bin/* /bin/
 
 hostname=$(hostname -s)
 workeridx=${hostname:6}
+pod_cidr=10.0.${workeridx}.0/24
 
 # containerd
 
