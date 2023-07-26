@@ -40,13 +40,12 @@ pod_cidr=10.0.${workeridx}.0/24
 sudo mkdir -p /etc/containerd/
 
 cat << EOF | sudo tee /etc/containerd/config.toml
-[plugins]
-  [plugins.cri.containerd]
-    snapshotter = "overlayfs"
-    [plugins.cri.containerd.default_runtime]
-      runtime_type = "io.containerd.runtime.v1.linux"
-      runtime_engine = "/usr/local/bin/runc"
-      runtime_root = ""
+version = 2
+[plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc]
+  runtime_type = "io.containerd.runc.v2"
+  [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options]
+    SystemdCgroup = true
+    BinaryName = "/usr/local/bin/runc"
 EOF
 
 cat <<EOF | sudo tee /etc/systemd/system/containerd.service
@@ -98,6 +97,7 @@ runtimeRequestTimeout: "15m"
 tlsCertFile: "/var/lib/kubelet/${hostname}.pem"
 tlsPrivateKeyFile: "/var/lib/kubelet/${hostname}-key.pem"
 containerRuntimeEndpoint: "unix:///var/run/containerd/containerd.sock"
+cgroupDriver: "systemd"
 EOF
 
 cat <<EOF | sudo tee /etc/systemd/system/kubelet.service
