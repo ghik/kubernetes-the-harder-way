@@ -1,0 +1,20 @@
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: lb-pool
+  namespace: metallb-system
+spec:
+  addresses:
+    - 192.168.64.30-192.168.64.254
+---
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: lb-l2adv
+  namespace: metallb-system
+spec:
+  ipAddressPools:
+    - lb-pool
+  interfaces:
+    - enp0s1
+

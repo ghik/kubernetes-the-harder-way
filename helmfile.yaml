@@ -5,6 +5,12 @@ repositories:
     url: https://coredns.github.io/helm
   - name: nfs-provisioner
     url: https://kubernetes-sigs.github.io/nfs-subdir-external-provisioner/
+  - name: metallb
+    url: https://metallb.github.io/metallb
+  - name: prometheus
+    url: https://prometheus-community.github.io/helm-charts
+  - name: grafana
+    url: https://grafana.github.io/helm-charts
 
 releases:
 #  - name: cilium
@@ -40,11 +46,17 @@ releases:
         value: /Users/rjghik/kubenet/nfs-pvs
       - name: storageClass.defaultClass
         value: true
+  - name: metallb
+    namespace: metallb-system
+    chart: metallb/metallb
   - name: redis
     namespace: default
     chart: oci://registry-1.docker.io/bitnamicharts/redis
     version: 17.13.2
+    needs: [kube-system/coredns, kube-system/nfs-provisioner]
     set:
+      - name: master.service.type
+        value: LoadBalancer
       - name: replica.replicaCount
         value: 2
 
