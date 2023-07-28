@@ -17,7 +17,6 @@ for i in 0 1 2; do
 done
 
 gencert kube-controller-manager-csr.json | cfssljson -bare kube-controller-manager
-gencert kube-proxy-csr.json | cfssljson -bare kube-proxy
 gencert kube-scheduler-csr.json | cfssljson -bare kube-scheduler
 gencert service-account-csr.json | cfssljson -bare service-account
 

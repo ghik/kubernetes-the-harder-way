@@ -14,12 +14,10 @@ wget -q --show-progress --https-only --timestamping \
   https://github.com/opencontainers/runc/releases/download/v${runc_version}/runc.${arch} \
   https://github.com/containerd/containerd/releases/download/v${containerd_version}/containerd-${containerd_version}-linux-${arch}.tar.gz \
   https://storage.googleapis.com/kubernetes-release/release/v${k8s_version}/bin/linux/${arch}/kubectl \
-  https://storage.googleapis.com/kubernetes-release/release/v${k8s_version}/bin/linux/${arch}/kube-proxy \
   https://storage.googleapis.com/kubernetes-release/release/v${k8s_version}/bin/linux/${arch}/kubelet
 
 sudo mkdir -p \
   /var/lib/kubelet \
-  /var/lib/kube-proxy \
   /var/lib/kubernetes \
   /var/run/kubernetes
 
@@ -27,8 +25,8 @@ mkdir -p containerd
 tar -xvf crictl-v${cri_version}-linux-${arch}.tar.gz
 tar -xvf containerd-${containerd_version}-linux-${arch}.tar.gz -C containerd
 cp runc.${arch} runc
-chmod +x crictl kubectl kube-proxy kubelet runc
-sudo cp crictl kubectl kube-proxy kubelet runc /usr/local/bin/
+chmod +x crictl kubectl kubelet runc
+sudo cp crictl kubectl kubelet runc /usr/local/bin/
 sudo cp containerd/bin/* /bin/
 
 hostname=$(hostname -s)
@@ -120,35 +118,7 @@ RestartSec=5
 WantedBy=multi-user.target
 EOF
 
-# kube-proxy
-
-sudo cp kube-proxy.kubeconfig /var/lib/kube-proxy/kubeconfig
-
-cat <<EOF | sudo tee /var/lib/kube-proxy/kube-proxy-config.yaml
-kind: KubeProxyConfiguration
-apiVersion: kubeproxy.config.k8s.io/v1alpha1
-clientConnection:
-  kubeconfig: "/var/lib/kube-proxy/kubeconfig"
-mode: "iptables"
-clusterCIDR: "10.0.0.0/8"
-EOF
-
-cat <<EOF | sudo tee /etc/systemd/system/kube-proxy.service
-[Unit]
-Description=Kubernetes Kube Proxy
-Documentation=https://github.com/kubernetes/kubernetes
-
-[Service]
-ExecStart=/usr/local/bin/kube-proxy \\
-  --config=/var/lib/kube-proxy/kube-proxy-config.yaml
-Restart=on-failure
-RestartSec=5
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
 sudo systemctl daemon-reload
-sudo systemctl enable containerd kubelet kube-proxy
-sudo systemctl start containerd kubelet kube-proxy
+sudo systemctl enable containerd kubelet
+sudo systemctl start containerd kubelet
 

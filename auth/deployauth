@@ -24,7 +24,6 @@ for inst in worker{0,1,2}; do
       "$dir/$inst.pem" \
       "$dir/$inst-key.pem" \
       "$dir/${inst}.kubeconfig" \
-      "$dir/kube-proxy.kubeconfig" \
       ubuntu@${inst}:~
 done
 

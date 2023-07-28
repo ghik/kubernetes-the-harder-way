@@ -7,10 +7,21 @@ repositories:
     url: https://kubernetes-sigs.github.io/nfs-subdir-external-provisioner/
 
 releases:
-  - name: cilium
-    namespace: kube-system
-    chart: cilium/cilium
-    version: 1.13.4
+#  - name: cilium
+#    namespace: kube-system
+#    chart: cilium/cilium
+#    version: 1.13.4
+#    set:
+#      - name: kubeProxyReplacement
+#        value: true
+#      - name: k8sServiceHost
+#        value: kubegate
+#      - name: k8sServicePort
+#        value: 6443
+#      - name: cgroup.autoMount.enabled
+#        value: false
+#      - name: cgroup.hostRoot
+#        value: /sys/fs/cgroup
   - name: coredns
     namespace: kube-system
     chart: coredns/coredns
