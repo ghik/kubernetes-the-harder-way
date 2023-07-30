@@ -9,43 +9,35 @@ repositories:
     url: https://metallb.github.io/metallb
   - name: prometheus
     url: https://prometheus-community.github.io/helm-charts
-  - name: grafana
-    url: https://grafana.github.io/helm-charts
 
 releases:
-#  - name: cilium
-#    namespace: kube-system
-#    chart: cilium/cilium
-#    version: 1.13.4
-#    set:
-#      - name: kubeProxyReplacement
-#        value: true
-#      - name: k8sServiceHost
-#        value: kubegate
-#      - name: k8sServicePort
-#        value: 6443
-#      - name: cgroup.autoMount.enabled
-#        value: false
-#      - name: cgroup.hostRoot
-#        value: /sys/fs/cgroup
+  - name: cilium
+    namespace: kube-system
+    chart: cilium/cilium
+    values:
+      - kubeProxyReplacement: true
+        k8sServiceHost: kubegate
+        k8sServicePort: 6443
+        cgroup:
+          automount:
+            enabled: false
+          hostRoot: /sys/fs/cgroup
   - name: coredns
     namespace: kube-system
     chart: coredns/coredns
-    set:
-      - name: service.clusterIP
-        value: 10.32.0.10
-      - name: replicaCount
-        value: 2
+    values:
+      - service:
+          clusterIP: 10.32.0.10
+        replicaCount: 2    
   - name: nfs-provisioner
     namespace: kube-system
     chart: nfs-provisioner/nfs-subdir-external-provisioner
-    set:
-      - name: nfs.server
-        value: 192.168.64.1
-      - name: nfs.path
-        value: /Users/rjghik/kubenet/nfs-pvs
-      - name: storageClass.defaultClass
-        value: true
+    values:
+      - nfs:
+          server: 192.168.64.1
+          path: /Users/rjghik/kubenet/nfs-pvs
+        storageClass:
+          defaultClass: true  
   - name: metallb
     namespace: metallb-system
     chart: metallb/metallb
@@ -54,9 +46,10 @@ releases:
     chart: oci://registry-1.docker.io/bitnamicharts/redis
     version: 17.13.2
     needs: [kube-system/coredns, kube-system/nfs-provisioner]
-    set:
-      - name: master.service.type
-        value: LoadBalancer
-      - name: replica.replicaCount
-        value: 2
+    values:
+      - master:
+          service:
+            type: LoadBalancer
+        replica:
+          replicaCount: 2
 
