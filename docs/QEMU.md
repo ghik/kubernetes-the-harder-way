@@ -54,13 +54,13 @@ the guest system needing additional drivers for these virtio devices. Fortunatel
 First, make sure that you have QEMU installed on your system:
 
 ```
-$ brew install qemu
+brew install qemu
 ```
 
 Now, try to run it:
 
 ```
-$ qemu-system-aarch64 \
+qemu-system-aarch64 \
     -machine virt,accel=hvf
     -cpu host
 ```
@@ -101,7 +101,7 @@ Just to see what's really going on and have full control, we will turn off these
 (monitor console and serial port, we'll ignore the parallel port). We achieve this with the following command:
 
 ```
-$ qemu-system-aarch64 \
+qemu-system-aarch64 \
     -nodefaults \
     -machine virt,accel=hvf \
     -cpu host \
@@ -133,7 +133,7 @@ In order to make our commands portable between QEMU versions, from now we'll ass
 You can automate it with this command:
 
 ```
-$ QEMU_VERSION=$(qemu-system-aarch64 --version | head -n 1 | sed "s/^QEMU emulator version //")
+QEMU_VERSION=$(qemu-system-aarch64 --version | head -n 1 | sed "s/^QEMU emulator version //")
 ```
 
 The simplest QEMU option to mount OVMF file as a BIOS/UEFI is:
@@ -154,7 +154,7 @@ version possible, but as our command grows new options, we don't want it to beco
 the shorthand:
 
 ```
-$ qemu-system-aarch64 \
+qemu-system-aarch64 \
     -nodefaults \
     -machine virt,accel=hvf \
     -cpu host \
@@ -181,13 +181,13 @@ distribution to finally have a working operating system!
 First let's make sure we have `wget` installed
 
 ```
-$ brew install wget
+brew install wget
 ```
 
 and download a Live CD image for Ubuntu Jammy:
 
 ```
-$ wget https://cdimage.ubuntu.com/jammy/daily-live/current/jammy-desktop-arm64.iso
+wget https://cdimage.ubuntu.com/jammy/daily-live/current/jammy-desktop-arm64.iso
 ```
 
 The shortest option to mount it as a CD-ROM is:
@@ -239,7 +239,7 @@ host machine.
 Ultimately we end up with this command:
 
 ```
-$ qemu-system-aarch64 \
+qemu-system-aarch64 \
     -nodefaults \
     -machine virt,accel=hvf,highmem=on \
     -cpu host \
@@ -296,7 +296,7 @@ options later, when setting up an actual Kubernetes machine.
 Unfortunately, usage of `vmnet` requires escalated privileges on Mac OS, so from now on we must run QEMU using `sudo`:
 
 ```
-$ sudo qemu-system-aarch64 \
+sudo qemu-system-aarch64 \
     -nodefaults \
     -machine virt,accel=hvf,highmem=on \
     -cpu host \
@@ -325,7 +325,7 @@ so I will not explain all the QEMU options in detail, but for the sake of comple
 our VM with support for all these devices:
 
 ```
-$ sudo qemu-system-aarch64 \
+sudo qemu-system-aarch64 \
     -nodefaults \
     -machine virt,accel=hvf,highmem=on \
     -cpu host \
@@ -362,7 +362,7 @@ in QEMU is QCOW2, which stands for _QEMU Copy On Write version 2_. We'll dive in
 file with maximum size of 128GB. This can be done with `qemu-img` utility:
 
 ```
-$ qemu-img create -f qcow2 ubuntu.img 128G
+qemu-img create -f qcow2 ubuntu.img 128G
 ```
 
 Don't worry, it won't immediately take 128GB of your disk. It grows dynamically, as more space is requested by the VM.
@@ -389,7 +389,7 @@ Unsurprisingly, this is a shorthand for something more verbose:
 And the full command:
 
 ```
-$ sudo qemu-system-aarch64 \
+sudo qemu-system-aarch64 \
     -nodefaults \
     -machine virt,accel=hvf,highmem=on \
     -cpu host \
@@ -434,7 +434,7 @@ requires some additional, automated preconfiguration (e.g. to set up remote SSH 
 Let's download a Jammy cloud image for AArch64:
 
 ```
-$ wget https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-arm64.img
+wget https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-arm64.img
 ```
 
 This file is in QCOW2 format.
@@ -456,4 +456,139 @@ machines. It also allows us to quickly reset any VM into its original state.
 
 Let's create an image backed by the Ubuntu cloud image that we just downloaded:
 
+```
+qemu-img create -F qcow2 -b jammy-server-cloudimg-arm64.img -f qcow2 ubuntu0.img 128G
+```
 
+(note: the `-F` specifies the format of the backing image while `-f` specifies the format of the image being created)
+
+### Running a headless VM
+
+Let's run the server in QEMU. This time we'll just boot the newly created image as a disk, there will be no CDROM.
+We will also strip down the VM from all graphics and peripherals. We'll also set up QEMU to run fully in terminal
+instead of a window. Ultimately, our goal is to make the VM accessible only via (properly secured) SSH and (as a last resort)
+via the serial port.
+
+The QEMU option we want is `-nographic`, which removes the window and connects VM's monitor and serial port to 
+QEMU's standard input and output. Or at least that's what would happen if we weren't overly pedantic in this tutorial 
+and didn't use `-nodefaults`... Ok, let's stop being pedantic and drop it.
+
+We end up with a much simplified command:
+
+```
+sudo qemu-system-aarch64 \
+    -nographic \
+    -machine virt,accel=hvf,highmem=on \
+    -cpu host \
+    -smp 2 \
+    -m 2G \
+    -bios /opt/homebrew/Cellar/qemu/${QEMU_VERSION}/share/qemu/edk2-aarch64-code.fd \
+    -nic vmnet-shared \
+    -hda ubuntu0.img
+```
+
+Run it and soon you should see logs of the Linux kernel starting in the terminal, followed by a login prompt:
+
+<img width="767" alt="image" src="https://github.com/ghik/kubenet/assets/1022675/d2a0cd4f-7c8d-4bc1-bf73-f80b89670f90">
+
+You can switch between serial port output and QEMU monitor console using `Ctrl`+`A` followed by `C`.
+You can also kill the VM with `Ctrl`+`A` followed by `X`. For a help on these keyboard shortcuts, use `Ctrl`+`A` followed by `H`.
+
+Yay, our system runs! Unfortunately, we can't log in. Any credentials we try to use will be rejected. We need some additional
+initialization, and we'll deal with that in the next section.
+
+### `cloud-init`
+
+A VM running a bare cloud image is inaccessible as it has no password or SSH key configured for the default user (`ubuntu`).
+They need to be injected using more "low-level" means. This is done with the [`cloud-init`](https://canonical-cloud-init.readthedocs-hosted.com/en/latest/)
+project.
+
+`cloud-init` is built into the system preinstalled on the cloud image. It is able to detect various sources of configuration in its "environment"
+(usually the cloud platform it's running in) and let itself be provisioned with this configuration. This probably sounds very vague. The exact details of how this happens
+heavily depend on the cloud platform. Usually this involves communicating with some magic IP address, reading something from kernel boot parameters or
+[SMBIOS](https://en.wikipedia.org/wiki/System_Management_BIOS), or reading the configuration from a special drive mounted to the VM.
+The `cloud-init` project refers to these methods as [datasources](https://canonical-cloud-init.readthedocs-hosted.com/en/latest/reference/datasources.html).
+
+Since we're running on a laptop, the datasource for us is called... [`nocloud`](https://canonical-cloud-init.readthedocs-hosted.com/en/latest/reference/datasources/nocloud.html).
+Using this datasource, the guest os can pull configuration from its local filesystem, a specially mounted drive, or an external web server. The drive method seems to
+be the simplest for our needs as it does not require passing any kernel or SMBIOS parameters.
+
+First, we must prepare our configuration data. It is organized in a set of YAML files which must be called 
+`user-data`, `meta-data`, `vendor-data`, and `network-config` (and possibly others which I am not aware of).
+Out of these, `user-data` and `meta-data` are required while the rest is optional. Let's put them into a directory:
+
+```
+mkdir cloud-init
+touch cloud-init/{user-data,meta-data}
+```
+
+These files can configure a multitude of things, including passwords, SSH keys, CA certificates, auto-installed packages, system configuration files, etc.
+Various settings are provided by different _modules_ - refer to the [documentation](https://canonical-cloud-init.readthedocs-hosted.com/en/latest/reference/modules.html)
+fore more details. In this section we are only interested in a minimal configuration that will allow us to log into our machine. We'll set up an initial
+password for the `ubuntu` user. We can do it by putting this setting into `user-data`:
+
+```
+#cloud-config
+password: ubuntu
+```
+
+Note: the `#cloud-config` is a magic comment that must be present at the beginning of `user-data` file to be picked up by `cloud-init`.
+
+Now we need to format a special ISO drive with these files. The drive must be labeled as `cidata` in order for `cloud-init` to recognize it.
+On Mac OS, the command to do this is `mkisofs` from `cdrtools` package. Let's install it:
+
+```
+brew install cdrtools
+```
+
+and build the ISO:
+
+```
+mkisofs -output cidata.iso -volid cidata -joliet -rock cloud-init/{user-data,meta-data}
+```
+
+Now we can plug it into the VM with a QEMU option:
+
+```
+-drive file=cidata.iso,driver=raw,if=virtio
+```
+
+But before we launch the VM, there's one more thing to remember: `cloud-init` will pick up our initialization data but
+**only during the first boot of the VM**. If we have already launched the machine (which we have), it won't work.
+We must therefore reset our VM to its initial state. We can do that simply by reformatting its image file, using the same
+command that was used to create it, i.e.
+
+```
+qemu-img create -F qcow2 -b jammy-server-cloudimg-arm64.img -f qcow2 ubuntu0.img 128G
+```
+
+This is where the QCOW2 format comes in handy - we only reset the "diff" over the original cloud image.
+
+Now we can finally launch the VM and log in as `ubuntu` with `ubuntu` password:
+
+```
+sudo qemu-system-aarch64 \
+    -nographic \
+    -machine virt,accel=hvf,highmem=on \
+    -cpu host \
+    -smp 2 \
+    -m 2G \
+    -bios /opt/homebrew/Cellar/qemu/${QEMU_VERSION}/share/qemu/edk2-aarch64-code.fd \
+    -nic vmnet-shared \
+    -hda ubuntu0.img \
+    -drive file=cidata.iso,driver=raw,if=virtio
+```
+
+After logging in, the system immediately asks for a password change:
+
+```
+Ubuntu 22.04.3 LTS ubuntu ttyAMA0
+
+ubuntu login: ubuntu
+Password:
+You are required to change your password immediately (administrator enforced).
+Changing password for ubuntu.
+Current password:
+```
+
+We do what it asks for and finally have an access to our VM.
