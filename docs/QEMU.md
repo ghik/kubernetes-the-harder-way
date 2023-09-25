@@ -6,7 +6,7 @@ In a real-world scenario, you would use some high level virtual machine manager 
 However, let's remember that we want to do things _the hard way_ in order to see the guts of all the layers involved in our endeavor.
 For this reason, we will use the most _raw_ tool possible for running our VMs: [QEMU](https://www.qemu.org/).
 
-## Introduction to QEMU
+## Introduction to QEMU and virtualization
 
 QEMU stands for _Quick Emulator_. It's an open source, command-line tool originally written by Fabrice Bellard in 2003. 
 As its name suggests, it is primarily an _emulator_.
