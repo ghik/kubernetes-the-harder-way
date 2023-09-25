@@ -23,7 +23,7 @@ non-performance-critical devices can be emulated. Actual virtualization is done 
 The standard kernel-level hypervisor for Linux is [KVM](https://en.wikipedia.org/wiki/Kernel-based_Virtual_Machine) and for macOS, it is [HVF](https://developer.apple.com/documentation/hypervisor).
 However, in order to make virtualization _fast_, a hypervisor is not enough, virtualization must also be supported by the hardware itself.
 
-Hence, behold the [hardware-assisted virtualization](https://en.wikipedia.org/wiki/Hardware-assisted_virtualization).
+Hence the [hardware-assisted virtualization](https://en.wikipedia.org/wiki/Hardware-assisted_virtualization).
 
 ### Hardware-assisted virtualization
 
@@ -79,7 +79,7 @@ You should see a window with the QEMU monitor console:
 There's not much interesting about it but it's a good opportunity to learn some basic QEMU controls. The console itself gives
 a bunch of [commands](https://en.wikibooks.org/wiki/QEMU/Monitor) for things like stopping or resuming a running VM.
 
-What might not be apparent though is that this window has other "tabs". Try hitting `Ctrl+Opt+2` or `Ctrl+Opt+3` and you should
+What might not be apparent though is that this window has other "tabs" (terminals). Try hitting `Ctrl`+`Opt`+`2` or `Ctrl`+`Opt`+`3` and you should
 see the output of serial and parallel ports. This is where we're going to see our operating system running. You can always go back to
 the monitor console with `Ctrl`+`Opt`+`1`.
 
@@ -119,7 +119,7 @@ $ qemu-system-aarch64 \
 
 ### UEFI
 
-In order to start an operating system, we are first going to need something to boot it up, i.e. a BIOS or UEFI on an emulated, readonly flash drive.
+In order to start an operating system, we are first going to need something to boot it up, i.e. a BIOS or UEFI, on an emulated, read-only flash drive.
 QEMU uses BIOS by default. However, it is obsolete and won't work on an Apple Silicon CPU. We'll need to plug in an UEFI flash drive instead.
 
 QEMU comes with bundled, open source impelementation of UEFI firmware called OVMF (Open Virtual Machine Firmware), which is a port of
@@ -129,14 +129,14 @@ proprietary Intel UEFI implementation (TianoCore). If you installed QEMU with Ho
 /opt/homebrew/Cellar/qemu/${QEMU_VERSION}/share/qemu/edk2-aarch64-code.fd
 ```
 
-In order to make our commands portable between QEMU versions, from now we'll assume that you have `QEMU_VERSION` variable is set.
+In order to make our commands portable between QEMU versions, from now we'll assume that you have `QEMU_VERSION` variable set.
 You can automate it with this command:
 
 ```
 $ QEMU_VERSION=$(qemu-system-aarch64 --version | head -n 1 | sed "s/^QEMU emulator version //")
 ```
 
-The simplest QEMU option to mount this file as a BIOS/UEFI is:
+The simplest QEMU option to mount OVMF file as a BIOS/UEFI is:
 
 ```
 -bios /opt/homebrew/Cellar/qemu/${QEMU_VERSION}/share/qemu/edk2-aarch64-code.fd
@@ -175,7 +175,7 @@ i.e. user-editable UEFI settings. Since we don't plan to modify these settings, 
 
 ## Running a Ubuntu Live CD
 
-So far we have a VM with a monitor console, serial console and a UEFI. Let's add a CDROM drive with a Live CD Ubuntu
+So far we have a VM with a monitor console, serial console and a UEFI flash drive. Let's add a CDROM drive with a Live CD Ubuntu
 distribution to finally have a working operating system!
 
 First let's make sure we have `wget` installed
@@ -215,7 +215,7 @@ But before we run the machine, we also need to give it some resources.
 By default, QEMU will allocate a very small amount of RAM (e.g. 128MB) which is certainly not enough to run an
 everyday Linux distribution.
 
-Let's give it 2GB for the start. An option for that is:
+Let's give it 2GB for a start. An option for that is:
 
 ```
 -m 2G
@@ -264,7 +264,7 @@ Log in as `ubuntu` and you're in.
 
 Congratulations! You've successfully run a Linux distribution using raw QEMU.
 
-### Adding network
+### Adding a network
 
 The machine we have built has no network access. Let's change that.
 
@@ -414,7 +414,7 @@ $ sudo qemu-system-aarch64 \
 ```
 
 Now you can install your Ubuntu on this drive. After you do that, you can remove the CDROM device and image and
-work with the system on a disk. This is what you would typically do for a desktop-like virtual machine.
+work with the system on a disk. This is what you would typically do with a desktop-like virtual machine.
 However, for our ultimate goal - a working Kubernetes deployment - we will take a different route.
 
 ## Running a cloud image
@@ -422,7 +422,7 @@ However, for our ultimate goal - a working Kubernetes deployment - we will take 
 We're done with the Live CD distribution. It was nice for playing with QEMU, but now we're taking a step back
 in order to prepare a more server-like distribution. Here's what's going to change:
 
-* instead of using a Live CD image, we will use a _cloud image_ - a disk image with preinstalled Ubuntu system
+* instead of using a Live CD image, we will use a _cloud image_
 * the server will run headless, so no graphics or peripherals
 * we will run the VM entirely in terminal (no QEMU window)
 
@@ -436,4 +436,24 @@ Let's download a Jammy cloud image for AArch64:
 ```
 $ wget https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-arm64.img
 ```
+
+This file is in QCOW2 format.
+
+### QCOW2 images
+
+As already mentioned, QCOW2 stands for _QEMU Copy On Write Version 2_. The important part of this name is _copy on write_,
+which describes a key capability of this format. It allows us to create a QCOW2 image that is _backed_ by another QCOW2 image.
+This is what it means:
+
+* the new image effectively represents a _diff_ over the backing image
+* when some data contained in the backing image is written, it is copied into the new image and only modified there
+* reading data from the new image that was never written "falls through" to the backing image
+* the backing image stays unchanged
+
+This is very useful. Since the backing image never changes, it can be used as a backing image for multiple other images
+(e.g. for multiple VMs). This allows significant space savings on the host machine if it is running multiple similar
+machines. It also allows us to quickly reset any VM into its original state.
+
+Let's create an image backed by the Ubuntu cloud image that we just downloaded:
+
 
