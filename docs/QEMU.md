@@ -510,10 +510,10 @@ heavily depend on the cloud platform. Usually this involves communicating with s
 The `cloud-init` project refers to these methods as [datasources](https://canonical-cloud-init.readthedocs-hosted.com/en/latest/reference/datasources.html).
 
 Since we're running on a laptop, the datasource for us is called... [`nocloud`](https://canonical-cloud-init.readthedocs-hosted.com/en/latest/reference/datasources/nocloud.html).
-Using this datasource, the guest os can pull configuration from its local filesystem, a specially mounted drive, or an external web server. The drive method seems to
+Using this datasource, the guest OS can pull configuration from its local filesystem, a specially mounted drive, or an external web server. The drive method seems to
 be the simplest for our needs as it does not require passing any kernel or SMBIOS parameters.
 
-First, we must prepare our configuration data. It is organized in a set of YAML files which must be called 
+First, we must prepare the configuration data. It is organized in a set of YAML files which must be called 
 `user-data`, `meta-data`, `vendor-data`, and `network-config` (and possibly others which I am not aware of).
 Out of these, `user-data` and `meta-data` are required while the rest is optional. Let's put them into a directory:
 
@@ -547,22 +547,23 @@ and build the ISO:
 mkisofs -output cidata.iso -volid cidata -joliet -rock cloud-init/{user-data,meta-data}
 ```
 
-Now we can plug it into the VM with a QEMU option:
+Now we can plug it into the VM with this QEMU option:
 
 ```
 -drive file=cidata.iso,driver=raw,if=virtio
 ```
 
-But before we launch the VM, there's one more thing to remember: `cloud-init` will pick up our initialization data but
-**only during the first boot of the VM**. If we have already launched the machine (which we have), it won't work.
-We must therefore reset our VM to its initial state. We can do that simply by reformatting its image file, using the same
+But before we launch the VM, there's one more important thing to remember: `cloud-init` picks up configuration
+**only during the first boot of the VM**. If we have already launched the machine at least once (which we have), it won't work
+and the machine will remain inaccessible for eternity.
+The only thing we can do is reset the VM to its initial state. We can do that simply by reformatting its image file, using the same
 command that was used to create it, i.e.
 
 ```
 qemu-img create -F qcow2 -b jammy-server-cloudimg-arm64.img -f qcow2 ubuntu0.img 128G
 ```
 
-This is where the QCOW2 format comes in handy - we only reset the "diff" over the original cloud image.
+This is where the QCOW2 format comes in handy - we effectively removed only the "diff" over the original cloud image.
 
 Now we can finally launch the VM and log in as `ubuntu` with `ubuntu` password:
 
@@ -591,4 +592,4 @@ Changing password for ubuntu.
 Current password:
 ```
 
-We do what it asks for and finally have an access to our VM.
+We do what it wants and we're finally in. Yay!
