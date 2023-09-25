@@ -1,3 +1,26 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [Launching VMs with QEMU](#launching-vms-with-qemu)
+  - [Introduction to QEMU and virtualization](#introduction-to-qemu-and-virtualization)
+    - [Hardware-assisted virtualization](#hardware-assisted-virtualization)
+    - [QEMU, virtualization and paravirtualization](#qemu-virtualization-and-paravirtualization)
+    - [Starting a VM with QEMU](#starting-a-vm-with-qemu)
+    - [Starting QEMU _the hard way_](#starting-qemu-_the-hard-way_)
+    - [UEFI](#uefi)
+  - [Running a Ubuntu Live CD](#running-a-ubuntu-live-cd)
+    - [Adding a network](#adding-a-network)
+    - [Graphics and peripherals](#graphics-and-peripherals)
+    - [Disk drive](#disk-drive)
+  - [Running a cloud image](#running-a-cloud-image)
+    - [The cloud image](#the-cloud-image)
+    - [QCOW2 images](#qcow2-images)
+    - [Running a headless VM](#running-a-headless-vm)
+    - [`cloud-init`](#cloud-init)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 # Launching VMs with QEMU
 
 Let's get to work and start setting up our virtual cluster.
