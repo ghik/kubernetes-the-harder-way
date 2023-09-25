@@ -29,13 +29,15 @@ Hence the [hardware-assisted virtualization](https://en.wikipedia.org/wiki/Hardw
 
 Hardware-assisted virtualization is implemented by the host CPU. The details differ between Intel/AMD, Apple Silicon and other architectures, but usually it consists of
 a set of special CPU instructions and data structures that allow the hypervisor to make the CPU aware that it is currently running a virtual machine. This way the CPU
-knows that, at certain points in execution, it needs to return the control back to the hypervisor. For example, when the VM wants to perform an IO operation, the CPU
+knows that, at certain moments (instructions), it needs to return the control back to the hypervisor. For example, when the VM wants to perform an IO operation, the CPU
 cannot simply execute it on host hardware. It must give the control back to the hypervisor so that this operation can be emulated on virtual hardware.
+
 A key part of hardware-assisted virtualization is also a [second layer of memory address translation](https://en.wikipedia.org/wiki/Second_Level_Address_Translation) which
 translates between VM's virtual memory and host's virtual memory. Without it, the hypervisor would have to translate or intercept every single memory access instruction.
 
-As a result of this hardware-level support, most of the VM code can run directly on the underlying CPU, without the need of intermediate translation.
-Naturally, this requires that the guest system be based on the same CPU architecture as the host CPU. For this reason, all the VMs used in this guide and all 
+As a result of this hardware-level support, most of the VM code can run directly on the underlying CPU, without the need of intermediate translation or inspection
+of every instruction by the hypervisor.
+Naturally, this requires that the guest system uses the same CPU architecture as the host CPU. For this reason, all the VMs used in this guide and all 
 the software they run are bound to the AArch64 architecture.
 
 ### QEMU, virtualization and paravirtualization
