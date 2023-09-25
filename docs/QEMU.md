@@ -29,6 +29,14 @@ For this reason, we will use the most _raw_ tool possible for running our VMs: [
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
+### Prerequisites
+
+In order to complete this tutorial chapter, install the following packages:
+
+```
+brew install qemu wget cdrtools
+```
+
 ## Introduction to QEMU and virtualization
 
 QEMU stands for _Quick Emulator_. It's an open source, command-line tool originally written by Fabrice Bellard in 2003. 
@@ -76,13 +84,7 @@ the guest system needing additional drivers for these virtio devices. Fortunatel
 
 ### Starting a VM with QEMU
 
-First, make sure that you have QEMU installed on your system:
-
-```
-brew install qemu
-```
-
-Now, try to run it:
+Try running QEMU with this bare-bones command:
 
 ```
 qemu-system-aarch64 \
@@ -205,13 +207,7 @@ We haven't provided any drive with an actual operating system though, so nothing
 So far we have a VM with a monitor console, serial console and a UEFI flash drive. Let's add a CDROM drive with a Live CD Ubuntu
 distribution to finally have a working operating system!
 
-First let's make sure we have `wget` installed
-
-```
-brew install wget
-```
-
-and download a Live CD image for Ubuntu Jammy:
+Let's download a Live CD image for Ubuntu Jammy:
 
 ```
 wget https://cdimage.ubuntu.com/jammy/daily-live/current/jammy-desktop-arm64.iso
@@ -567,13 +563,7 @@ password: ubuntu
 > The `#cloud-config` is a magic comment that must be present at the beginning of `user-data` file to be picked up by `cloud-init`.
 
 Now we need to format a special ISO drive with these files. The drive must be labeled as `cidata` in order for `cloud-init` to recognize it.
-On Mac OS, the command to do this is `mkisofs` from `cdrtools` package. Let's install it:
-
-```
-brew install cdrtools
-```
-
-and build the ISO:
+On Mac OS, the command to do this is `mkisofs` from `cdrtools` package. Let's build the ISO:
 
 ```
 mkisofs -output cidata.iso -volid cidata -joliet -rock cloud-init/{user-data,meta-data}
@@ -625,3 +615,22 @@ Current password:
 ```
 
 We do what it wants and we're finally in. Yay!
+
+## Summary
+
+In this chapter, we have:
+* learnt the differences between _emulation_, _virtualization_ and _paravirtualization_
+* learnt the basic principles of a _hypervisor_ and _hardware assisted_ virtualization
+* learnt how to launch QEMU and how to craft a virtual machine from its vast set of options
+* learnt how to work with VM images
+* learnt how to succesfully launch a headless cloud image and initialize it using `cloud-init`
+
+In the next chapter, we will proceed to build a multi-machine cluster in preparation for
+installing Kubernetes on it.
+
+## Resources
+
+1. [QEMU main page](https://qemu.org)
+2. [QEMU ELI5](https://medium.com/@tunacici7/qemu-eli5-part-1-introduction-957ae2f48de5) by Tuna Cici
+3. [`qemu-system-aarch64` manpage](https://manpages.debian.org/testing/qemu-system-arm/qemu-system-aarch64.1.en.html)
+4. [`cloud-init`](https://canonical-cloud-init.readthedocs-hosted.com/en/latest/index.html)
