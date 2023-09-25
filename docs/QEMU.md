@@ -15,7 +15,7 @@ For this reason, we will use the most _raw_ tool possible for running our VMs: [
     - [Hardware-assisted virtualization](#hardware-assisted-virtualization)
     - [QEMU, virtualization and paravirtualization](#qemu-virtualization-and-paravirtualization)
     - [Starting a VM with QEMU](#starting-a-vm-with-qemu)
-    - [Starting QEMU _the hard way_](#starting-qemu-_the-hard-way_)
+    - [Starting QEMU _the hard way_](#starting-qemu-the-hard-way)
     - [UEFI](#uefi)
   - [Running a Ubuntu Live CD](#running-a-ubuntu-live-cd)
     - [Adding a network](#adding-a-network)
@@ -108,7 +108,8 @@ What might not be apparent though is that this window has other "tabs" (terminal
 see the output of serial and parallel ports. This is where we're going to see our operating system running. You can always go back to
 the monitor console with `Ctrl`+`Opt`+`1`.
 
-If you click on the QEMU window, it will capture your mouse. Hit `Ctrl`+`Opt`+`G` to release it.
+> [!NOTE]
+> If you click on the QEMU window, it will capture your mouse. Hit `Ctrl`+`Opt`+`G` to release it.
 
 In order to kill the machine, type `quit` into the console, close the window or kill the process from the terminal.
 
@@ -195,8 +196,9 @@ Now if you go to the serial console (using `Ctrl`+`Opt`+`2` in the QEMU window),
 
 We haven't provided any drive with an actual operating system though, so nothing boots up and UEFI defaults to a console.
 
-Note: usually, along with the UEFI firmware itself, another, writable flash drive is mounted for UEFI _variables_,
-i.e. user-editable UEFI settings. Since we don't plan to modify these settings, we'll omit this drive.
+> [!NOTE]
+> Usually, along with the UEFI firmware itself, another, writable flash drive is mounted for UEFI _variables_,
+> i.e. user-editable UEFI settings. Since we don't plan to modify these settings, we'll omit this drive.
 
 ## Running a Ubuntu Live CD
 
@@ -255,11 +257,13 @@ This is also a good moment to explicitly assign the number of virtual CPUs to ou
 -smp 2
 ```
 
-(`smp` stands for [_symmetric multiprocessing_](https://en.wikipedia.org/wiki/Symmetric_multiprocessing))
+> [!NOTE]
+> `smp` stands for [_symmetric multiprocessing_](https://en.wikipedia.org/wiki/Symmetric_multiprocessing)
 
-Note that these CPUs do not necessarily map directly to host CPUs. There is a scheduling algorithm involved
-between the host and guest CPUs. It is even possible for a VM to have more CPUs than there are present on the
-host machine.
+> [!NOTE]
+> These CPUs do not necessarily map directly to host CPUs. There is a scheduling algorithm involved
+> between the host and guest CPUs. It is even possible for a VM to have more CPUs than there are present on the
+> host machine.
 
 Ultimately we end up with this command:
 
@@ -277,7 +281,8 @@ qemu-system-aarch64 \
     -cdrom jammy-desktop-arm64.iso
 ```
 
-If you now go to the serial console, you'll see that UEFI has picked up the new drive and detected a system on it:
+If you now go to the serial console (using `Ctrl`+`Opt`+`2` in the QEMU window), you'll see that UEFI has picked up the 
+new drive and detected a system on it:
 
 <img width="656" alt="image" src="https://github.com/ghik/kubenet/assets/1022675/6c2c22a0-7294-483b-be32-8aa75335070a">
 
@@ -485,7 +490,8 @@ Let's create an image backed by the Ubuntu cloud image that we just downloaded:
 qemu-img create -F qcow2 -b jammy-server-cloudimg-arm64.img -f qcow2 ubuntu0.img 128G
 ```
 
-(note: the `-F` specifies the format of the backing image while `-f` specifies the format of the image being created)
+> [!NOTE]
+> The `-F` specifies the format of the backing image while `-f` specifies the format of the image being created.
 
 ### Running a headless VM
 
@@ -557,7 +563,8 @@ password for the `ubuntu` user. We can do it by putting this setting into `user-
 password: ubuntu
 ```
 
-Note: the `#cloud-config` is a magic comment that must be present at the beginning of `user-data` file to be picked up by `cloud-init`.
+> [!NOTE]
+> The `#cloud-config` is a magic comment that must be present at the beginning of `user-data` file to be picked up by `cloud-init`.
 
 Now we need to format a special ISO drive with these files. The drive must be labeled as `cidata` in order for `cloud-init` to recognize it.
 On Mac OS, the command to do this is `mkisofs` from `cdrtools` package. Let's install it:
