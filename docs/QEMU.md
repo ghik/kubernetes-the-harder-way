@@ -1,3 +1,11 @@
+# Launching VMs with QEMU
+
+Let's get to work and start setting up our virtual cluster.
+
+In a real-world scenario, you would use some high level virtual machine manager like [Vagrant](https://www.vagrantup.com/) to manage your VMs.
+However, let's remember that we want to do things _the hard way_ in order to see the guts of all the layers involved in our endeavor.
+For this reason, we will use the most _raw_ tool possible for running our VMs: [QEMU](https://www.qemu.org/).
+
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
@@ -20,14 +28,6 @@
     - [`cloud-init`](#cloud-init)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
-
-# Launching VMs with QEMU
-
-Let's get to work and start setting up our virtual cluster.
-
-In a real-world scenario, you would use some high level virtual machine manager like [Vagrant](https://www.vagrantup.com/) to manage your VMs.
-However, let's remember that we want to do things _the hard way_ in order to see the guts of all the layers involved in our endeavor.
-For this reason, we will use the most _raw_ tool possible for running our VMs: [QEMU](https://www.qemu.org/).
 
 ## Introduction to QEMU and virtualization
 
