@@ -536,7 +536,7 @@ The `cloud-init` project refers to these methods as [datasources](https://canoni
 
 Since we're running on a laptop, the datasource for us is called... [`nocloud`](https://canonical-cloud-init.readthedocs-hosted.com/en/latest/reference/datasources/nocloud.html).
 Using this datasource, the guest OS can pull configuration from its local filesystem, a specially mounted drive, or an external web server. The drive method seems to
-be the simplest for our needs as it does not require passing any kernel or SMBIOS parameters.
+be the simplest for our needs as it does not require passing any kernel or SMBIOS parameters or running a web server.
 
 First, we must prepare the configuration data. It is organized in a set of YAML files which must be called 
 `user-data`, `meta-data`, `vendor-data`, and `network-config` (and possibly others which I am not aware of).
