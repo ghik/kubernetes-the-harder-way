@@ -296,15 +296,39 @@ Congratulations! You've successfully run a Linux distribution using raw QEMU.
 
 The machine we have built has no network access. Let's change that.
 
-On MacOS, we have three ways of setting up a network for the VM:
+There are several ways QEMU can emulate a network interface. They can roughly be split into two categories:
+* userspace backends - usually slow and limited but available on all host OSes
+* native backends - implemented by host OSes and their hypervisors, usually fast but OS-dependent and require escalated privileges
+
+Some of the most commonly used network backends are:
+
+* `user` is an userspace implemented network ([SLIRP](https://en.wikipedia.org/wiki/Slirp)) between the host and guest OS.
+  Allows the guest to access the guest machine to communicate with the host and provides internet access to the guest.
+  Unfortunately, guest machine is not addressable from the host machine in this mode. It also has poor performance, being implemented
+  in userspace. For these reasons we will not be using it. It is however worth mentioning because it is the default network
+  backend that QEMU sets up if we don't configure one (and provided that we don't use `-nodefaults`).
+
+* `tap` creates a virtual layer 2 network interface on the host machine connected to the guest machine. This is versatile and
+   has good performance, but generally requires root privileges. Unfortunately, Mac OS does not currently support it so we won't be able
+   to use it in this tutorial.
+
+* `bridge` connects the VM to a network bridge that needs to be previously set up on the host machine and connected to one
+  of host's native interfaces. This effectively makes the VM appear in the same network that the host machine lives in, making it
+  visible to the external world. The VM will then typically get configured by the same DHCP server as the host machine
+  (e.g. your home router). Unfortunately, this exact mode is not available on Mac OS either, but it has a Mac OS specific equivalent
+  called `vmnet-bridged`.
+
+There are many more modes which we will not cover here. We are on Mac OS, which provides three additional modes implemented
+by its `vmnet` framework:
 
 * `vmnet-host` - a host-only network that allows the guest to communicate with the host but without internet access
 * `vmnet-shared` - allows the guest to communicate with the host and provides it with internet access via NAT
-* `vmnet-bridged` - creates a layer 2 bridge between the guest and a selected host's network interface.
-   This will make the VM appear on the same physical network that the host is connected to, thus making it directly visible
-   to the "external world". Any further configuration of VM's internet access is delegated to that network (its DHCP etc.).
+* `vmnet-bridged` - just like `bridge` mode, connects the VM to a layer 2 bridge, but the bridge itself is set up automatically
 
-In this guide we'll alwayas use the shared network. Let's enable it with the following option:
+When using these modes, Mac OS also automatically configures its built-in DHCP server and starts a DNS server so that the VM
+can have a properly configured network.
+  
+In this guide we'll always use the `vmnet-shared` network backend. Let's enable it with the following option:
 
 ```
 -nic vmnet-shared
