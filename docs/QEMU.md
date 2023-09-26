@@ -518,7 +518,7 @@ qemu-img create -F qcow2 -b jammy-server-cloudimg-arm64.img -f qcow2 ubuntu0.img
 ### Running a headless VM
 
 Let's run the server in QEMU. This time we'll just boot the newly created image as a disk, there will be no CDROM.
-We will also strip down the VM from all graphics and peripherals. We'll also set up QEMU to run fully in terminal
+We will also strip down the VM from all graphics and peripherals and make QEMU run fully in terminal
 instead of a window. Ultimately, our goal is to make the VM accessible only via (properly secured) SSH and (as a last resort)
 via the serial port.
 
