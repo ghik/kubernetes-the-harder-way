@@ -1,14 +1,3 @@
-<!-- START doctoc generated TOC please keep comment here to allow auto update -->
-<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
-
-- [Introduction](#introduction)
-  - [Credits](#credits)
-  - [Deployment overview](#deployment-overview)
-  - [Hardware used](#hardware-used)
-
-<!-- END doctoc generated TOC please keep comment here to allow auto update -->
-
 # Introduction
 
 In this tutorial, I will show you how to set up a production-like Kubernetes cluster on a laptop.
@@ -21,6 +10,17 @@ as possible, this guide is probably not for you.
 In order to make this guide complete, we won't focus just on Kubernetes. We'll also look at some foundational stuff within
 Linux that makes containerization and Kubernetes possible. We'll also spend some time with some general-purpose system tools 
 that happen to be useful for installing and maintaining our deployment.
+
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [Introduction](#introduction)
+  - [Credits](#credits)
+  - [Deployment overview](#deployment-overview)
+  - [Hardware used](#hardware-used)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 ## Credits
 
@@ -58,3 +58,5 @@ The hardware that I use is a MacBook Pro M2 Max machine running macOS Ventura. T
 to the Apple Silicon CPU architecture (also known as AArch64 or ARM64). In principle however, everything I do here should be portable to Intel/AMD.
 
 Since we'll run several VMs at once, a decent amount of RAM is recommended. My machine has 64GB but 32GB should also be sufficient.
+
+Next: [Launching VMs with QEMU](QEMU.md)
