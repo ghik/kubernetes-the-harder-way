@@ -660,3 +660,5 @@ installing Kubernetes on it.
 2. [QEMU ELI5](https://medium.com/@tunacici7/qemu-eli5-part-1-introduction-957ae2f48de5) by Tuna Cici
 3. [`qemu-system-aarch64` manpage](https://manpages.debian.org/testing/qemu-system-arm/qemu-system-aarch64.1.en.html)
 4. [`cloud-init`](https://canonical-cloud-init.readthedocs-hosted.com/en/latest/index.html)
+
+Next: [Setting up a cluster of VMs](VM_Cluster.md)
