@@ -12,7 +12,7 @@ launch everything from scratch.
 
 ## Topology overview
 
-Let's remind us how we want our cluster to look like. As already laid out in the [introduction](../Introduction.md),
+Let's remind us how we want our cluster to look like. As already laid out in the [introduction](Introduction.md),
 we want 7 machines in total:
 
 * load balancer VM for the Kubernetes API, let's call it `gateway`
@@ -149,4 +149,4 @@ sudo qemu-system-aarch64 \
     -drive file=gateway/cidata.iso,driver=raw,if=virtio
 ```
 
-The machine should run and you should be able to log in, like we've done in the [previous chapter](QEMU.md).
+The machine should run and you should be able to log in, like we've done in the [previous chapter](QEMU.md#running-a-cloud-image).
