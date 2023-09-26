@@ -1,16 +1,3 @@
-<!-- START doctoc generated TOC please keep comment here to allow auto update -->
-<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
-
-- [Setting up a cluster of VMs](#setting-up-a-cluster-of-vms)
-  - [Topology overview](#topology-overview)
-  - [Preparing the environment](#preparing-the-environment)
-    - [Setting up the workplace](#setting-up-the-workplace)
-    - [VM setup script](#vm-setup-script)
-    - [Testing the VM](#testing-the-vm)
-
-<!-- END doctoc generated TOC please keep comment here to allow auto update -->
-
 # Setting up a cluster of VMs
 
 Ok, we are already decently proficient with QEMU and `cloud-init`. It's time to start building an actual cluster for
@@ -22,6 +9,18 @@ our Kubernetes deployment. Things that we'll focus on in this chapter include:
 The scripting part is especially important because it will enable iterative improvements and experiments. 
 At any moment, we'll be able to tear down everything we've launched, make some changes to the cluster setup and 
 launch everything from scratch.
+
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [Topology overview](#topology-overview)
+- [Preparing the environment](#preparing-the-environment)
+  - [Setting up the workplace](#setting-up-the-workplace)
+  - [VM setup script](#vm-setup-script)
+  - [Testing the VM](#testing-the-vm)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 ## Topology overview
 
