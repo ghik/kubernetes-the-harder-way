@@ -604,14 +604,23 @@ Now we can plug it into the VM with this QEMU option:
 But before we launch the VM, there's one more important thing to remember: `cloud-init` picks up configuration
 **only during the first boot of the VM**. If we have already launched the machine at least once (which we have), it won't work
 and the machine will remain inaccessible for eternity.
-The only thing we can do is reset the VM to its initial state. We can do that simply by reformatting its image file, using the same
-command that was used to create it, i.e.
 
-```
-qemu-img create -F qcow2 -b jammy-server-cloudimg-arm64.img -f qcow2 ubuntu0.img 128G
-```
+We can deal with this in two ways:
 
-This is where the QCOW2 format comes in handy - we effectively removed only the "diff" over the original cloud image.
+* Reset the VM to its initial state. We can do that simply by reformatting its image file, using the same
+  command that was used to create it, i.e.
+  ```
+  qemu-img create -F qcow2 -b jammy-server-cloudimg-arm64.img -f qcow2 ubuntu0.img 128G
+  ```
+  This is where the QCOW2 format comes in handy - we effectively removed only the "diff" over the original cloud image.
+
+* Provide or change `instance-id` in the `meta-data` file:
+  ```
+  instance-id: ubuntu0
+  ```
+  This ID us used by `cloud-init` to determine whether it is running during a "first boot".
+  Changing `instance-id` is like telling `cloud-init` "you are a different machine now" which makes it initialize the
+  VM from scratch.
 
 Now we can finally launch the VM and log in as `ubuntu` with `ubuntu` password:
 
