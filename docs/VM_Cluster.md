@@ -237,13 +237,13 @@ We can do this by adding the following properties to `-nic` option:
 -nic vmnet-shared,start-address=192.168.1.1,end-address=192.168.1.20,subnet-mask=255.255.255.0
 ```
 
-The host machine will always get the first address from the pool while Mac OS built-in DHCP will assign
-the rest to our VMs. However, we would like IPs of the VMs to be more predictable, preferably statically
+The host machine will always get the first address from the pool while the rest will get assigned to our VMs.
+However, we would like IPs of the VMs to be more predictable, preferably statically
 assigned. That's why we configured a very small address range (20 IPs). We can achieve fixed IPs in two ways:
 * turning off DHCP client on VMs and configuring them with static IP (via `cloud-init` configs)
 * giving VMs static MAC addresses and configuring fixed MAC->IP mapping on the DHCP server.
 
-We'll choose the second option, as it seems simpler to implement.
+We'll choose the second option, as it avoids configuring anything directly on VMs.
 
 #### DHCP server configuration
 
@@ -251,7 +251,7 @@ First, let's assign predictable MAC addresses to our VMs. This is as simple as a
 to the `-nic` QEMU option. Assuming that `vmid` shell variable contains VM ID, it would look like this:
 
 ```
--nic vmnet-shared,start-address=192.168.1.1,end-address=192.168.1.254,subnet-mask=255.255.255.0,mac=52:52:52:00:00:0$vmid
+-nic vmnet-shared,...,mac=52:52:52:00:00:0$vmid
 ```
 
 > [!NOTE]
@@ -325,7 +325,7 @@ domain=kubevms
 expand-hosts
 ```
 
-This tells the DHCP server to include a DHCP option 15 into DHCP responses. Without it,
+This tells the DHCP server to include a DHCP option 15 (domain name) into DHCP responses. Without it,
 DNS queries for unqualified hosts (e.g. `nslookup worker0`) performed by VMs would not work.
 Additionally, `expand-hosts` option allows the DNS server to append domain name to simple names
 listed in `/etc/hosts`.
@@ -352,9 +352,8 @@ ssh-keygen
 ```
 
 This will generate a keypair: private key (`~/.ssh/id_rsa`) and public key (`~/.ssh/id_rsa.pub`).
-We must now authorize the public key inside the VM by adding it to its `~/.ssh/authorized_keys` file.
-We do this via `cloud-init`. Copy the contents of your `id_rsa.pub` file and add the following entry into
-`user-data` (in `vmsetup.sh` script):
+We must now authorize the public key inside the VM by adding it to VM's `~/.ssh/authorized_keys` file.
+We do this via `cloud-init`. Add the following entry into `user-data` (in `vmsetup.sh` script):
 
 ```yaml
 ssh_authorized_keys:
