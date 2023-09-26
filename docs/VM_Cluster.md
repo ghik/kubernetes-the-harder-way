@@ -14,11 +14,18 @@ launch everything from scratch.
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
+- [Prerequisites](#prerequisites)
 - [Topology overview](#topology-overview)
 - [Preparing the environment](#preparing-the-environment)
   - [Setting up the workplace](#setting-up-the-workplace)
   - [VM setup script](#vm-setup-script)
   - [Testing the VM](#testing-the-vm)
+  - [Setting up network environment](#setting-up-network-environment)
+    - [`dnsmasq`](#dnsmasq)
+    - [Choosing an IP range](#choosing-an-ip-range)
+    - [DHCP server configuration](#dhcp-server-configuration)
+    - [DNS server configuration](#dns-server-configuration)
+  - [Remote SSH access](#remote-ssh-access)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
