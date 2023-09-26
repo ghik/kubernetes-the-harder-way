@@ -1,3 +1,16 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [Setting up a cluster of VMs](#setting-up-a-cluster-of-vms)
+  - [Topology overview](#topology-overview)
+  - [Preparing the environment](#preparing-the-environment)
+    - [Setting up the workplace](#setting-up-the-workplace)
+    - [VM setup script](#vm-setup-script)
+    - [Testing the VM](#testing-the-vm)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 # Setting up a cluster of VMs
 
 Ok, we are already decently proficient with QEMU and `cloud-init`. It's time to start building an actual cluster for
