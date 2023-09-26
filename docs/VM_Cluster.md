@@ -6,9 +6,9 @@ our Kubernetes deployment. Things that we'll focus on in this chapter include:
 * setting up proper environment for all our machines to live in (network, etc.)
 * automating VM setup and launching with shell scripts
 
-The scripting part is especially important because it will allow iterative improvements and experiments. 
-At every moment, we will be able to tear down everything we've launched, make some changes to the cluster setup and 
-quickly launch everything from scratch.
+The scripting part is especially important because it will enable iterative improvements and experiments. 
+At any moment, we'll be able to tear down everything we've launched, make some changes to the cluster setup and 
+launch everything from scratch.
 
 ## Topology overview
 
@@ -21,7 +21,7 @@ we want 7 machines in total:
 
 These names will be primarily used as VM hostnames.
 
-Additionally, let's assume an abstract numeric machine ID. This ID will come in handy in scripts when we
+Additionally, let's assign the VMs an abstract numeric ID. This ID will come in handy in scripts when we
 want to differentiate between the VMs
 
 * `gateway` has ID 0
@@ -30,7 +30,7 @@ want to differentiate between the VMs
 
 ## Preparing the environment
 
-In this subchapter we'll take care of automating everything that needs to be done befor VMs can be launched.
+In this subchapter we'll take care of automating everything that needs to be done before VMs can be launched.
 This includes preparation of image files and other necessary data, and proper network setup on the host machine.
 
 ### Setting up the workplace
@@ -69,7 +69,7 @@ id_to_name() {
 
 Let's make a `vmsetup.sh` script that will do everything necessary to launch a single VM. The initial version of this script
 will create a directory for a VM, create a QCOW2 image backed by Ubuntu cloud image, write `cloud-init` config files
-and format the `cidata.iso` image. The script will take machine ID as its sole argument.
+and format the `cidata.iso` image. The script will take machine ID as an argument.
 
 First, let's make sure we have the cloud image file in working directory. If you downloaded during the [previous part](../QEMU.md)
 of this tutorial, move or copy it into current directory. If not, download it with:
@@ -101,7 +101,7 @@ vmdir="$dir/$vmname"
 mkdir -p "$vmdir"
 
 # Prepare the VM disk image
-qcow-img create -F qcow2 -b ../jammy-server-cloudimg-arm64.img -f qcow2 "$vmdir"/disk.img 20G
+qemu-img create -F qcow2 -b ../jammy-server-cloudimg-arm64.img -f qcow2 "$vmdir"/disk.img 20G
 
 # Prepare `cloud-init` config files
 cat << EOF > "$vmdir"/user-data
