@@ -149,4 +149,4 @@ sudo qemu-system-aarch64 \
     -drive file=gateway/cidata.iso,driver=raw,if=virtio
 ```
 
-The machine should run and you should be able to log in, like we've done in the [previous chapter](../QEMU.md).
+The machine should run and you should be able to log in, like we've done in the [previous chapter](QEMU.md).
