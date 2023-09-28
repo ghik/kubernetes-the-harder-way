@@ -109,14 +109,10 @@ Now for the actual script:
 
 ```bash
 #!/usr/bin/env bash
-
-# Log every command and fail immediately if any command returns non-zero return code
 set -xe
-# Save the script's parent directory. We'll use it throughout this script in order to avoid
-# relying on working directory. This way the script is safe to run from any directory.
 dir="$(dirname $0)"
 
-# Grab our helpers
+# Grab the helpers
 source "$dir"/helpers.sh
 
 # Parse the argument
@@ -145,8 +141,10 @@ mkisofs -output "$vmdir"/cidata.iso -volid cidata -joliet -rock "$vmdir"/{user-d
 ```
 
 > [!NOTE]
-> Take note of the part that writes `user-data` and `meta-data` files. We will add more configuration
-> to these files, so this fragment will need to be modified as you progress through this chapter.
+> * `set -e` makes sure that the script fails immediately if any command returns a non-zero exit status
+> * `set -x` causes every command to be logged on standard output, making it easier for us to see what's going on
+> * `dir="$(dirname $0)"` saves the script's parent directory to a variable - we use it to make the script
+>    independent of working directory
 
 Let's give it proper permissions and run it for the `gateway` VM:
 
@@ -154,6 +152,13 @@ Let's give it proper permissions and run it for the `gateway` VM:
 chmod u+x vmsetup.sh
 ./vmsetup.sh 0
 ```
+
+For the next couple of sections we'll be using this VM to test everything we add to our setup
+(we'll launch a full cluster a bit later).
+
+> [!NOTE]
+> Take note of the part that writes `user-data` and `meta-data` files. We will add more configuration
+> to these files, so this fragment will be extended multiple times as we progress through this guide.
 
 ### Testing the VM
 
@@ -336,13 +341,65 @@ Don't forget to restart `dnsmasq` after modifying its configuration:
 sudo brew services restart dnsmasq
 ```
 
+#### Testing the network setup
+
+Let's run the VM to see if all that network setup works. Use the same QEMU command as in [before](#testing-the-vm).
+
+Run `ip addr show enp0s1` on the VM to see if it got the right IP:
+
+```
+ubuntu@gateway:~$ ip addr show enp0s1
+2: enp0s1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 52:52:52:00:00:00 brd ff:ff:ff:ff:ff:ff
+    inet 192.168.1.10/24 metric 100 brd 192.168.1.255 scope global dynamic enp0s1
+       valid_lft 23542sec preferred_lft 23542sec
+    inet6 fd33:42e1:ab3f:c1b5:5052:52ff:fe00:0/64 scope global dynamic mngtmpaddr noprefixroute
+       valid_lft 2591949sec preferred_lft 604749sec
+    inet6 fe80::5052:52ff:fe00:0/64 scope link
+       valid_lft forever preferred_lft forever
+```
+
+Run `ip route show` to see if the VM got the right default gateway:
+
+```
+ubuntu@gateway:~$ ip route show
+default via 192.168.1.1 dev enp0s1 proto dhcp src 192.168.1.10 metric 100
+192.168.1.0/24 dev enp0s1 proto kernel scope link src 192.168.1.10 metric 100
+192.168.1.1 dev enp0s1 proto dhcp scope link src 192.168.1.10 metric 100
+```
+
+Finally, let's validate the DNS configuration with `resolvectl status`:
+
+```
+ubuntu@gateway:~$ resolvectl status
+Global
+       Protocols: -LLMNR -mDNS -DNSOverTLS DNSSEC=no/unsupported
+resolv.conf mode: stub
+
+Link 2 (enp0s1)
+    Current Scopes: DNS
+         Protocols: +DefaultRoute +LLMNR -mDNS -DNSOverTLS DNSSEC=no/unsupported
+Current DNS Server: 192.168.1.1
+       DNS Servers: 192.168.1.1 fe80::5ce9:1eff:fe18:5b64%65535
+        DNS Domain: kubevms
+```
+
+You can also test DNS resolution with `resolvectl query` (or other like `nslookup`, `dig`, etc.)
+
+```
+ubuntu@gateway:~$ resolvectl query worker0
+worker0: 192.168.1.14                          -- link: enp0s1
+         (worker0.kubevms)
+```
+
 ### Remote SSH access
 
 The network is set up, VMs have nice, stable IP addresses and domain names.
+Now we would like to be able to log into them remotely via SSH.
 
-This allows us to set up remote access via SSH. A VM running from cloud image already has SSH server
-up and running. However, it's configured to reject login-based attempts. In order to be able to log in
-with ssh, we must authenticate using a public key.
+A VM running from cloud image already has an SSH server up and running. 
+However, it is configured to reject login-based attempts. We must authenticate using a public key,
+which must be preconfigured on the VM.
 
 On your host machine, if you don't already have an SSH key (see if you have an `~/.ssh/id_rsa.pub` 
 or a similar file ending with `.pub`), you can generate it using:
@@ -351,12 +408,97 @@ or a similar file ending with `.pub`), you can generate it using:
 ssh-keygen
 ```
 
-This will generate a keypair: private key (`~/.ssh/id_rsa`) and public key (`~/.ssh/id_rsa.pub`).
+This will generate a keypair: a private key (`~/.ssh/id_rsa`) and a public key (`~/.ssh/id_rsa.pub`).
 We must now authorize the public key inside the VM by adding it to VM's `~/.ssh/authorized_keys` file.
-We do this via `cloud-init`. Add the following entry into `user-data` (in `vmsetup.sh` script):
+
+If you're already running the VM, you can do this manually: just append the contents of your 
+`~/.ssh/id_rsa.pub` file to the VM's `~/.ssh/authorized_keys` file (create it if it doesn't exist).
+
+We'll also automate it with `cloud-init`. Add the following entry into `user-data` (in `vmsetup.sh` script):
 
 ```yaml
 ssh_authorized_keys:
   - $(cat ~/.ssh/id_rsa.pub)
 ```
 
+> [!WARNING]
+> Remember that any changes in `cloud-init` configs require resetting the VM state (reformatting its disk image)
+> or changing the `instance-id` in order to take effect.
+
+#### Automating establishment of VM's authenticity
+
+Run your VM and try connecting with SSH. You'll be asked if you trust this VM:
+
+```
+$ ssh ubuntu@gateway
+The authenticity of host 'gateway (192.168.1.10)' can't be established.
+ED25519 key fingerprint is SHA256:1ee+avZjtffo7DbiKq3xds1AqK6So0ezcBLYwd09iUw.
+This key is not known by any other names
+Are you sure you want to continue connecting (yes/no/[fingerprint])?
+```
+
+You can say `yes` and VM's key will be added to `.ssh/known_hosts` on the host machine, and from on now
+you'll be able to log in without any hassle. Unfortunately, if you reset your VM and run it again, you'll
+see something less pleasant upon SSH connection attempt:
+
+```
+$ ssh ubuntu@gateway
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@    WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!     @
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+IT IS POSSIBLE THAT SOMEONE IS DOING SOMETHING NASTY!
+Someone could be eavesdropping on you right now (man-in-the-middle attack)!
+It is also possible that a host key has just been changed.
+The fingerprint for the ED25519 key sent by the remote host is
+SHA256:rG8nVZF97bvhXD0ck5FOh6PC06bm4FpDdTmz0tEZyYo.
+Please contact your system administrator.
+Add correct host key in /Users/rjghik/.ssh/known_hosts to get rid of this message.
+Offending ECDSA key in /Users/rjghik/.ssh/known_hosts:12
+Host key for gateway has changed and you have requested strict checking.
+Host key verification failed.
+```
+
+In order to get rid of that, you'll need to remove stale entries for this machine from
+your `~/.ssh/known_hosts` file.
+
+Let's automate all this with a script, `vmsshsetup.sh`:
+
+```bash
+#!/usr/bin/env bash
+set -xe
+dir="$(dirname $0)"
+
+# Grab the helpers
+source "$dir"/helpers.sh
+
+# Parse the argument (VM ID)
+vmid=$1
+vmname=$(id_to_name $vmid)
+
+# Wait until the VM is ready to accept SSH connections
+until nc -zG120 $vmname 22; do sleep 1; done
+
+# Remove any stale entries for this VM from known_hosts
+sed -i.bak "/^$vmname/d" ~/.ssh/known_hosts
+rm ~/.ssh/known_hosts.bak
+
+# Add new entries for this VM to known_hosts
+ssh-keyscan $vmname 2> /dev/null >> ~/.ssh/known_hosts
+```
+
+> [!WARNING]
+> There are [differences](https://unix.stackexchange.com/questions/13711/differences-between-sed-on-mac-osx-and-other-standard-sed)
+> between `sed` implementations for various Unix platforms. The `sed` invocation from this script is for Mac OS and may not
+> work on Linux.
+
+Let's break it down:
+
+1. Just like `vmsetup.sh`, `vmsshsetup.sh` takes VM ID as an argument.
+2. The script waits until the VM is able to accept SSH connections.
+   This is useful if you want to run this script immediately before of after launching the VM.
+3. The script removes entries from any previous runs of this VM from the `known_hosts` file.
+4. Using `ssh-keyscan`, the script grabs VM's SSH keys and makes them trusted by adding them
+   to the `known_hosts` file.
+
+Don't forget to give the script executable permissions and run it with `./vmsshsetup 0` (make sure the VM is running).
+Et voilà! You can now SSH into your VM without any trouble.
