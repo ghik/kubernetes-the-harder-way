@@ -521,7 +521,7 @@ Et voilà! You can now SSH into your VM without any trouble.
 
 ## Launching the cluster
 
-Let's get to finally launching **all** the VMs at once.
+Let's get to finally launching the whole cluster of VMs.
 
 ### Granting resources
 
@@ -580,3 +580,13 @@ qemu-system-aarch64 \
     -hda "$vmdir/disk.img" \
     -drive file="$vmdir/cidata.iso",driver=raw,if=virtio
 ```
+
+Give it appropriate permissions and test it on the `gateway` VM. Don't forget the `sudo`:
+
+```
+chmod u+x vmlaunch.sh
+sudo ./vmlaunch.sh 0
+```
+
+### TMUX
+
