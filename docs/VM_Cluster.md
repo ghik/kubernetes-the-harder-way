@@ -124,7 +124,7 @@ vmdir="$dir/$vmname"
 mkdir -p "$vmdir"
 
 # Prepare the VM disk image
-qemu-img create -F qcow2 -b ../jammy-server-cloudimg-arm64.img -f qcow2 "$vmdir"/disk.img 20G
+qemu-img create -F qcow2 -b ../jammy-server-cloudimg-arm64.img -f qcow2 "$vmdir/disk.img" 20G
 
 # Prepare `cloud-init` config files
 cat << EOF > "$vmdir/user-data"
@@ -170,7 +170,7 @@ QEMU_VERSION=$(qemu-system-aarch64 --version | head -n 1 | sed "s/^QEMU emulator
 cp /opt/homebrew/Cellar/qemu/${QEMU_VERSION}/share/qemu/edk2-aarch64-code.fd OVMF.fd
 ```
 
-Let's launch the VM:
+Let's launch the `gateway` VM:
 
 ```bash
 sudo qemu-system-aarch64 \
@@ -526,10 +526,10 @@ Let's get to finally launching **all** the VMs at once.
 ### Granting resources
 
 So far we have been using 2 virtual CPUs and 2GB of RAM when launching a VM for testing. Let's decide properly how much
-resources every VM gets, corresponding to its purpose:
+resources every VM gets, based on its purpose:
 
-* the `gateway` and `control` VM need less resources so we give them 2 vCPUs and 2GB of RAM
-* `worker` nodes need more power and space - let's give them 4 vCPUs and 8GB of RAM
+* the `gateway` and `control` VM don't do heavy work so we give them 2 vCPUs and 2GB of RAM
+* `worker` nodes need more muscle - let's give them 4 vCPUs and 8GB of RAM
 
 This amounts to a total of 32GB of RAM for all the VMs. If you don't have this much free RAM of your host machine, you can
 reduce the amount of RAM given to worker nodes.
@@ -564,6 +564,9 @@ case "$vmname" in
     ;;
 esac
 
+# Compute the MAC address
+mac="52:52:52:00:00:0$vmid"
+
 # Launch the VM
 qemu_version=$(qemu-system-aarch64 --version | head -n 1 | sed "s/^QEMU emulator version //")
 qemu-system-aarch64 \
@@ -573,7 +576,7 @@ qemu-system-aarch64 \
     -smp $vcpus \
     -m $memory \
     -bios "/opt/homebrew/Cellar/qemu/$qemu_version/share/qemu/edk2-aarch64-code.fd" \
-    -nic vmnet-shared,start-address=192.168.1.1,end-address=192.168.1.20,subnet-mask=255.255.255.0,mac=52:52:52:00:00:0$vmid \
+    -nic vmnet-shared,start-address=192.168.1.1,end-address=192.168.1.20,subnet-mask=255.255.255.0,mac=$mac \
     -hda "$vmdir/disk.img" \
     -drive file="$vmdir/cidata.iso",driver=raw,if=virtio
 ```
