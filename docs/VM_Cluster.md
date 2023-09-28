@@ -113,7 +113,7 @@ set -xe
 dir="$(dirname $0)"
 
 # Grab the helpers
-source "$dir"/helpers.sh
+source "$dir/helpers.sh"
 
 # Parse the argument
 vmid=$1
@@ -127,17 +127,17 @@ mkdir -p "$vmdir"
 qemu-img create -F qcow2 -b ../jammy-server-cloudimg-arm64.img -f qcow2 "$vmdir"/disk.img 20G
 
 # Prepare `cloud-init` config files
-cat << EOF > "$vmdir"/user-data
+cat << EOF > "$vmdir/user-data"
 #cloud-config
 password: ubuntu
 EOF
 
-cat << EOF > "$vmdir"/meta-data
+cat << EOF > "$vmdir/meta-data"
 instance-id: $vmname
 EOF
 
 # Build the `cloud-init` ISO
-mkisofs -output "$vmdir"/cidata.iso -volid cidata -joliet -rock "$vmdir"/{user-data,meta-data}
+mkisofs -output "$vmdir/cidata.iso" -volid cidata -joliet -rock "$vmdir"/{user-data,meta-data}
 ```
 
 > [!NOTE]
@@ -259,10 +259,12 @@ to the `-nic` QEMU option. Assuming that `vmid` shell variable contains VM ID, i
 -nic vmnet-shared,...,mac=52:52:52:00:00:0$vmid
 ```
 
-> [!NOTE]
-> This is OK as long as `$vmid` is always a single-digit ID.
-
 In other words, our machines will get MACs in the range `52:52:52:00:00:00` to `52:52:52:00:00:06`.
+
+> [!NOTE]
+> This is OK as long as `$vmid` is always a single-digit ID. If you want this to be more bulletproof
+> (prepared for more than 10 VMs), you can use something like `$(printf "%02x\n" $vmid)` as the last
+> byte of the MAC address.
 
 Now it's time to configure `dnsmasq`'s DHCP server:
 * configure a DHCP address range (the same as in QEMU option)
@@ -343,7 +345,20 @@ sudo brew services restart dnsmasq
 
 #### Testing the network setup
 
-Let's run the VM to see if all that network setup works. Use the same QEMU command as in [before](#testing-the-vm).
+Let's run the VM to see if all that network setup works:
+
+```
+sudo qemu-system-aarch64 \
+    -nographic \
+    -machine virt,accel=hvf,highmem=on \
+    -cpu host \
+    -smp 2 \
+    -m 2G \
+    -bios OVMF.fd \
+    -nic vmnet-shared,start-address=192.168.1.1,end-address=192.168.1.20,subnet-mask=255.255.255.0,mac=52:52:52:00:00:00 \
+    -hda gateway/disk.img \
+    -drive file=gateway/cidata.iso,driver=raw,if=virtio
+```
 
 Run `ip addr show enp0s1` on the VM to see if it got the right IP:
 
@@ -469,7 +484,7 @@ set -xe
 dir="$(dirname $0)"
 
 # Grab the helpers
-source "$dir"/helpers.sh
+source "$dir/helpers.sh"
 
 # Parse the argument (VM ID)
 vmid=$1
@@ -503,3 +518,62 @@ Let's break it down:
 Don't forget to give the script executable permissions and run it with `./vmsshsetup 0` (make sure the VM is running).
 
 Et voilà! You can now SSH into your VM without any trouble.
+
+## Launching the cluster
+
+Let's get to finally launching **all** the VMs at once.
+
+### Granting resources
+
+So far we have been using 2 virtual CPUs and 2GB of RAM when launching a VM for testing. Let's decide properly how much
+resources every VM gets, corresponding to its purpose:
+
+* the `gateway` and `control` VM need less resources so we give them 2 vCPUs and 2GB of RAM
+* `worker` nodes need more power and space - let's give them 4 vCPUs and 8GB of RAM
+
+This amounts to a total of 32GB of RAM for all the VMs. If you don't have this much free RAM of your host machine, you can
+reduce the amount of RAM given to worker nodes.
+
+### VM launching script
+
+Let's automate launching the VM with a `vmlaunch.sh` script. 
+Just like the previous scripts, it takes VM ID as an argument.
+
+```bash
+#!/usr/bin/env bash
+set -xe
+dir="$(dirname $0)"
+
+# Grab the helpers
+source "$dir/helpers.sh"
+
+# Parse the argument (VM ID)
+vmid=$1
+vmname=$(id_to_name $vmid)
+vmdir="$dir/$vmname"
+
+# Assign resources
+case "$vmname" in
+  gateway|control*)
+    vcpus=2
+    memory=2G
+    ;;
+  worker*)
+    vcpus=4
+    memory=8G
+    ;;
+esac
+
+# Launch the VM
+qemu_version=$(qemu-system-aarch64 --version | head -n 1 | sed "s/^QEMU emulator version //")
+qemu-system-aarch64 \
+    -nographic \
+    -machine virt,accel=hvf,highmem=on \
+    -cpu host \
+    -smp $vcpus \
+    -m $memory \
+    -bios "/opt/homebrew/Cellar/qemu/$qemu_version/share/qemu/edk2-aarch64-code.fd" \
+    -nic vmnet-shared,start-address=192.168.1.1,end-address=192.168.1.20,subnet-mask=255.255.255.0,mac=52:52:52:00:00:0$vmid \
+    -hda "$vmdir/disk.img" \
+    -drive file="$vmdir/cidata.iso",driver=raw,if=virtio
+```
