@@ -625,7 +625,7 @@ More specifically, `tmux` will give us the fillowing powers:
 * to execute something simultaneously in multiple shells (i.e. on multiple VMs)
 
 This subchapter is intented for people that have never worked with `tmux` (or very little). If you're not one of these
-people, feel free to skip it.
+people, feel free to skip it and go straight to [launching the cluster](#launching-a-cluster-of-vms-in-tmux).
 
 #### Basic `tmux` controls
 
@@ -646,12 +646,12 @@ A session initially has a single window with a single pane running a new shell.
 
 #### Commands and shortcuts
 
-`tmux` can be contolled with a multitude of commands and configuration options it offers (much like, for example, `vim`).
+`tmux` can be contolled with a multitude of commands and configuration options (much like, for example, `vim`).
 These commands can be issued internally (from within a session) or externally (from any terminal).
 
 In order to execute a command from within a session, hit `Ctrl`+`b`, then
 type a colon (`:`) followed by the command itself. For example, `Ctrl`+`b`, `:new-window` creates a new window.
-You can see the new window listed in the status bar:
+You can see it in the status bar:
 
 <img width="532" alt="image" src="https://github.com/ghik/kubenet/assets/1022675/e5e3582b-e6fa-4645-a39c-38dc08e14726">
 
@@ -660,10 +660,10 @@ between windows is to use `:next-window` and `:previous-window` commands.
 
 Typing commands just to navigate between windows and panes would be very tedious. Not surprisingly, many commands
 have a built-in keyboard shortcut. For example, `:next-window` and `:previous-window` command have corresponding
-`Ctrl`+`b`,`n` and `Ctrl`+`b`,`p` shortcuts. You can also use `Ctrl`+`b`,<number> to select windows by numbers.
+`Ctrl`+`b`,`n` and `Ctrl`+`b`,`p` shortcuts. You can also use `Ctrl`+`b`,\<number\> to select windows by numbers.
 
 > [!NOTE]
-> `Ctrl`+`b` is called the _prefix_ and it precedes every keyboard shortcut.
+> `Ctrl`+`b` is called a _prefix_ and it precedes every keyboard shortcut.
 
 There are several online resources you can use to explore the vastness of `tmux` capabilities.
 For example, [here's a cheatsheet](https://tmuxcheatsheet.com/) with the most essential shortcuts.
@@ -676,9 +676,9 @@ side by side.
 <img width="532" alt="image" src="https://github.com/ghik/kubenet/assets/1022675/adc7ddd1-1012-4c38-a8e9-e38148138b7e">
 
 Do it multiple times to create more panes. You can then move and resize panes, using plethora of commands and
-shortcuts offered by `tmux`. However, chances are you'll be happy with one of common layouts offered by `tmux`.
-Hit `Ctrl`+`B`,`spacebar` multiple times to switch between layouts (e.g. all vertical, all horizontal, mixed, etc.).
-This is the easiest way to evenly split available space between panes.
+shortcuts. However, chances are you'll be happy with one the built-in layouts.
+Hit `Ctrl`+`B`,`spacebar` multiple times to switch between them (e.g. all vertical, all horizontal, mixed, etc.).
+It's an easy way to evenly split available space between panes.
 
 Switching between panes can also be done in multiple ways. For example, if you hit `Ctrl`+`b`,`q`, pane numbers will 
 be temporarily highlighted. While they are highlighted, hit the desired pane number in order to switch to it.
@@ -687,12 +687,12 @@ A very useful shortcut to focus on a particular pane is `Ctrl`+`b`,`z` (zoom), w
 temporarily enter "fullscreen". The same shortcut is used to toggle the zoom off.
 
 Finally, the command that makes `tmux` stand for its name is `:setw synchronize-panes`. It causes all keystrokes to
-be sent to **all panes** in the current window, simultaneously. The same command toggles the synchronization off. 
+be sent to **all the panes** in the current window. The same command toggles the synchronization off. 
 When panes are synchronized, current panel highlight color changes from green to red:
 
 <img width="532" alt="image" src="https://github.com/ghik/kubenet/assets/1022675/380c3cd1-6f27-4244-81f4-b368c01f3379">
 
-This will be very useful for us - we will be able to configure multiple VMs at once using this feature.
+We'll find this very useful, as it will assist us with configuring multiple VMs at once.
 
 #### Configuration and customization
 
@@ -707,7 +707,8 @@ set -g mouse on
 bind C-s setw synchronize-panes
 ```
 
-The first one makes it possible to switch panes with mouse clicks (just like you switch active windows in a graphical UI).
+The first one enables mouse mode and makes `tmux` behave more like a graphical application. For example, we can now switch panes
+with mouse clicks.
 The second one assigns a keyboard shortcut (`Ctrl`+`b`, `Ctrl`+`s`) to `:setw synchronize-panes` command, which - unfortunately -
 does not have a built-in shortcut.
 
@@ -738,7 +739,7 @@ tmux split-window -v -t sesname
 
 We now know enough about `tmux` to use it for our goal: launch all the VMs and connect to them with SSH.
 
-We'll launch a tmux session and create 4 separate windows:
+We'll launch a `tmux` session and create four windows in it:
 * a window for launching the VMs with `vmlaunch.sh` (7 panes)
 * a window for an SSH connection to the `gateway` VM
 * a window for SSH connections to `control` VMs (3 panes)
@@ -799,11 +800,11 @@ vm_ssh() {
   tmux send-keys -t "$sname" 'ssh ubuntu@$vmname' C-m
 }
 
-# Create a window for SSH connection to `gateway` and connects to it
+# Create a window for SSH connection to `gateway` and connect to it
 tmux new-window -t "$sname" -n ssh-gateway
 vm_ssh 0
 
-# Create a window for SSH connections to `control` VMs and connects to them
+# Create a window for SSH connections to `control` VMs and connect to them
 tmux new-window -t "$sname" -n ssh-controls
 for vmid in $(seq 1 3); do
   vm_ssh $vmid
@@ -813,7 +814,7 @@ for vmid in $(seq 1 3); do
 done
 tmux select-layout -t "$sname" even-vertical
 
-# Create a window for SSH connections to `worker` VMs and connects to them
+# Create a window for SSH connections to `worker` VMs and connect to them
 tmux new-window -t "$sname" -n ssh-workers
 for vmid in $(seq 4 6); do
   vm_ssh $vmid
@@ -857,7 +858,7 @@ After all the VMs have successfully launched, you should see something like this
 
 If you switch to other windows, you should see already logged-in SSH shells to your VMs.
 
-And this is it! After much learning and scripting, the cluster is finally running 🎉
+And this is it! After much learning and scripting, the cluster of VMs is finally running 🎉
 
 ## Summary
 
