@@ -414,7 +414,7 @@ We must now authorize the public key inside the VM by adding it to VM's `~/.ssh/
 If you're already running the VM, you can do this manually: just append the contents of your 
 `~/.ssh/id_rsa.pub` file to the VM's `~/.ssh/authorized_keys` file (create it if it doesn't exist).
 
-We'll also automate it with `cloud-init`. Add the following entry into `user-data` (in `vmsetup.sh` script):
+We'll also automate it with `cloud-init`. Add the following entry to `user-data` (in `vmsetup.sh` script):
 
 ```yaml
 ssh_authorized_keys:
@@ -501,4 +501,5 @@ Let's break it down:
    to the `known_hosts` file.
 
 Don't forget to give the script executable permissions and run it with `./vmsshsetup 0` (make sure the VM is running).
+
 Et voilà! You can now SSH into your VM without any trouble.
