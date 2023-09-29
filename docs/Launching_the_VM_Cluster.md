@@ -45,8 +45,8 @@ the amount of RAM granted to workers.
 
 ## VM launching script
 
-Let's automate launching the VM with a `vmlaunch.sh` script. 
-Just like the previous scripts, it takes VM ID as an argument.
+Let's automate launching a single VM with a `vmlaunch.sh` script.
+The script takes VM ID as an argument.
 
 ```bash
 #!/usr/bin/env bash
@@ -99,9 +99,10 @@ sudo ./vmlaunch.sh 0
 
 ## `tmux` crash course
 
-We're about to launch multiple VMs at once, using purely command line tools. In order to make this more
-manageable, we'll learn to use [`tmux`](https://github.com/tmux/tmux/wiki).
+We're about to launch multiple VMs at once, using pure command line tools. In order to make this more
+manageable, we'll use [`tmux`](https://github.com/tmux/tmux/wiki).
 
+Quoting the `tmux` wiki:
 > tmux is a terminal multiplexer. It lets you switch easily between several programs in one terminal,
 > detach them (they keep running in the background) and reattach them to a different terminal.
 
@@ -111,7 +112,7 @@ More specifically, `tmux` will give us the fillowing powers:
 * to execute something simultaneously in multiple shells (i.e. on multiple VMs)
 
 This subchapter is intented for people that have never worked with `tmux` (or very little). If you're not one of these
-people, feel free to skip it.
+people, feel free to skip it and go straight to [using `tmux` to launch the cluster](#using-tmux-to-launch-and-connect-to-the-cluster).
 
 ### Basic `tmux` controls
 
@@ -132,7 +133,7 @@ A session initially has a single window with a single pane running a new shell.
 
 ### Commands and shortcuts
 
-`tmux` can be contolled with a multitude of commands and configuration options it offers (much like, for example, `vim`).
+`tmux` can be contolled with a multitude of commands and configuration options (much like, for example, `vim`).
 These commands can be issued internally (from within a session) or externally (from any terminal).
 
 In order to execute a command from within a session, hit `Ctrl`+`b`, then
@@ -141,12 +142,12 @@ You can see the new window listed in the status bar:
 
 <img width="532" alt="image" src="https://github.com/ghik/kubenet/assets/1022675/e5e3582b-e6fa-4645-a39c-38dc08e14726">
 
-The asterisk `*` indicates that we automatically switched to the newly created window. One of many ways to switch
+The asterisk (`*`) indicates the active window (the newly created one). One of many ways to switch
 between windows is to use `:next-window` and `:previous-window` commands.
 
 Typing commands just to navigate between windows and panes would be very tedious. Not surprisingly, many commands
 have a built-in keyboard shortcut. For example, `:next-window` and `:previous-window` command have corresponding
-`Ctrl`+`b`,`n` and `Ctrl`+`b`,`p` shortcuts. You can also use `Ctrl`+`b`,<number> to select windows by numbers.
+`Ctrl`+`b`,`n` and `Ctrl`+`b`,`p` shortcuts. You can also use `Ctrl`+`b`,\<window-number\> to switch windows by numbers.
 
 > [!NOTE]
 > `Ctrl`+`b` is called the _prefix_ and it precedes every keyboard shortcut.
@@ -162,15 +163,15 @@ side by side.
 <img width="532" alt="image" src="https://github.com/ghik/kubenet/assets/1022675/adc7ddd1-1012-4c38-a8e9-e38148138b7e">
 
 Do it multiple times to create more panes. You can then move and resize panes, using plethora of commands and
-shortcuts offered by `tmux`. However, chances are you'll be happy with one of common layouts offered by `tmux`.
-Hit `Ctrl`+`B`,`spacebar` multiple times to switch between layouts (e.g. all vertical, all horizontal, mixed, etc.).
-This is the easiest way to evenly split available space between panes.
+shortcuts offered by `tmux`. However, chances are you'll be happy with of the built-in layouts.
+Hit `Ctrl`+`B`,`spacebar` multiple times to switch between them (e.g. all vertical, all horizontal, mixed, etc.).
+This is an easy way to evenly split available space between panes.
 
 Switching between panes can also be done in multiple ways. For example, if you hit `Ctrl`+`b`,`q`, pane numbers will 
 be temporarily highlighted. While they are highlighted, hit the desired pane number in order to switch to it.
 
-A very useful shortcut to focus on a particular pane is `Ctrl`+`b`,`z` (zoom), which causes the current pane to 
-temporarily enter "fullscreen". The same shortcut is used to toggle the zoom off.
+Here's a command that's very useful when you want to focus on a single pane: `Ctrl`+`b`,`z` (zoom). 
+It causes the current pane to temporarily enter "fullscreen". The same shortcut is used to toggle the zoom off.
 
 Finally, the command that makes `tmux` stand for its name is `:setw synchronize-panes`. It causes all keystrokes to
 be sent to **all panes** in the current window, simultaneously. The same command toggles the synchronization off. 
@@ -193,14 +194,15 @@ set -g mouse on
 bind C-s setw synchronize-panes
 ```
 
-The first one makes it possible to switch panes with mouse clicks (just like you switch active windows in a graphical UI).
+The first one enables mouse mode, which makes `tmux` behave much more like a normal graphical program. For example, it enables
+you to switch windows and panes with mouse clicks.
 The second one assigns a keyboard shortcut (`Ctrl`+`b`, `Ctrl`+`s`) to `:setw synchronize-panes` command, which - unfortunately -
-does not have a built-in shortcut.
+does not have a built-in one.
 
 ### Detaching and attaching
 
 A running `tmux` session can be detached from current terminal and brought into background. The shortcut is `Ctrl`+`b`,`d`.
-You can then reattach it to any other terminal using the command:
+You can then reattach it to any terminal using the command:
 
 ```
 tmux attach -t sesname
@@ -214,7 +216,7 @@ As mentioned earlier, `tmux` can be controlled from outside. You can send comman
 This works even if a `tmux` session is detached, and it allows us to fully automate interactions. For example, we can write
 a script that creates a session with 3 windows, splits each into 4 separate panes, and applies a particular layout to them.
 
-Here's an example of a command sent to a running `tmux` session from outside:
+Here's an example of a command being sent to a running `tmux` session from outside:
 
 ```
 tmux split-window -v -t sesname
@@ -234,10 +236,10 @@ We'll launch 2 tmux sessions:
 
 The reason why we're splitting SSH connections into 3 separate windows is because we're going to do different
 things with these three types of VMs. Therefore, we would usually send commands simultaneously to all VMs in
-each of these groups. We can achieve that with pane synchronization separately in each window.
+**each** of these groups, independently. We can achieve that with pane synchronization separately in each window.
 
 > [!NOTE]
-> We must launch two separate sessions because:
+> We must also launch two separate sessions because:
 > * launching VMs requires elevated privileges while SSH must be invoked by the current user
 > * the VMs (QEMU) should rarely require interaction, so the QEMU session may run in detached mode
 >   while the SSH session can be launched independently
@@ -303,7 +305,7 @@ Ultimately, you should see something like this:
 
 Detach with `Ctrl`+`b`,`d`.
 
-You can kill the session with:
+You can also kill the session (along with all the VMs) using:
 
 ```bash
 sudo tmux kill-session -t kubenet-qemu
@@ -311,7 +313,7 @@ sudo tmux kill-session -t kubenet-qemu
 
 ### Connecting with SSH
 
-The second script, `vmsshall.sh`, automates setting up SSH connections to all the VMs:
+The second script, `vmsshall.sh`, automates initiating SSH connections to all the VMs:
 
 ```bash
 #!/usr/bin/env bash
