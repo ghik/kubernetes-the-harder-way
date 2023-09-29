@@ -1,12 +1,14 @@
 Previous: [Introduction](Introduction.md)
 
-# Launching VMs with QEMU
+# A QEMU Tutorial
 
 Let's get to work and start setting up our virtual cluster.
 
 In a real-world scenario, you would use some high level virtual machine manager like [Vagrant](https://www.vagrantup.com/) to manage your VMs.
 However, let's remember that we want to do things _the hard way_ in order to see the guts of all the layers involved in our endeavor.
 For this reason, we will use the most _raw_ tool possible for running our VMs: [QEMU](https://www.qemu.org/).
+
+This chapter is an exploration of QEMU's possibilities and architecture.
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
@@ -672,4 +674,4 @@ installing Kubernetes on it.
 3. [`qemu-system-aarch64` manpage](https://manpages.debian.org/testing/qemu-system-arm/qemu-system-aarch64.1.en.html)
 4. [`cloud-init`](https://canonical-cloud-init.readthedocs-hosted.com/en/latest/index.html)
 
-Next: [Preparing the Ground](Preparing_the_Ground.md)
+Next: [Preparing the Ground for VMs](Preparing_the_Ground for VMs.md)
