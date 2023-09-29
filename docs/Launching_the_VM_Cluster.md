@@ -299,6 +299,8 @@ sudo tmux attach -t kubenet-qemu
 
 Ultimately, you should see something like this:
 
+<img width="1721" alt="image" src="https://github.com/ghik/kubenet/assets/1022675/9c8eeee3-2c3f-4386-b691-c5c2d48cb452">
+
 Detach with `Ctrl`+`b`,`d`.
 
 You can kill the session with:
