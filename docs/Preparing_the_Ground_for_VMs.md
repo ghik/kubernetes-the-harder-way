@@ -1,4 +1,6 @@
-# Preparing the Ground
+Previous: [Launching VMs with QEMU](Launching_VMs_with_QEMU.md)
+
+# Preparing the Ground for VMs
 
 Ok, we are decently proficient with QEMU and `cloud-init` now. It's time to start building an actual cluster for
 our Kubernetes deployment.
