@@ -1,6 +1,6 @@
 Previous: [Introduction](Introduction.md)
 
-# A QEMU Tutorial
+# Using QEMU to Run VMs
 
 Let's get to work and start setting up our virtual cluster.
 
