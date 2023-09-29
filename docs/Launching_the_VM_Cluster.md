@@ -1,3 +1,5 @@
+Previous: [Preparing the Ground for VMs](Preparing_the_Ground_for_VMs.md)
+
 # Launching the VM Cluster
 
 The network is configured, and we have all the VM images and configs prepared.
