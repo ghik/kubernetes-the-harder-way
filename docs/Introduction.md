@@ -58,4 +58,4 @@ to the Apple Silicon CPU architecture (also known as AArch64 or ARM64). In princ
 
 Since we'll run several VMs at once, a decent amount of RAM is recommended. My machine has 64GB but 32GB should also be sufficient.
 
-Next: [Launching VMs with QEMU](Launching_VMs_with_QEMU.md)
+Next: [A QEMU tutorial](A_QEMU_Tutorial.md)
