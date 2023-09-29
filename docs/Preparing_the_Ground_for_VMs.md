@@ -1,4 +1,4 @@
-Previous: [Launching VMs with QEMU](Launching_VMs_with_QEMU.md)
+Previous: [A QEMU Tutorial](A_QEMU_Tutorial.md)
 
 # Preparing the Ground for VMs
 
