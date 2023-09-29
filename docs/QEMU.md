@@ -10,7 +10,7 @@ For this reason, we will use the most _raw_ tool possible for running our VMs: [
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
-  - [Prerequisites](#prerequisites)
+- [Prerequisites](#prerequisites)
 - [Introduction to QEMU and virtualization](#introduction-to-qemu-and-virtualization)
   - [Hardware-assisted virtualization](#hardware-assisted-virtualization)
   - [QEMU, virtualization and paravirtualization](#qemu-virtualization-and-paravirtualization)
@@ -649,7 +649,7 @@ Changing password for ubuntu.
 Current password:
 ```
 
-We do what it wants and we're finally in. Yay!
+We do what it wants, and we're finally in. Yay!
 
 ## Summary
 
@@ -670,4 +670,4 @@ installing Kubernetes on it.
 3. [`qemu-system-aarch64` manpage](https://manpages.debian.org/testing/qemu-system-arm/qemu-system-aarch64.1.en.html)
 4. [`cloud-init`](https://canonical-cloud-init.readthedocs-hosted.com/en/latest/index.html)
 
-Next: [Setting up a cluster of VMs](VM_Cluster.md)
+Next: [Preparing the Ground](Preparing_the_Ground.md)

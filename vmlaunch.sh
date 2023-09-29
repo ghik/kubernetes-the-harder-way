@@ -18,7 +18,7 @@ case "$vmname" in
     ;;
   worker*)
     vcpus=4
-    memory=8G
+    memory=4G
     ;;
 esac
 
