@@ -674,4 +674,4 @@ installing Kubernetes on it.
 3. [`qemu-system-aarch64` manpage](https://manpages.debian.org/testing/qemu-system-arm/qemu-system-aarch64.1.en.html)
 4. [`cloud-init`](https://canonical-cloud-init.readthedocs-hosted.com/en/latest/index.html)
 
-Next: [Preparing the Ground for VMs](Preparing_the_Ground for VMs.md)
+Next: [Preparing the Ground for VMs](Preparing_the_Ground_for_VMs.md)
