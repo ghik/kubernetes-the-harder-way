@@ -12,6 +12,25 @@
       "OU": "kubenet",
       "ST": "Lesser Poland"
     }
+  ],
+  "hosts": [
+    "kubernetes",
+    "kubernetes.default",
+    "kubernetes.default.svc",
+    "kubernetes.default.svc.cluster",
+    "kubernetes.default.svc.cluster.local",
+    "kubernetes.kubenet",
+    "control0",
+    "control0.kubenet",
+    "control1",
+    "control1.kubenet",
+    "control2",
+    "control2.kubenet",
+    "10.32.0.1",
+    "192.168.1.21",
+    "192.168.1.11",
+    "192.168.1.12",
+    "192.168.1.13",
+    "127.0.0.1"
   ]
 }
-

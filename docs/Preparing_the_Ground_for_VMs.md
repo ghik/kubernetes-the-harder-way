@@ -335,10 +335,17 @@ will pick it up:
 192.168.1.14  worker0
 192.168.1.15  worker1
 192.168.1.16  worker2
+192.168.1.21  kubernetes
 ```
 
 > [!NOTE]
-> We have also assigned a domain name (`vmhost`) to the host machine itself.
+> We have also assigned a domain name `vmhost` to the host machine itself.
+
+> [!NOTE]
+> The mysterious `kubernetes` domain name is assigned to a virtual IP that will serve the Kubernetes API
+> via the load balancer VM (`gateway`). We are including it for the sake of completeness. We will set it up properly 
+> in another chapter, so do not bother about it now. You may note how it is outside the configured DHCP IP range to 
+> reduce the risk of an IP conflict.
 
 Finally, let's put all the VMs into a _domain_. Add these lines into `dnsmasq` configuration:
 

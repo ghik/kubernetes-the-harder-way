@@ -1,0 +1,646 @@
+# Breakdown of Kubernetes Components and Security
+
+At this point in the guide, we have all the virtual hardware prepared, and we're eager to start installing
+Kubernetes on it.
+
+However, in order to properly understand all the steps and various magic options of Kubernetes components, 
+it would be worth to stop and look at the Kubernetes architecture from a bird's eye view. Kubernetes is a fairly complex
+system, made of multiple interconnected components. In a system like that, security is paramount, and must be understood
+and set up with diligence.
+
+In this chapter, we're going to outline the entire Kubernetes architecture, i.e. list all its components and
+communication channels. Then we'll explain how each communication channel is secured. Finally, we will prepare
+a set of certificates and configuration files that we'll use during actual installation of Kubernetes components.
+
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
+## Prerequisites
+
+Make sure you have the following packages installed:
+
+```bash
+brew install cfssl kubernetes-cli
+```
+
+## Overview of Kubernetes building blocks
+
+Kubernetes is made of multiple [components](https://kubernetes.io/docs/concepts/overview/components/), 
+running as separate processes that communicate with each other. They are split between control plane and worker nodes.
+
+The control plane components include:
+* `etcd` - the central, distributed, highly reliable database holding the entire cluster state
+* `kube-apiserver` - the Kubernetes API server, i.e. the public interface of the cluster
+* `kube-scheduler` - component responsible for assigning pods to worker nodes
+* `kube-controller-manager` - component running [Kubernetes controllers](https://kubernetes.io/docs/concepts/architecture/controller/)
+* `cloud-controller-manager` - provides integrations specific to cloud provider (AWS, GCP, etc.) - **not used in this guide**
+
+Worker nodes run the following components:
+* `kubelet` - manages the lifecycle of pods on a given worker node
+* `kube-proxy` - serves as a local proxy/load balancer for 
+  [Kubernetes services](https://kubernetes.io/docs/concepts/services-networking/service/) on a given node
+
+### Communication channels
+
+Now, let's outline all the ways these components 
+[communicate](https://kubernetes.io/docs/concepts/architecture/control-plane-node-communication/) with each other. 
+Every communication channel must be properly secured.
+
+* `etcd` is a distributed database, so every `etcd` instance talks to all other `etcd` instances (peers)
+* `kube-apiserver` talks to `etcd` as a client
+* `kube-scheduler` talks to `kube-apiserver` as a client
+* `kube-controller-manager` talks to `kube-apiserver` as a client
+* `kubelet` talks to `kube-apiserver` as a client
+* `kube-proxy` talks to `kube-apiserver` as a client
+* also, the `kube-apiserver` talks to `kubelet` as a client - for some specific purposes like fetching logs from pods
+  or setting up port forwarding to pods
+* external clients talk to `kube-apiserver`, typically using `kubectl`
+* pods running in the cluster may talk to `kube-apiserver` as clients
+
+Most of this communication will be secured using TLS with X.509 certificates for authentication.
+Authentication must be mutual, i.e. both the server and the client must present a valid certificate.
+Of course, every certificate must be signed by a certificate authority that is trusted by the receiving party.
+
+### Kubernetes API authentication overview
+
+Even though we are going to use mostly certificates to authenticate to the Kubernetes API server,
+[several other strategies](https://kubernetes.io/docs/reference/access-authn-authz/authentication/) are possible.
+
+Let's quickly discuss the basic authentication model of Kubernetes:
+* A human client of a Kubernetes API typically identifies itself as a _user_, 
+  optionally belonging to one or more _groups_. Users and groups are not managed by Kubernetes in any way, i.e. there
+  is no catalogue of users and groups maintained by the cluster. Instead, users and groups are just opaque identifiers,
+  and the API server trusts the selected authentication strategy to determine them. For example, in case of
+  certificates, when the certificate is valid according to preconfigured CA, the Common Name field is assumed to contain
+  the username, while Organization fields are interpreted as group names.
+* A non-human client of a Kubernetes API (e.g. a pod running in the cluster) typically authenticates itself using a 
+  [service account](https://kubernetes.io/docs/concepts/security/service-accounts/). Unlike users and groups, service
+  accounts are managed by Kubernetes, i.e. they can be created, deleted, etc. When identifying as a service account,
+  an API client does not use a certificate but rather a JWT token, previously generated and provisioned by the cluster
+  to the pod (see [projected volumes](https://kubernetes.io/docs/concepts/storage/projected-volumes/#serviceaccounttoken)).
+  However, the token itself must also be signed - unsurprisingly - with a certificate, and this certificate must be
+  preconfigured.
+
+### Listing all the necessary certificates
+
+This gives us an overview of all the certificates that we need to prepare for fully functioning Kubernetes cluster:
+
+* `etcd` peer certificate, for every `etcd` instance
+* server certificates:
+  * `etcd` server certificate, for every `etcd` instance
+  * `kube-apiserver` server certificate
+  * `kubelet` server certificate
+* client certificates
+  * `kube-apiserver` client certificate to communicate with `etcd`
+  * `kube-apiserver` client certificate to communicate with `kubelet`s
+  * `kubelet` client certificate to communicate with `kube-apiserver`, for every worker node
+  * `kube-scheduler` client certificate to communicate with `kube-apiserver`
+  * `kube-controller-manager` client certificate to communicate with `kube-apiserver`
+  * `kube-proxy` client certificate to communicate with `kube-apiserver`
+  * client certificates for human users to communicate with the Kubernetes API (`kube-apiserver`)
+* certificate and key for verifying and signing service account tokens
+
+Of course, every certificate must be signed by a Certificate Authority. Technically, it is possible to have
+a separate CA for different types of certificates:
+* a CA to sign `etcd` peer certificates
+* a CA to sign `etcd` server certificate(s)
+* a CA to sign `kube-apiserer` server certificate
+* a CA to sign `kubelet` server certificate
+* a CA to sign `etcd` client certificates
+* a CA to sign `kube-apiserver` client certificates
+* a CA to sign `kubelet` client certificates
+
+### Simplifying the setup
+
+The previous section presents an exhaustive list of certificates and CAs that can be configured separately.
+In practice, however, there is no reason to use all that power, at least for our purposes in this guide.
+We'll simplify things in the following way:
+
+* We'll use a single root CA to sign all the certificates
+* `kube-apiserver`, even though deployed as three separate instances, is seen by the client as a single, distributed
+  service. We are also planning to set up a load balancer for it (the `gateway` VM) and make it reachable using
+  a single virtual IP address and domain name. For this reason it is natural and necessary to have a single
+  server certificate for the Kubernetes API. This certificate will contain [SAN](https://en.wikipedia.org/wiki/Subject_Alternative_Name)
+  entries for all the possible IPs and domain names that can be used to reach the API, including addresses
+  of individual instances, the virtual, load balanced address, as well as Kubernetes-internal IPs and domains.
+* `etcd` runs on the same nodes as `kube-apiserver`, so it is natural to reuse the Kubernetes API certificate for `etcd`,
+  to serve both as a peer and server certificate, on every `etcd` instance.
+* We will also use the main Kubernetes API certificate as the client certificate used to communicate with
+  `etcd` and `kubelet`.
+* Each `kubelet`'s server certificate will also serve as its client certificate to communicate with `kube-apiserver`.
+
+As for the client certificates used to communicate with `kube-apiserver`, we must keep them separate. The reason is
+that we must maintain separate identities for `kube-scheduler`, `kube-controller-manager`, every worker node's
+`kubelet`, `kube-proxy`, and external, human users. This is so that each of these actors can get an appropriate 
+set of permissions withing the Kubernetes API server.
+
+In this guide, the only human user will be the `admin` user, with full permissions to the entire Kubernetes API.
+
+Ultimately, this gives us the following list of certificates to generate:
+
+1. The root CA
+2. The main Kubernetes API certificate
+3. The `admin` user certificate
+4. Worker node (`kubelet`) certificates, separate for each node
+5. The `kube-scheduler` certificate
+6. The `kube-controller-manager` certificate
+7. The `kube-proxy` certificate
+8. The certificate for signing service account tokens
+
+### Kubeconfigs
+
+Every Kubernetes API client needs three pieces of data to communicate with the server: the client certificate, 
+its associated private key, and the CA to verify the server certificate. These three files are usually not configured 
+directly, but rather included into a [kubeconfig](https://kubernetes.io/docs/concepts/configuration/organize-cluster-access-kubeconfig/).
+
+For the purposes of this guide, we'll treat kubeconfigs as simple wrappers over these three files. In their generality,
+however, they can be much more complex. For example, they can include authentication data for multiple users of
+multiple independent Kubernetes clusters.
+
+We will need to generate a kubeconfig for every client of the Kubernetes API:
+* The `admin` user
+* Each worker node (i.e. `kubelet`)
+* `kube-scheduler`
+* `kube-controller-manager`
+* `kube-proxy`
+
+## Bootstrapping the security
+
+Let's generate everything we've listed.
+
+> [!NOTE]
+> This section is largely based on 
+> [Kubernetes the Hard Way](https://github.com/kelseyhightower/kubernetes-the-hard-way/blob/master/docs/04-certificate-authority.md)
+
+### `cfssl`
+
+There are many tools to generate X.509 certificates. Our utility of choice is 
+[cfssl](https://github.com/cloudflare/cfssl).
+
+Let's create a directory for everything authentication-related that we're going to write and generate:
+
+```bash
+mkdir auth && cd auth
+```
+
+#### Root Certificate Authority
+
+Let's generate the first certificate - the root certificate authority. We can do that by preparing a JSON file
+representing a Certificate Signing Request and pass it to `cfssl`.
+
+Create the `ca-csr.json` file:
+
+```json
+{
+  "CN": "Kubernetes",
+  "key": {
+    "algo": "rsa",
+    "size": 2048
+  },
+  "names": [
+    {
+      "C": "PL",
+      "L": "Krakow",
+      "O": "Kubernetes",
+      "OU": "kubenet",
+      "ST": "Lesser Poland"
+    }
+  ]
+}
+```
+
+All the names in this CSR are arbitrary, you can choose whatever you like.
+
+Generate the CA with:
+
+```bash
+cfssl gencert -initca ca-csr.json | cfssljson -bare ca
+```
+
+This generates `ca.csr`, `ca.pem` (the certificate) and `ca-key.pem` (the private key).
+The `.csr` file will not be used and may be discarded.
+
+> [!NOTE]
+> `cfssl` is designed to work like a REST API and returns its result wrapped into JSON.
+> We use `cfssljson` utility to convert it into PEM files.
+
+#### CA configuration file
+
+In order to facilitate signing client & server certificates, we can factor out common settings
+into a shared configuration file, the `ca-config.json`:
+
+```json
+{
+  "signing": {
+    "default": {
+      "expiry": "87600h"
+    },
+    "profiles": {
+      "kubernetes": {
+        "usages": ["signing", "key encipherment", "server auth", "client auth"],
+        "expiry": "87600h"
+      }
+    }
+  }
+}
+```
+
+Here are some details to note about it:
+* `default` specifies global options while `profiles` contains a set of arbitrarily named "profiles" that may
+  override these options. The actual profile will be selected with a command line option. This way the config file
+  may serve as an aggregate for multiple, independent sets of options.
+* `expiry` specifies the validity of a certificate - in this case we set it to 10 years
+  (unfortunately, hour is the largest time unit possible to use here)
+* `usages` corresponds to [Key Usage Extension](https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.3) of
+  the X.509 certificate format
+
+#### The main Kubernetes API certificate
+
+Create a `kubernetes-csr.json` file:
+
+```json
+{
+  "CN": "kubernetes",
+  "key": {
+    "algo": "rsa",
+    "size": 2048
+  },
+  "names": [
+    {
+      "C": "PL",
+      "L": "Krakow",
+      "O": "Kubernetes",
+      "OU": "kubenet",
+      "ST": "Lesser Poland"
+    }
+  ],
+  "hosts": [
+    "kubernetes",
+    "kubernetes.default",
+    "kubernetes.default.svc",
+    "kubernetes.default.svc.cluster",
+    "kubernetes.default.svc.cluster.local",
+    "10.32.0.1",
+    "kubernetes.kubenet",
+    "192.168.1.21",
+    "control0",
+    "control0.kubenet",
+    "192.168.1.11",
+    "control1",
+    "control1.kubenet",
+    "192.168.1.12",
+    "control2",
+    "control2.kubenet",
+    "192.168.1.13",
+    "127.0.0.1"
+  ]
+}
+```
+
+CN and `names` are arbitrary, what's important is the `hosts` list, which includes all the domain names and IPs
+that may be used to reach the Kubernetes API, both from outside and inside the Kubernetes cluster:
+* `kubernetes.default.*` are domain names used to communicate with the Kubernetes API from within the cluster,
+  they will resolve to the Kubernetes API internal Service IP
+* 10.32.0.1 is the Kubernetes API internal Service IP - it may be chosen arbitrarily as long as it is consistent
+  with configuration of `kube-proxy` and/or other Kubernetes components - we will see that in other chapters
+* `kubernetes.kubenet` is the full domain name that resolves to the load-balanced virtual IP of the Kubernetes API
+  from outside the cluster
+* 192.168.1.21 is the Kubernetes API virtual IP, we will set it up in another chapter
+* the simple name `kubernetes` is resolvable both from outside and inside the cluster
+* `controlX`, `controlX.kubenet` are control node domain names
+* 192.168.1.1X are control node IPs
+* finally, a 127.0.0.1 entry to allow reaching Kubernetes API via localhost on control nodes
+
+Generate and sign the certificate with:
+
+```bash
+cfssl gencert \
+  -ca=ca.pem \
+  -ca-key=ca-key.pem \
+  -config=ca-config.json \
+  -profile=kubernetes \
+  kubernetes-csr.json | cfssljson -bare kubernetes
+```
+
+The resulting interesting files are `kubernetes.pem` and `kubernetes-key.pem`.
+
+#### The `admin` user certificate
+
+Create an `admin-csr.json` file:
+
+```json
+{
+  "CN": "admin",
+  "key": {
+    "algo": "rsa",
+    "size": 2048
+  },
+  "names": [
+    {
+      "C": "PL",
+      "L": "Krakow",
+      "O": "system:masters",
+      "OU": "kubenet",
+      "ST": "Lesser Poland"
+    }
+  ]
+}
+```
+
+Then generate a signed certificate and key using:
+
+```bash
+cfssl gencert \
+  -ca=ca.pem \
+  -ca-key=ca-key.pem \
+  -config=ca-config.json \
+  -profile=kubernetes \
+  admin-csr.json | cfssljson -bare admin
+```
+
+This will generate `admin.pem` and `admin-key.pem`.
+
+> [!IMPORTANT]
+> The `admin` user gets unrestricted access to the Kubernetes API. What actually makes it so privileged is
+> the `system:masters` magic _group_ name. This is a special group within the Kubernetes
+> [RBAC authorization mode](https://kubernetes.io/docs/reference/access-authn-authz/rbac/) that is bootstrapped to
+> have these permissions.
+> The CN field, even though it is interpreted as _user_ name, is arbitrary and may be chosen freely, similarly to
+> all other fields.
+
+#### Worker node certificates
+
+We need three separate certificates for worker nodes. They differ only in names, IPs and hostnames, so let's use
+some scripting. Write the `workerX-csr.json` files:
+
+```bash
+for i in $(seq 0 2); do cat << EOF > "worker$i-csr.json"
+{
+  "CN": "system:node:worker$i",
+  "key": {
+    "algo": "rsa",
+    "size": 2048
+  },
+  "names": [
+    {
+      "C": "PL",
+      "L": "Krakow",
+      "O": "system:nodes",
+      "OU": "kubenet",
+      "ST": "Lesser Poland"
+    }
+  ],
+  "hosts": [
+    "worker$i",
+    "worker$i.kubenet",
+    "192.168.1.$((14 + $i))"
+  ]
+}
+EOF
+done
+```
+
+and generate the certificates:
+
+```bash
+for i in $(seq 0 2); do cfssl gencert \
+  -ca=ca.pem \
+  -ca-key=ca-key.pem \
+  -config=ca-config.json \
+  -profile=kubernetes \
+  worker$i-csr.json | cfssljson -bare worker$i
+done
+```
+
+> [!IMPORTANT]
+> `system:node:workerX` and `system:nodes` are magic user and group names interpreted by
+> Kubernetes [node authorization mode](https://kubernetes.io/docs/reference/access-authn-authz/node/).
+
+#### The `kube-scheduler` certificate
+
+Create `kube-scheduler-csr.json`:
+
+```json
+{
+  "CN": "system:kube-scheduler",
+  "key": {
+    "algo": "rsa",
+    "size": 2048
+  },
+  "names": [
+    {
+      "C": "PL",
+      "L": "Krakow",
+      "O": "system:kube-scheduler",
+      "OU": "kubenet",
+      "ST": "Lesser Poland"
+    }
+  ]
+}
+```
+
+Generate certificate with:
+
+```bash
+cfssl gencert \
+  -ca=ca.pem \
+  -ca-key=ca-key.pem \
+  -config=ca-config.json \
+  -profile=kubernetes \
+  kube-scheduler-csr.json | cfssljson -bare kube-scheduler
+```
+
+> [!IMPORTANT]
+> `system:kube-scheduler` is a magic string recognized by Kubernetes
+> [RBAC authorization mode](https://kubernetes.io/docs/reference/access-authn-authz/rbac/)
+
+#### The `kube-controller-manager` certificate
+
+Create `kube-controller-manager-csr.json`:
+
+```json
+{
+  "CN": "system:kube-controller-manager",
+  "key": {
+    "algo": "rsa",
+    "size": 2048
+  },
+  "names": [
+    {
+      "C": "PL",
+      "L": "Krakow",
+      "O": "system:kube-controller-manager",
+      "OU": "kubenet",
+      "ST": "Lesser Poland"
+    }
+  ]
+}
+```
+
+Generate certificate with:
+
+```bash
+cfssl gencert \
+  -ca=ca.pem \
+  -ca-key=ca-key.pem \
+  -config=ca-config.json \
+  -profile=kubernetes \
+  kube-controller-manager-csr.json | cfssljson -bare kube-controller-manager
+```
+
+> [!IMPORTANT]
+> `system:kube-controller-manager` is a magic string recognized by Kubernetes
+> [RBAC authorization mode](https://kubernetes.io/docs/reference/access-authn-authz/rbac/)
+
+#### The `kube-proxy` certificate
+
+Create `kube-proxy-csr.json`:
+
+```json
+{
+  "CN": "system:kube-proxy",
+  "key": {
+    "algo": "rsa",
+    "size": 2048
+  },
+  "names": [
+    {
+      "C": "PL",
+      "L": "Krakow",
+      "O": "system:node-proxier",
+      "OU": "kubenet",
+      "ST": "Lesser Poland"
+    }
+  ]
+}
+```
+
+Generate certificate with:
+
+```bash
+cfssl gencert \
+  -ca=ca.pem \
+  -ca-key=ca-key.pem \
+  -config=ca-config.json \
+  -profile=kubernetes \
+  kube-proxy-csr.json | cfssljson -bare kube-proxy
+```
+
+> [!IMPORTANT]
+> `system:kube-proxy` and `system:node-proxier` are magic strings recognized by Kubernetes
+> [RBAC authorization mode](https://kubernetes.io/docs/reference/access-authn-authz/rbac/)
+
+#### The service account token signing certificate
+
+Create `service-account-csr.json`:
+
+```json
+{
+  "CN": "service-accounts",
+  "key": {
+    "algo": "rsa",
+    "size": 2048
+  },
+  "names": [
+    {
+      "C": "PL",
+      "L": "Krakow",
+      "O": "Kubernetes",
+      "OU": "kubenet",
+      "ST": "Lesser Poland"
+    }
+  ]
+}
+```
+
+Generate certificate with:
+
+```bash
+cfssl gencert \
+  -ca=ca.pem \
+  -ca-key=ca-key.pem \
+  -config=ca-config.json \
+  -profile=kubernetes \
+  service-account-csr.json | cfssljson -bare service-account
+```
+
+This certificate does not contain any magic names.
+
+### Scripting up
+
+Let's remove some boilerplate and have a script to turn all the `*-csr.json` files into PEM files at once.
+Let's save it as `genauth.sh`.
+
+```bash
+#!/usr/bin/env bash
+
+set -xe
+dir=$(dirname "$0")
+
+gencert() {
+  name=$1
+  cfssl gencert \
+    -ca="$dir/ca.pem" \
+    -ca-key="$dir/ca-key.pem" \
+    -config="$dir/ca-config.json" \
+    -profile=kubernetes \
+    "$dir/$name-csr.json" | cfssljson -bare $name
+}
+
+cfssl gencert -initca "$dir/ca-csr.json" | cfssljson -bare ca
+
+for name in kubernetes admin kube-scheduler kube-controller-manager kube-proxy service-account; do
+  gencert $name
+done
+
+for i in $(seq 0 2); do
+  gencert worker$i
+done
+
+```
+
+### Generating kubeconfigs
+
+As already explained, we need a _kubeconfig_ for every Kubernetes API client certificate.
+We can do that with the `kubectl` command. Below is a script fragment to do this. You can add this to
+`genauth.sh`:
+
+```bash
+genkubeconfig() {
+  cert=$1
+  user=$2
+  kubeconfig="$dir/${cert}.kubeconfig"
+
+  kubectl config set-cluster kubenet \
+    --certificate-authority="$dir/ca.pem" \
+    --embed-certs=true \
+    --server=https://kubernetes:6443 \
+    --kubeconfig="$kubeconfig"
+
+  kubectl config set-credentials "$user" \
+    --client-certificate="$dir/${cert}.pem" \
+    --client-key="$dir/${cert}-key.pem" \
+    --embed-certs=true \
+    --kubeconfig="$kubeconfig"
+
+  kubectl config set-context default \
+    --cluster=kubenet \
+    --user="$user" \
+    --kubeconfig="$kubeconfig"
+
+  kubectl config use-context default \
+    --kubeconfig="$kubeconfig"
+}
+
+genkubeconfig admin admin
+genkubeconfig kube-scheduler system:kube-scheduler
+genkubeconfig kube-controller-manager system:kube-controller-manager
+genkubeconfig kube-proxy system:kube-proxy
+
+for i in $(seq 0 2); do
+  genkubeconfig worker$i system:node:worker$i
+done
+```

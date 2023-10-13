@@ -12,5 +12,10 @@
       "OU": "kubenet",
       "ST": "Lesser Poland"
     }
+  ],
+  "hosts": [
+    "worker0",
+    "worker0.kubenet",
+    "192.168.1.14"
   ]
 }
