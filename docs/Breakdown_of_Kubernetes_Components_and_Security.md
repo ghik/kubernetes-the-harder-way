@@ -16,6 +16,27 @@ a set of certificates and configuration files that we'll use during actual insta
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
+- [Prerequisites](#prerequisites)
+- [Overview of Kubernetes building blocks](#overview-of-kubernetes-building-blocks)
+  - [Communication channels](#communication-channels)
+  - [Kubernetes API authentication overview](#kubernetes-api-authentication-overview)
+  - [Listing all the necessary certificates](#listing-all-the-necessary-certificates)
+  - [Simplifying the setup](#simplifying-the-setup)
+  - [Kubeconfigs](#kubeconfigs)
+- [Bootstrapping the security](#bootstrapping-the-security)
+  - [`cfssl`](#cfssl)
+    - [Root Certificate Authority](#root-certificate-authority)
+    - [CA configuration file](#ca-configuration-file)
+    - [The main Kubernetes API certificate](#the-main-kubernetes-api-certificate)
+    - [The `admin` user certificate](#the-admin-user-certificate)
+    - [Worker node certificates](#worker-node-certificates)
+    - [The `kube-scheduler` certificate](#the-kube-scheduler-certificate)
+    - [The `kube-controller-manager` certificate](#the-kube-controller-manager-certificate)
+    - [The `kube-proxy` certificate](#the-kube-proxy-certificate)
+    - [The service account token signing certificate](#the-service-account-token-signing-certificate)
+  - [Scripting up](#scripting-up)
+  - [Generating kubeconfigs](#generating-kubeconfigs)
+
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 ## Prerequisites

@@ -14,12 +14,12 @@ This chapter is an exploration of QEMU's possibilities and architecture.
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
-- [Prerequisites](#prerequisites)
+  - [Prerequisites](#prerequisites)
 - [Introduction to QEMU and virtualization](#introduction-to-qemu-and-virtualization)
   - [Hardware-assisted virtualization](#hardware-assisted-virtualization)
   - [QEMU, virtualization and paravirtualization](#qemu-virtualization-and-paravirtualization)
   - [Starting a VM with QEMU](#starting-a-vm-with-qemu)
-  - [Starting QEMU _the hard way_](#starting-qemu-the-hard-way)
+  - [Starting QEMU _the hard way_](#starting-qemu-_the-hard-way_)
   - [UEFI](#uefi)
 - [Running a Ubuntu Live CD](#running-a-ubuntu-live-cd)
   - [Adding a network](#adding-a-network)
