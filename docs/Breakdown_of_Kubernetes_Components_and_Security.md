@@ -24,7 +24,7 @@ a set of certificates and configuration files that we'll use during actual insta
   - [Simplifying the setup](#simplifying-the-setup)
   - [Kubeconfigs](#kubeconfigs)
 - [Bootstrapping the security](#bootstrapping-the-security)
-  - [`cfssl`](#cfssl)
+  - [Generating certificates with `cfssl`](#generating-certificates-with-cfssl)
     - [Root Certificate Authority](#root-certificate-authority)
     - [CA configuration file](#ca-configuration-file)
     - [The main Kubernetes API certificate](#the-main-kubernetes-api-certificate)
@@ -196,7 +196,7 @@ Let's generate everything we've listed.
 > This section is largely based on 
 > [Kubernetes the Hard Way](https://github.com/kelseyhightower/kubernetes-the-hard-way/blob/master/docs/04-certificate-authority.md)
 
-### `cfssl`
+### Generating certificates with `cfssl`
 
 There are many tools to generate X.509 certificates. Our utility of choice is 
 [cfssl](https://github.com/cloudflare/cfssl).
