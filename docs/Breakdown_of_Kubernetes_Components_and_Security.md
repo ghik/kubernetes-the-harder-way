@@ -389,8 +389,7 @@ This will generate `admin.pem` and `admin-key.pem`.
 > the `system:masters` magic _group_ name. This is a special group within the Kubernetes
 > [RBAC authorization mode](https://kubernetes.io/docs/reference/access-authn-authz/rbac/) that is bootstrapped to
 > have these permissions.
-> The CN field, even though it is interpreted as _user_ name, is arbitrary and may be chosen freely, similarly to
-> all other fields.
+> The CN `admin`, interpreted as _user_ name, also has a special meaning.
 
 #### Worker node certificates
 
