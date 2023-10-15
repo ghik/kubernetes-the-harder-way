@@ -40,7 +40,7 @@ in future chapters.
   - [Scripting up](#scripting-up)
   - [Generating kubeconfigs](#generating-kubeconfigs)
   - [Generating cluster data encryption key](#generating-cluster-data-encryption-key)
-  - [Distributing certificates and keys](#distributing-certificates-and-keys)
+- [Distributing certificates and keys](#distributing-certificates-and-keys)
 - [Summary](#summary)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -702,7 +702,7 @@ resources:
 EOF
 ```
 
-### Distributing certificates and keys
+## Distributing certificates and keys
 
 Let's upload all the files we have painstakingly prepared into the VMs.
 Make sure the VMs are running, as described in the [previous chapter](Launching_the_VM_Cluster.md).
