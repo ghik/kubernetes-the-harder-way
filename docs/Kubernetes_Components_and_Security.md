@@ -1,4 +1,6 @@
-# Breakdown of Kubernetes Components and Security
+Previous: [Launching the VM Cluster](Launching_the_VM_Cluster.md)
+
+# Kubernetes Components and Security
 
 At this point in the guide, we have all the virtual hardware prepared, and we're eager to start installing
 Kubernetes on it.
@@ -10,7 +12,8 @@ and set up with diligence.
 
 In this chapter, we're going to outline the entire Kubernetes architecture, i.e. list all its components and
 communication channels. Then we'll explain how each communication channel is secured. Finally, we will prepare
-a set of certificates and configuration files that we'll use during actual installation of Kubernetes components.
+a set of certificates and configuration files that we'll use during actual installation of Kubernetes components,
+in future chapters.
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
@@ -36,6 +39,9 @@ a set of certificates and configuration files that we'll use during actual insta
     - [The service account token signing certificate](#the-service-account-token-signing-certificate)
   - [Scripting up](#scripting-up)
   - [Generating kubeconfigs](#generating-kubeconfigs)
+  - [Generating cluster data encryption key](#generating-cluster-data-encryption-key)
+  - [Distributing certificates and keys](#distributing-certificates-and-keys)
+- [Summary](#summary)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -664,3 +670,87 @@ for i in $(seq 0 2); do
   genkubeconfig worker$i system:node:worker$i
 done
 ```
+
+### Generating cluster data encryption key
+
+The final security-related piece of data, although unrelated to authentication, is a symmetric encryption
+key that can be used by `kube-apiserver` to encrypt the data it stores in `etcd`. The key can be random, and the only
+thing we need to do it is wrap it into a simple YAML file.
+
+Let's do it with a script, `genenckey.sh`:
+
+```bash
+#!/usr/bin/env bash
+
+set -xe
+dir=$(dirname "$0")
+
+key=$(head -c 32 /dev/urandom | base64)
+
+cat > "$dir/encryption-config.yaml" <<EOF
+kind: EncryptionConfig
+apiVersion: v1
+resources:
+  - resources:
+      - secrets
+    providers:
+      - aescbc:
+          keys:
+            - name: key1
+              secret: $key
+      - identity: {}
+EOF
+```
+
+### Distributing certificates and keys
+
+Let's upload all the files we have painstakingly prepared into the VMs.
+Make sure the VMs are running, as described in the [previous chapter](Launching_the_VM_Cluster.md).
+Also, make sure that [`vmsshsetup.sh`](Preparing_the_Ground_for_VMs.md#automating-establishment-of-vms-authenticity) 
+has been run for all the VMs.
+
+Then, upload the files with a script, `deployauth.sh`:
+
+```bash
+#!/usr/bin/env bash
+
+set -xe
+dir="$(dirname $0)"
+
+for i in $(seq 0 2); do
+  vmname=control$i
+  scp \
+      "$dir/ca.pem" \
+      "$dir/ca-key.pem" \
+      "$dir/kubernetes-key.pem" \
+      "$dir/kubernetes.pem" \
+      "$dir/service-account-key.pem" \
+      "$dir/service-account.pem" \
+      "$dir/admin.kubeconfig" \
+      "$dir/kube-controller-manager.kubeconfig" \
+      "$dir/kube-scheduler.kubeconfig" \
+      "$dir/encryption-config.yaml" \
+      ubuntu@$vmname:~
+done
+
+for i in $(seq 0 2); do
+  vmname=worker$i
+  scp \
+      "$dir/ca.pem" \
+      "$dir/$vmname.pem" \
+      "$dir/$vmname-key.pem" \
+      "$dir/$vmname.kubeconfig" \
+      "$dir/kube-proxy.kubeconfig" \
+      ubuntu@$vmname:~
+done
+```
+
+## Summary
+
+In this chapter, we have:
+* learned all the components that Kubernetes deployment is made of
+* thoroughly understood which of these components communicate with each other and how this communication is secured
+* learned the basic architecture of Kubernetes API client authentication
+* generated all the necessary certificates and configuration files necessary for secure Kubernetes deployment
+* uploaded the files into the VMs, in anticipation of installing Kubernetes on them
+

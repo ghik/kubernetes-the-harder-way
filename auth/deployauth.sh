@@ -1,10 +1,11 @@
-#!/usr/bin/env zsh
+#!/usr/bin/env bash
 
 set -xe
 dir="$(dirname $0)"
 
-for inst in control{0,1,2}; do
-  scp -o UserKnownHostsFile="$dir/../$inst/ssh_known_hosts" \
+for i in $(seq 0 2); do
+  vmname=control$i
+  scp \
       "$dir/ca.pem" \
       "$dir/ca-key.pem" \
       "$dir/kubernetes-key.pem" \
@@ -15,15 +16,15 @@ for inst in control{0,1,2}; do
       "$dir/kube-controller-manager.kubeconfig" \
       "$dir/kube-scheduler.kubeconfig" \
       "$dir/encryption-config.yaml" \
-      ubuntu@${inst}:~
+      ubuntu@$vmname:~
 done
 
-for inst in worker{0,1,2}; do
-  scp -o UserKnownHostsFile="$dir/../$inst/ssh_known_hosts" \
+for i in $(seq 0 2); do
+  vmname=worker$i
+  scp \
       "$dir/ca.pem" \
-      "$dir/$inst.pem" \
-      "$dir/$inst-key.pem" \
-      "$dir/${inst}.kubeconfig" \
-      ubuntu@${inst}:~
+      "$dir/$vmname.pem" \
+      "$dir/$vmname-key.pem" \
+      "$dir/$vmname.kubeconfig" \
+      ubuntu@$vmname:~
 done
-

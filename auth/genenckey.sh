@@ -1,10 +1,11 @@
-#!/usr/bin/env zsh
+#!/usr/bin/env bash
 
 set -xe
+dir=$(dirname "$0")
 
 key=$(head -c 32 /dev/urandom | base64)
 
-cat > encryption-config.yaml <<EOF
+cat > "$dir/encryption-config.yaml" <<EOF
 kind: EncryptionConfig
 apiVersion: v1
 resources:
@@ -17,4 +18,3 @@ resources:
               secret: $key
       - identity: {}
 EOF
-
