@@ -144,7 +144,7 @@ a separate CA for different types of certificates:
 
 The previous section presents an exhaustive list of certificates and CAs that can be configured separately.
 In practice, however, there is no reason to use all that power, at least for our purposes in this guide.
-We'll simplify things in the following way:
+We'll simplify things in the following ways:
 
 * We'll use a single root CA to sign all the certificates
 * `kube-apiserver`, even though deployed as three separate instances, is seen by the client as a single, distributed
@@ -162,7 +162,7 @@ We'll simplify things in the following way:
 As for the client certificates used to communicate with `kube-apiserver`, we must keep them separate. The reason is
 that we must maintain separate identities for `kube-scheduler`, `kube-controller-manager`, every worker node's
 `kubelet`, `kube-proxy`, and external, human users. This is so that each of these actors can get an appropriate 
-set of permissions withing the Kubernetes API server.
+set of permissions within the Kubernetes API server.
 
 In this guide, the only human user will be the `admin` user, with full permissions to the entire Kubernetes API.
 
@@ -674,7 +674,7 @@ done
 ### Generating cluster data encryption key
 
 The final security-related piece of data, although unrelated to authentication, is a symmetric encryption
-key that can be used by `kube-apiserver` to encrypt the data it stores in `etcd`. The key can be random, and the only
+key that can be used by `kube-apiserver` to encrypt sensitive data stored in `etcd`. The key is random, and the only
 thing we need to do it is wrap it into a simple YAML file.
 
 Let's do it with a script, `genenckey.sh`:
@@ -751,6 +751,6 @@ In this chapter, we have:
 * learned all the components that Kubernetes deployment is made of
 * thoroughly understood which of these components communicate with each other and how this communication is secured
 * learned the basic architecture of Kubernetes API client authentication
-* generated all the necessary certificates and configuration files necessary for secure Kubernetes deployment
+* generated all the certificates and configuration files necessary for secure Kubernetes deployment
 * uploaded the files into the VMs, in anticipation of installing Kubernetes on them
 
