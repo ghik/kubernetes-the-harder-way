@@ -85,11 +85,11 @@ Let's start installing control plane components. In order to do this simultaneou
 previous chapters. Note that the way we have [set up](Launching_the_VM_Cluster.md#connecting-with-ssh) a `tmux` 
 session with SSH connections to all VMs was designed specifically for that purpose.
 
-> ![NOTE]
+> [!NOTE]
 > This guide suggests running all commands by hand (via `tmux`) so that you can see and verify every step.
 > However, the guide repository also contains scripted version that you can reuse later.
 
-> ![IMPORTANT]
+> [!IMPORTANT]
 > The guide assumes that all commands are run from default user (`ubuntu`) home directory, which contains all the 
 > uploaded certificates, keys and kubeconfigs.
 
@@ -208,7 +208,7 @@ dc0336cac5c58d30, started, control1, https://192.168.1.12:2380, https://192.168.
 
 ### Installing `kube-apiserver`
 
-> ![NOTE]
+> [!NOTE]
 > We will use this variable not just for `kube-apiserver` but also for other control plane components.
 
 Download the binary and copy it to `/usr/local/bin`:
@@ -299,7 +299,7 @@ You can verify if `kube-apiserver` is running correctly with `systemctl status` 
 curl -v --cacert /var/lib/kubernetes/ca.pem https://127.0.0.1:6443/healthz
 ```
 
-> ![NOTE]
+> [!NOTE]
 > `curl` may not be installed by default. You can install it manually with `sudo apt install curl`, but you can also
 > make `cloud-init` do this automatically for you, as 
 > [described previously](Preparing_Environment_for_a_VM_Cluster.md#installing-apt-packages).
@@ -317,7 +317,7 @@ A virtual IP address is an address within a local network that is not bound to a
 recognized by multiple machines as their own. All the packets destined for the Virtual IP must go through a load
 balancer (the `gateway` VM, in our case) which distributes it across actual machines which actually handle the traffic.
 
-> ![NOTE]
+> [!NOTE]
 > Only the incoming packets go through the load balancer, 
 > the returning packets go directly from destination to source.
 
@@ -392,7 +392,7 @@ network:
       addresses: [192.168.1.21/32]
 ```
 
-> ![NOTE]
+> [!NOTE]
 > This is the same YAML format as the one used by Ubuntu's [netplan](https://netplan.io/) utility.
 
 In order to persist the ARP-related kernel options, add this to `cloud-init/user-data.control`:
@@ -563,7 +563,7 @@ ca_certs:
 $(sed "s/^/      /g" "$dir/auth/ca.pem")
 ```
 
-> ![NOTE]
+> [!NOTE]
 > The ungodly `sed` incantation is responsible for adding indent to the contents of the `ca.pem` file being pasted,
 > so that YAML's significant indentation rules are satisfied.
 
