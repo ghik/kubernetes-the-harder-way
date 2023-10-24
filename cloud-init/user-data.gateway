@@ -1,3 +1,16 @@
 #cloud-config
 ssh_authorized_keys:
   - $(<~/.ssh/id_rsa.pub)
+
+package_update: true
+package_upgrade: true
+package_reboot_if_required: false
+
+packages:
+  - ipvsadm
+  - ldirectord
+
+ca_certs:
+  trusted:
+    - |
+$(sed "s/^/      /g" "$dir/auth/ca.pem")

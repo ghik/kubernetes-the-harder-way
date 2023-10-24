@@ -1,3 +1,18 @@
 #cloud-config
 ssh_authorized_keys:
   - $(<~/.ssh/id_rsa.pub)
+
+package_update: true
+package_upgrade: true
+package_reboot_if_required: false
+
+packages:
+  - curl
+
+write_files:
+  - path: /etc/sysctl.d/50-vip-arp.conf
+    content: |
+      net.ipv4.conf.all.arp_announce = 2
+      net.ipv4.conf.all.arp_ignore = 1
+runcmd:
+  - sysctl -p /etc/sysctl.d/50-vip-arp.conf

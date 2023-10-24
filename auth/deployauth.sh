@@ -29,3 +29,5 @@ for i in $(seq 0 2); do
       "$dir/kube-proxy.kubeconfig" \
       ubuntu@$vmname:~
 done
+
+scp "$dir/ca.pem" ubuntu@gateway:~

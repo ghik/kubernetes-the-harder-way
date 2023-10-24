@@ -31,5 +31,11 @@ $(<"$dir/cloud-init/user-data.$vmtype")
 EOF
 " > "$vmdir/user-data"
 
+# Evaluate `network-config` "bash template" for this VM type and save the result
+eval "cat << EOF
+$(<"$dir/cloud-init/network-config.$vmtype")
+EOF
+" > "$vmdir/network-config"
+
 # Build the `cloud-init` ISO
-mkisofs -output "$vmdir/cidata.iso" -volid cidata -joliet -rock "$vmdir"/{user-data,meta-data}
+mkisofs -output "$vmdir/cidata.iso" -volid cidata -joliet -rock "$vmdir"/{user-data,meta-data,network-config}

@@ -21,6 +21,8 @@ This way we can easily do iterative improvements and experiments to our VM setup
 - [Topology overview](#topology-overview)
 - [Image preparation](#image-preparation)
   - [VM setup script](#vm-setup-script)
+    - [Impromptu bash "templating" for `cloud-init` files](#impromptu-bash-templating-for-cloud-init-files)
+    - [Running](#running)
   - [Testing the VM](#testing-the-vm)
 - [Shared network setup](#shared-network-setup)
   - [`dnsmasq`](#dnsmasq)
@@ -30,6 +32,7 @@ This way we can easily do iterative improvements and experiments to our VM setup
   - [Testing the network setup](#testing-the-network-setup)
 - [Remote SSH access](#remote-ssh-access)
   - [Automating establishment of VM's authenticity](#automating-establishment-of-vms-authenticity)
+- [Installing APT packages](#installing-apt-packages)
 - [Summary](#summary)
 - [Resources](#resources)
 
@@ -90,8 +93,9 @@ Let's make a `vmsetup.sh` script that will do everything necessary to launch a s
 will create a directory for a VM, create a QCOW2 image backed by Ubuntu cloud image, write `cloud-init` config files
 and format the `cidata.iso` image. The script will take machine ID as an argument.
 
-First, let's make sure we have the cloud image file in working directory. If you downloaded during the [previous part](QEMU.md)
-of this tutorial, move or copy it into current directory. If not, download it with:
+First, let's make sure we have the cloud image file in working directory. If you downloaded during the 
+[previous part](Learning_How_to_Run_VMs_with_QEMU.md) of this tutorial, move or copy it into current directory. 
+If not, download it with:
 
 ```bash
 wget https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-arm64.img
@@ -101,11 +105,11 @@ Now for the actual script:
 
 ```bash
 #!/usr/bin/env bash
-#!/usr/bin/env bash
+
 set -xe
 dir="$(dirname $0)"
 
-# Grab our helpers
+# Grab the helpers
 source "$dir/helpers.sh"
 
 # Parse the argument
@@ -134,8 +138,14 @@ $(<"$dir/cloud-init/user-data.$vmtype")
 EOF
 " > "$vmdir/user-data"
 
+# Evaluate `network-config` "bash template" for this VM type and save the result
+eval "cat << EOF
+$(<"$dir/cloud-init/network-config.$vmtype")
+EOF
+" > "$vmdir/network-config"
+
 # Build the `cloud-init` ISO
-mkisofs -output "$vmdir/cidata.iso" -volid cidata -joliet -rock "$vmdir"/{user-data,meta-data}
+mkisofs -output "$vmdir/cidata.iso" -volid cidata -joliet -rock "$vmdir"/{user-data,meta-data,network-config}
 ```
 
 > [!NOTE]
@@ -143,6 +153,8 @@ mkisofs -output "$vmdir/cidata.iso" -volid cidata -joliet -rock "$vmdir"/{user-d
 > * `set -x` causes every command to be logged on standard output, making it easier for us to see what's going on
 > * `dir="$(dirname $0)"` saves the script's parent directory to a variable - we use it to make the script
 >    independent of working directory
+
+#### Impromptu bash "templating" for `cloud-init` files
 
 You might be perplexed by this ungodly incantation:
 
@@ -152,6 +164,8 @@ $(<"$dir/cloud-init/user-data.$vmtype")
 EOF
 " > "$vmdir/user-data"
 ```
+
+(and a similar one for `network-config`)
 
 It assumes that we have three "bash template" files in the `cloud-init` directory 
 (`user-data.gateway`, `user-data.control`, `user-data.worker`). For our purposes, a "bash template" is
@@ -170,8 +184,17 @@ EOF
 done
 ```
 
+In a similar manner, we also set up template files for `network-config`. We will use them later and leave them empty
+for now:
+
+```bash
+touch cloud-init/network-config.{gateway,control,worker}
+```
+
 The templating part will come in handy later. We will modify and extend these files multiple times
 throughout this guide.
+
+#### Running
 
 Let's give the script proper permissions and run it for the `gateway` VM:
 
@@ -559,12 +582,36 @@ Don't forget to give the script executable permissions and run it with `./vmsshs
 
 Et voilà! You can now SSH into your VM without any trouble.
 
+## Installing APT packages
+
+Throughout this guide, we will need to install several APT packages on the VMs 
+(although not for the Kubernetes itself). We would like these packages to be installed automatically upon VM's first
+boot so that we don't have to do it manually after each VM reset.
+
+Fortunately, this is very easy with `cloud-init`. Simply edit the `cloud-init/user-data.<vmtype>` template file and
+add the `packages` key listing all the desired packages. For example, in order to make sure `curl` is installed:
+
+```yaml
+packages:
+  - curl
+```
+
+If you feel like it, you can also instruct `cloud-init` to automatically upgrade the system to newest package versions,
+and even allow it to reboot the machine if necessary (e.g. whe the kernel is updated):
+
+```yaml
+package_update: true
+package_upgrade: true
+package_reboot_if_required: false
+```
+
 ## Summary
 
 In this chapter, we have:
 * created a script that prepares each VM's image and `cloud-init` configuration
 * prepared proper network environment for the cluster on the host machine, including a DHCP and DNS server using `dnsmasq`
 * automated everything necessary to connect to our VMs with SSH
+* learned how to make sure that desired APT packages are installed on VMs
 
 ## Resources
 

@@ -5,7 +5,7 @@ sudo -v
 
 arch=arm64
 etcd_version=3.5.9
-k8s_version=1.27.3
+k8s_version=1.28.3
 
 # etcd setup
 
@@ -20,8 +20,8 @@ sudo mkdir -p /etc/etcd /var/lib/etcd
 sudo chmod 700 /var/lib/etcd/
 sudo cp ca.pem kubernetes-key.pem kubernetes.pem /etc/etcd/
 
-ip=$(ip addr show enp0s1 | grep -Po 'inet \K192\.168\.64\.\d+')
-hname=$(hostname -s)
+vmaddr=$(ip addr show enp0s1 | grep -Po 'inet \K192\.168\.1\.\d+')
+vmname=$(hostname -s)
 
 cat <<EOF | sudo tee /etc/systemd/system/etcd.service
 [Unit]
@@ -32,7 +32,7 @@ Documentation=https://github.com/coreos
 Type=notify
 Environment=ETCD_UNSUPPORTED_ARCH=${arch}
 ExecStart=/usr/local/bin/etcd \\
-  --name $hname \\
+  --name $vmname \\
   --cert-file=/etc/etcd/kubernetes.pem \\
   --key-file=/etc/etcd/kubernetes-key.pem \\
   --peer-cert-file=/etc/etcd/kubernetes.pem \\
@@ -41,12 +41,12 @@ ExecStart=/usr/local/bin/etcd \\
   --peer-trusted-ca-file=/etc/etcd/ca.pem \\
   --peer-client-cert-auth \\
   --client-cert-auth \\
-  --initial-advertise-peer-urls https://${ip}:2380 \\
-  --listen-peer-urls https://${ip}:2380 \\
-  --listen-client-urls https://${ip}:2379,https://127.0.0.1:2379 \\
-  --advertise-client-urls https://${ip}:2379 \\
+  --initial-advertise-peer-urls https://${vmaddr}:2380 \\
+  --listen-peer-urls https://${vmaddr}:2380 \\
+  --listen-client-urls https://${vmaddr}:2379,https://127.0.0.1:2379 \\
+  --advertise-client-urls https://${vmaddr}:2379 \\
   --initial-cluster-token etcd-cluster-0 \\
-  --initial-cluster control0=https://192.168.64.10:2380,control1=https://192.168.64.11:2380,control2=https://192.168.64.12:2380 \\
+  --initial-cluster control0=https://192.168.1.11:2380,control1=https://192.168.1.12:2380,control2=https://192.168.1.13:2380 \\
   --initial-cluster-state new \\
   --data-dir=/var/lib/etcd
 Restart=on-failure
@@ -87,7 +87,7 @@ Documentation=https://github.com/kubernetes/kubernetes
 
 [Service]
 ExecStart=/usr/local/bin/kube-apiserver \\
-  --advertise-address=${ip} \\
+  --advertise-address=${vmaddr} \\
   --allow-privileged=true \\
   --apiserver-count=3 \\
   --audit-log-maxage=30 \\
@@ -101,7 +101,7 @@ ExecStart=/usr/local/bin/kube-apiserver \\
   --etcd-cafile=/var/lib/kubernetes/ca.pem \\
   --etcd-certfile=/var/lib/kubernetes/kubernetes.pem \\
   --etcd-keyfile=/var/lib/kubernetes/kubernetes-key.pem \\
-  --etcd-servers=https://192.168.64.10:2379,https://192.168.64.11:2379,https://192.168.64.12:2379 \\
+  --etcd-servers=https://192.168.1.11:2379,https://192.168.1.12:2379,https://192.168.1.13:2379 \\
   --event-ttl=1h \\
   --encryption-provider-config=/var/lib/kubernetes/encryption-config.yaml \\
   --kubelet-certificate-authority=/var/lib/kubernetes/ca.pem \\
@@ -110,8 +110,8 @@ ExecStart=/usr/local/bin/kube-apiserver \\
   --runtime-config='api/all=true' \\
   --service-account-key-file=/var/lib/kubernetes/service-account.pem \\
   --service-account-signing-key-file=/var/lib/kubernetes/service-account-key.pem \\
-  --service-account-issuer=https://192.168.64.14:6443 \\
-  --service-cluster-ip-range=10.32.0.0/24 \\
+  --service-account-issuer=https://192.168.1.21:6443 \\
+  --service-cluster-ip-range=10.32.0.0/16 \\
   --service-node-port-range=30000-32767 \\
   --tls-cert-file=/var/lib/kubernetes/kubernetes.pem \\
   --tls-private-key-file=/var/lib/kubernetes/kubernetes-key.pem \\
@@ -141,7 +141,7 @@ ExecStart=/usr/local/bin/kube-controller-manager \\
   --leader-elect=true \\
   --root-ca-file=/var/lib/kubernetes/ca.pem \\
   --service-account-private-key-file=/var/lib/kubernetes/service-account-key.pem \\
-  --service-cluster-ip-range=10.32.0.0/24 \\
+  --service-cluster-ip-range=10.32.0.0/16 \\
   --use-service-account-credentials=true \\
   --v=2
 Restart=on-failure
