@@ -1,6 +1,6 @@
-Previous: [Using QEMU to Run VMs](Using_QEMU_to_Run_VMs.md)
+Previous: [Learning How to Run VMs with QEMU](Learning_How_to_Run_VMs_with_QEMU.md)
 
-# Preparing the Ground for VMs
+# Preparing Environment for a VM Cluster
 
 Ok, we are decently proficient with QEMU and `cloud-init` now. It's time to start building an actual cluster for
 our Kubernetes deployment.

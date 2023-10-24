@@ -1,4 +1,4 @@
-Previous: [Preparing the Ground for VMs](Preparing_the_Ground_for_VMs.md)
+Previous: [Preparing Environment for a VM Cluster](Preparing_Environment_for_a_VM_Cluster.md)
 
 # Launching the VM Cluster
 
@@ -395,4 +395,4 @@ In this chapter, we have:
 1. [Getting started with `tmux`](https://linuxize.com/post/getting-started-with-tmux/)
 2. [Tmux Cheat Sheet & Quick Reference](https://tmuxcheatsheet.com/)
 
-Next: [Kubernetes Components and Security](Kubernetes_Components_and_Security.md)
+Next: [Bootstrapping Kubernetes Security](Bootstrapping_Kubernetes_Security.md)

@@ -1,6 +1,6 @@
 Previous: [Launching the VM Cluster](Launching_the_VM_Cluster.md)
 
-# Kubernetes Components and Security
+# Bootstrapping Kubernetes Security
 
 At this point in the guide, we have all the virtual hardware prepared, and we're eager to start installing
 Kubernetes on it.
@@ -706,7 +706,7 @@ EOF
 
 Let's upload all the files we have painstakingly prepared into the VMs.
 Make sure the VMs are running, as described in the [previous chapter](Launching_the_VM_Cluster.md).
-Also, make sure that [`vmsshsetup.sh`](Preparing_the_Ground_for_VMs.md#automating-establishment-of-vms-authenticity) 
+Also, make sure that [`vmsshsetup.sh`](Preparing_Environment_for_a_VM_Cluster.md#automating-establishment-of-vms-authenticity) 
 has been run for all the VMs.
 
 Then, upload the files with a script, `deployauth.sh`:
