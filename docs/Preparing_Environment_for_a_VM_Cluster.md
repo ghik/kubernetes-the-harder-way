@@ -482,7 +482,7 @@ ssh_authorized_keys:
   - $(<~/.ssh/id_rsa.pub)
 ```
 
-> ![NOTE]
+> [!NOTE]
 > This is where we're starting to make use of templating capabilities of these files.
 > Also, it may be annoying that we have to copy this entry into 3 separate files.
 > The amount of repetition is however small enough that getting rid of it would not be worth 
