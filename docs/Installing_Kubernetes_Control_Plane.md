@@ -1,3 +1,16 @@
+Previous: [Bootstrapping Kubernetes Security](Bootstrapping_Kubernetes_Security.md)
+
+# Installing Kubernetes Control Plane
+
+In this chapter we will install the Kubernetes control plane components, i.e. `etcd`, `kube-apiserver`,
+`kube-scheduler` and `kube-controller-manager`. As a result, for the first time we'll have a fully functioning
+Kubernetes API to talk to.
+
+We will also set up a virtual IP based load balancer for the Kubernetes API on the `gateway` machine, making it
+possible to reach the API using a simple domain name `kubernetes.kubenet` (or just `kubernetes`).
+
+On the way, we'll also learn/remind some basic Linux tools and concepts, e.g. `systemd` and IPVS.
+
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
@@ -24,19 +37,6 @@
   - [Summary](#summary)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
-
-Previous: [Bootstrapping Kubernetes Security](Bootstrapping_Kubernetes_Security.md)
-
-# Installing Kubernetes Control Plane
-
-In this chapter we will install the Kubernetes control plane components, i.e. `etcd`, `kube-apiserver`,
-`kube-scheduler` and `kube-controller-manager`. As a result, for the first time we'll have a fully functioning
-Kubernetes API to talk to.
-
-We will also set up a virtual IP based load balancer for the Kubernetes API on the `gateway` machine, making it
-possible to reach the API using a simple domain name `kubernetes.kubenet` (or just `kubernetes`).
-
-On the way, we'll also learn/remind some basic Linux tools and concepts, e.g. `systemd` and IPVS.
 
 ## Prerequisites
 
