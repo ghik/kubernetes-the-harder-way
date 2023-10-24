@@ -26,5 +26,6 @@ for i in $(seq 0 2); do
       "$dir/$vmname.pem" \
       "$dir/$vmname-key.pem" \
       "$dir/$vmname.kubeconfig" \
+      "$dir/kube-proxy.kubeconfig" \
       ubuntu@$vmname:~
 done

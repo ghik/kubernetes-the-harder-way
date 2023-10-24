@@ -41,7 +41,7 @@ genkubeconfig() {
 
 cfssl gencert -initca "$dir/ca-csr.json" | cfssljson -bare ca
 
-for name in kubernetes admin kube-scheduler kube-controller-manager service-account; do
+for name in kubernetes admin kube-scheduler kube-controller-manager kube-proxy service-account; do
   gencert $name
 done
 
@@ -52,6 +52,7 @@ done
 genkubeconfig admin admin
 genkubeconfig kube-scheduler system:kube-scheduler
 genkubeconfig kube-controller-manager system:kube-controller-manager
+genkubeconfig kube-proxy system:kube-proxy
 
 for i in $(seq 0 2); do
   genkubeconfig worker$i system:node:worker$i

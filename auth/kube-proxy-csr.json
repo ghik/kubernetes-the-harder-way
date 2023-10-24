@@ -1,0 +1,16 @@
+{
+  "CN": "system:kube-proxy",
+  "key": {
+    "algo": "rsa",
+    "size": 2048
+  },
+  "names": [
+    {
+      "C": "PL",
+      "L": "Krakow",
+      "O": "system:node-proxier",
+      "OU": "kubenet",
+      "ST": "Lesser Poland"
+    }
+  ]
+}

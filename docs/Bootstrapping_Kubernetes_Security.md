@@ -41,6 +41,7 @@ in future chapters.
   - [Generating kubeconfigs](#generating-kubeconfigs)
   - [Generating cluster data encryption key](#generating-cluster-data-encryption-key)
 - [Distributing certificates and keys](#distributing-certificates-and-keys)
+- [Setting up local `kubeconfig`](#setting-up-local-kubeconfig)
 - [Summary](#summary)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -131,7 +132,7 @@ This gives us an overview of all the certificates that we need to prepare for fu
 * certificate and key for verifying and signing service account tokens
 
 Of course, every certificate must be signed by a Certificate Authority. Technically, it is possible to have
-a separate CA for different types of certificates:
+separate CAs for different types of certificates:
 * a CA to sign `etcd` peer certificates
 * a CA to sign `etcd` server certificate(s)
 * a CA to sign `kube-apiserer` server certificate
@@ -143,7 +144,7 @@ a separate CA for different types of certificates:
 ### Simplifying the setup
 
 The previous section presents an exhaustive list of certificates and CAs that can be configured separately.
-In practice, however, there is no reason to use all that power, at least for our purposes in this guide.
+In practice, however, there is no reason to use all that configurability, at least for our purposes in this guide.
 We'll simplify things in the following ways:
 
 * We'll use a single root CA to sign all the certificates
@@ -744,6 +745,40 @@ for i in $(seq 0 2); do
       ubuntu@$vmname:~
 done
 ```
+
+## Setting up local `kubeconfig`
+
+As for the `admin` certificate, we want to use it locally, so instead of creating a separate `kubeconfig` file,
+we add it into a local, default one (i.e. `~/.kube/config`), which may already exist and contain entries for other
+Kubernetes clusters.
+
+We can do this with the following script, `setuplocalkubeconfig.sh`:
+
+```bash
+#!/usr/bin/env bash
+
+set -xe
+dir="$(dirname $0)"
+
+kubectl config set-cluster kubenet \
+  --certificate-authority="$dir/ca.pem" \
+  --embed-certs=true \
+  --server=https://kubernetes:6443
+
+kubectl config set-credentials admin \
+  --client-certificate="$dir/admin.pem" \
+  --client-key="$dir/admin-key.pem" \
+  --embed-certs=true
+
+kubectl config set-context kubenet \
+  --cluster=kubenet \
+  --user=admin
+
+kubectl config use-context kubenet
+```
+
+This will allow us to use the `kubectl` command locally to communicate with the (currently nonexistent) Kubernetes
+cluster.
 
 ## Summary
 
