@@ -44,8 +44,10 @@ and have all the certificates, keys and kubeconfigs [deployed](Bootstrapping_Kub
 
 ## Quick overview of `systemd`
 
-Ubuntu uses [`systemd`](https://en.wikipedia.org/wiki/Systemd) as the "init system", i.e. a software that manages
-services and daemons, making sure they are started upon system boot, in the correct order, etc.
+Ubuntu uses [`systemd`](https://en.wikipedia.org/wiki/Systemd) as the "init system", i.e. a piece of software that 
+manages services/daemons, starting them during system boot, making sure they run in the correct order, etc.
+We'll be using `systemd` throughout this chapter to run Kubernetes components. Because of that, let's have a quick
+theoretical introduction into `systemd` in order to make things less magic.
 
 ### Unit files
 
@@ -74,6 +76,9 @@ Restart=always
 [Install]
 WantedBy=multi-user.target
 ```
+
+which defines a service that requires the `network` target to be completed before running, and installs itself
+as a dependency of the `multi-user` target.
 
 `systemd` is associated with a command line program, `systemctl`, which can be used to reload unit definitions,
 start, stop, restart, inspect services, etc.

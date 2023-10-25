@@ -789,3 +789,4 @@ In this chapter, we have:
 * generated all the certificates and configuration files necessary for secure Kubernetes deployment
 * uploaded the files into the VMs, in anticipation of installing Kubernetes on them
 
+Next: [Installing Kubernetes Control Plane](Installing_Kubernetes_Control_Plane.md)

@@ -2,13 +2,15 @@ Previous: [Introduction](Introduction.md)
 
 # Learning How to Run VMs with QEMU
 
-Let's get to work and start setting up our virtual cluster.
+Let's learn how to launch virtual machines.
 
 In a real-world scenario, you would use some high level virtual machine manager like [Vagrant](https://www.vagrantup.com/) to manage your VMs.
-However, let's remember that we want to do things _the hard way_ in order to see the guts of all the layers involved in our endeavor.
-For this reason, we will use the most _raw_ tool possible for running our VMs: [QEMU](https://www.qemu.org/).
+However, we want to do things _the hard way_ in order to see the guts of all the layers involved in our endeavor.
+For this reason, we will use perhaps the most _raw_ tool possible for running VMs: [QEMU](https://www.qemu.org/).
 
-This chapter is an exploration of QEMU's possibilities and architecture.
+This chapter is an introduction to virtualization in general, exploration of QEMU, plus an overview of the `cloud-init` 
+tool. None of the actions in this chapter are necessary to progress with the deployment, they are intended purely 
+for learning. You may jump straight into the [next chapter](Preparing_Environment_for_a_VM_Cluster.md) if you wish.
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
@@ -72,10 +74,10 @@ cannot simply execute it on host hardware. It must give the control back to the 
 A key part of hardware-assisted virtualization is also a [second layer of memory address translation](https://en.wikipedia.org/wiki/Second_Level_Address_Translation) which
 translates between VM's virtual memory and host's virtual memory. Without it, the hypervisor would have to translate or intercept every single memory access instruction.
 
-As a result of this hardware-level support, most of the VM code can run directly on the underlying CPU, without the need of intermediate translation or inspection
+As a result of this hardware-level support, most of the VM code can run directly on the underlying CPU, without the need for intermediate translation or inspection
 of every instruction by the hypervisor.
 Naturally, this requires that the guest system uses the same CPU architecture as the host CPU. For this reason, all the VMs used in this guide and all 
-the software they run are bound to the AArch64 architecture.
+the software they run are bound to the AArch64 architecture (the CPU architecture of my laptop).
 
 ### QEMU, virtualization and paravirtualization
 
