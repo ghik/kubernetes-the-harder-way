@@ -3,11 +3,11 @@
 set -xe
 dir="$(dirname $0)"
 
-for inst in control{0,1,2}; do
-  scp -o UserKnownHostsFile="$dir/$inst/ssh_known_hosts" setupcontrol setupkubeletaccess ubuntu@${inst}:~
+for i in $(seq 0 2); do
+  scp "$dir/setupcontrol" "$dir/setupkubeletaccess" ubuntu@control$i:~
 done
 
-for inst in worker{0,1,2}; do
-  scp -o UserKnownHostsFile="$dir/$inst/ssh_known_hosts" setupworker ubuntu@${inst}:~
+for i in $(seq 0 2); do
+  scp "$dir/setupworker" ubuntu@worker$i:~
 done
 

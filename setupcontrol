@@ -7,6 +7,9 @@ arch=arm64
 etcd_version=3.5.9
 k8s_version=1.28.3
 
+vmaddr=$(ip addr show enp0s1 | grep -Po 'inet \K192\.168\.1\.\d+')
+vmname=$(hostname -s)
+
 # etcd setup
 
 etcd_archive=etcd-v${etcd_version}-linux-${arch}.tar.gz
@@ -19,9 +22,6 @@ sudo cp etcd-v${etcd_version}-linux-${arch}/etcd* /usr/local/bin
 sudo mkdir -p /etc/etcd /var/lib/etcd
 sudo chmod 700 /var/lib/etcd/
 sudo cp ca.pem kubernetes-key.pem kubernetes.pem /etc/etcd/
-
-vmaddr=$(ip addr show enp0s1 | grep -Po 'inet \K192\.168\.1\.\d+')
-vmname=$(hostname -s)
 
 cat <<EOF | sudo tee /etc/systemd/system/etcd.service
 [Unit]

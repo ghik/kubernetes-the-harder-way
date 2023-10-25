@@ -5,3 +5,7 @@ network:
       match:
         name: lo
       addresses: [192.168.1.21/32]
+    enp0s1:
+      match:
+        name: enp0s1
+      dhcp4: true

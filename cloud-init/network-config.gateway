@@ -1,7 +1,8 @@
 network:
   version: 2
   ethernets:
-    lo:
+    enp0s1:
       match:
-        name: lo
+        name: enp0s1
       addresses: [192.168.1.21/32]
+      dhcp4: true

@@ -23,7 +23,7 @@ On the way, we'll also learn/remind some basic Linux tools and concepts, e.g. `s
   - [Installing `etcd`](#installing-etcd)
   - [Installing `kube-apiserver`](#installing-kube-apiserver)
 - [Kubernetes API load balancer](#kubernetes-api-load-balancer)
-  - [What is virtual IP?](#what-is-virtual-ip)
+  - [What is a virtual IP?](#what-is-a-virtual-ip)
   - [Virtual IP on control nodes](#virtual-ip-on-control-nodes)
     - [Persisting the setup with `cloud-init` for control nodes](#persisting-the-setup-with-cloud-init-for-control-nodes)
   - [Setting up the load balancer machine](#setting-up-the-load-balancer-machine)
@@ -208,9 +208,6 @@ dc0336cac5c58d30, started, control1, https://192.168.1.12:2380, https://192.168.
 
 ### Installing `kube-apiserver`
 
-> [!NOTE]
-> We will use this variable not just for `kube-apiserver` but also for other control plane components.
-
 Download the binary and copy it to `/usr/local/bin`:
 
 ```bash
@@ -311,18 +308,19 @@ one of the control node IPs/addresses directly, rather than using a single, unif
 API. We have set up all our kubeconfigs using `https://kubernetes:6443` as the API url. This name resolves to a virtual
 IP (192.168.1.21) that we have statically configured in the DNS server. It is now time to set it up.
 
-### What is virtual IP?
+### What is a virtual IP?
 
-A virtual IP address is an address within a local network that is not bound to a single machine but rather is
+A virtual IP address is an address within a local network that is not bound to a single machine but is rather
 recognized by multiple machines as their own. All the packets destined for the Virtual IP must go through a load
-balancer (the `gateway` VM, in our case) which distributes it across actual machines which actually handle the traffic.
+balancer (the `gateway` VM, in our case) which distributes it across machines which actually handle the traffic.
 
 > [!NOTE]
 > Only the incoming packets go through the load balancer, 
 > the returning packets go directly from destination to source.
 
 This simple load balancing technique is implemented in the Linux kernel by the IPVS module, 
-and has the advantage of not involving any address translation.
+and has the advantage of not involving any address translation or tunnelling 
+(although it can be configured otherwise).
 
 ### Virtual IP on control nodes
 
@@ -345,8 +343,8 @@ First, assign the address on loopback interface rather than virtual ethernet:
 sudo ip addr add 192.168.1.21/32 dev lo
 ```
 
-This is not enough, though. By default, linux all the addresses from all interfaces for ARP requests and responses.
-We need some more twiddling in kernel network options:
+This is not enough, though. By default, Linux considers all the addresses from all interfaces for ARP requests 
+and responses. We need some more twiddling in kernel network options:
 
 ```bash
 sudo sysctl net.ipv4.conf.all.arp_ignore=1
@@ -390,10 +388,18 @@ network:
       match:
         name: lo
       addresses: [192.168.1.21/32]
+    enp0s1:
+      match:
+        name: enp0s1
+      dhcp4: true
 ```
 
 > [!NOTE]
 > This is the same YAML format as the one used by Ubuntu's [netplan](https://netplan.io/) utility.
+
+> [!NOTE]
+> Even though we only want to modify the loopback interface, we must include a default entry for the virtual
+> ethernet with DHCP enabled. Otherwise, it will not be configured.
 
 In order to persist the ARP-related kernel options, add this to `cloud-init/user-data.control`:
 
@@ -441,16 +447,17 @@ sudo ip addr add 192.168.1.21/32 dev enp0s1
 network:
   version: 2
   ethernets:
-    lo:
+    enp0s1:
       match:
         name: enp0s1
       addresses: [192.168.1.21/32]
+      dhcp4: true
 ```
 
 #### Playing with `ipvsadm`
 
 `ipvsadm` is the command that allows us to configure a load-balanced virtual IP within the linux kernel.
-Ultimately, we won't be using it directly, and allow this to be done by the userspace utility, `ldirectord`.
+Ultimately, we won't be using it directly, and we'll allow this to be done by an userspace utility, `ldirectord`.
 However, just for educational purposes, let's try to do it by hand.
 
 On the `gateway` machine, invoke:
@@ -542,7 +549,7 @@ virtual=192.168.1.21:6443
 EOF
 ```
 
-The tree last lines of this configuration specify how the target nodes are monitored: by issuing an HTTPS request
+The three last lines of this configuration specify how target nodes are monitored: by issuing an HTTPS request
 on `/healthz` path and expecting an `ok` response.
 
 There's one last problem: we are using HTTPS for health checks but this machine does not trust our Kubernetes API
