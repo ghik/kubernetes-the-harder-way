@@ -310,14 +310,16 @@ curl -v --cacert /var/lib/kubernetes/ca.pem https://127.0.0.1:6443/healthz
 
 The Kubernetes API server is now running, and we can try using it. Unfortunately, this would require referring to
 one of the control node IPs/addresses directly, rather than using a single, uniform IP and name for the entire
-API. We have set up all our kubeconfigs using `https://kubernetes:6443` as the API url. This name resolves to a virtual
-IP (192.168.1.21) that we have statically configured in the DNS server. It is now time to set it up.
+API. We have configured all our kubeconfigs to use `https://kubernetes:6443` as the API url.
+The name `kubernetes` is [configured in the DNS server](Preparing_Environment_for_a_VM_Cluster.md#dns-server-configuration)
+to resolve to a mysterious, unassigned address 192.168.1.21. This is a virtual IP, and it is now time to properly
+set it up.
 
 ### What is a virtual IP?
 
 A virtual IP address is an address within a local network that is not bound to a single machine but is rather
-recognized by multiple machines as their own. All the packets destined for the Virtual IP must go through a load
-balancer (the `gateway` VM, in our case) which distributes it across machines which actually handle the traffic.
+recognized by multiple machines as their own. All the packets destined for the virtual IP must go through a load
+balancer (the `gateway` VM, in our case) which distributes them across machines that actually handle them.
 
 > [!NOTE]
 > Only the incoming packets go through the load balancer, 
@@ -325,7 +327,7 @@ balancer (the `gateway` VM, in our case) which distributes it across machines wh
 
 This simple load balancing technique is implemented in the Linux kernel by the IPVS module, 
 and has the advantage of not involving any address translation or tunnelling 
-(although it can be configured otherwise).
+(although it can be configured to do so).
 
 ### Virtual IP on control nodes
 
@@ -337,7 +339,7 @@ For example, we could do something like this:
 sudo ip addr add 192.168.1.21/32 dev enp0s1
 ```
 
-However, we have a problem: an IP address conflict. If anyone on the local network asks (via ARP) who has the
+However, we have a problem: an IP address conflict in the network. If anyone on the local network asks (via ARP) who has the
 virtual address, all the control nodes will respond. This is bad. We actually want only the load balancer machine
 to publicly admit the possession of this virtual IP. In order to make sure that control nodes never announce this
 IP as their own, we need to use some tricks:
@@ -461,7 +463,7 @@ network:
 
 #### Playing with `ipvsadm`
 
-`ipvsadm` is the command that allows us to configure a load-balanced virtual IP within the linux kernel.
+`ipvsadm` is the utility that allows us to configure a load-balanced virtual IP within the Linux kernel.
 Ultimately, we won't be using it directly, and we'll allow this to be done by an userspace utility, `ldirectord`.
 However, just for educational purposes, let's try to do it by hand.
 
@@ -531,7 +533,7 @@ Fortunately, there are many simple user-space tools that can do this for us. The
 monitor target machines in userspace. If they detect that any of them is down, IPVS is dynamically reconfigured to 
 exclude a faulty route.
 
-The tool of our choice is `ldirectord` - an old and simple utility but more than enough for our purposes.
+The tool of our choice is `ldirectord` - an old and simple utility, but more than enough for our purposes.
 Instead of invoking `ipvsadm` manually, we define the load balanced service in a file:
 
 ```bash
