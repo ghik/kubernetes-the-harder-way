@@ -5,7 +5,7 @@
 set -xe
 dir="$(dirname $0)"
 
-cat <<EOF | kubectl apply --kubeconfig "$dir/auth/admin.kubeconfig" -f -
+cat <<EOF | kubectl apply -f -
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -27,7 +27,7 @@ rules:
       - "*"
 EOF
 
-cat <<EOF | kubectl apply --kubeconfig "$dir/auth/admin.kubeconfig" -f -
+cat <<EOF | kubectl apply -f -
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:

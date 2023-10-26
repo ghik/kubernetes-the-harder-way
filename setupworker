@@ -4,34 +4,45 @@ set -xe
 sudo -v
 
 arch=arm64
-k8s_version=1.27.3
-cri_version=1.27.1
-runc_version=1.1.7
-containerd_version=1.7.2
+k8s_version=1.28.3
+cri_version=1.28.0
+runc_version=1.1.9
+containerd_version=1.7.7
+cni_plugins_version=1.3.0
+cni_spec_version=1.0.0
+
+vmname=$(hostname -s)
+workeridx=${vmname:6}
+pod_cidr=10.0.${workeridx}.0/24
+
+crictl_archive=crictl-v${cri_version}-linux-${arch}.tar.gz
+containerd_archive=containerd-${containerd_version}-linux-${arch}.tar.gz
+cni_plugins_archive=cni-plugins-linux-${arch}-v${cni_plugins_version}.tgz
 
 wget -q --show-progress --https-only --timestamping \
-  https://github.com/kubernetes-sigs/cri-tools/releases/download/v${cri_version}/crictl-v${cri_version}-linux-${arch}.tar.gz \
+  https://github.com/kubernetes-sigs/cri-tools/releases/download/v${cri_version}/${crictl_archive} \
   https://github.com/opencontainers/runc/releases/download/v${runc_version}/runc.${arch} \
-  https://github.com/containerd/containerd/releases/download/v${containerd_version}/containerd-${containerd_version}-linux-${arch}.tar.gz \
-  https://storage.googleapis.com/kubernetes-release/release/v${k8s_version}/bin/linux/${arch}/kubectl \
-  https://storage.googleapis.com/kubernetes-release/release/v${k8s_version}/bin/linux/${arch}/kubelet
+  https://github.com/containerd/containerd/releases/download/v${containerd_version}/${containerd_archive} \
+  https://github.com/containernetworking/plugins/releases/download/v${cni_plugins_version}/${cni_plugins_archive} \
+  https://storage.googleapis.com/kubernetes-release/release/v${k8s_version}/bin/linux/${arch}/kubelet \
+  https://storage.googleapis.com/kubernetes-release/release/v${k8s_version}/bin/linux/${arch}/kube-proxy
 
 sudo mkdir -p \
+  /opt/cni/bin \
+  /etc/cni/net.d \
   /var/lib/kubelet \
+  /var/lib/kube-proxy \
   /var/lib/kubernetes \
   /var/run/kubernetes
 
 mkdir -p containerd
-tar -xvf crictl-v${cri_version}-linux-${arch}.tar.gz
-tar -xvf containerd-${containerd_version}-linux-${arch}.tar.gz -C containerd
+tar -xvf $crictl_archive
+tar -xvf $containerd_archive -C containerd
 cp runc.${arch} runc
-chmod +x crictl kubectl kubelet runc
-sudo cp crictl kubectl kubelet runc /usr/local/bin/
+chmod +x runc crictl kubelet kube-proxy
+sudo cp runc crictl kubelet kube-proxy /usr/local/bin/
 sudo cp containerd/bin/* /bin/
-
-hostname=$(hostname -s)
-workeridx=${hostname:6}
-pod_cidr=10.0.${workeridx}.0/24
+sudo tar -xvf $cni_plugins_archive -C /opt/cni/bin/
 
 # containerd
 
@@ -68,10 +79,38 @@ LimitCORE=infinity
 WantedBy=multi-user.target
 EOF
 
+# cni
+
+cat <<EOF | sudo tee /etc/cni/net.d/10-bridge.conf
+{
+    "cniVersion": "${cni_spec_version}",
+    "name": "bridge",
+    "type": "bridge",
+    "bridge": "cnio0",
+    "isGateway": true,
+    "ipMasq": true,
+    "ipam": {
+        "type": "host-local",
+        "ranges": [
+          [{"subnet": "${pod_cidr}"}]
+        ],
+        "routes": [{"dst": "0.0.0.0/0"}]
+    }
+}
+EOF
+
+cat <<EOF | sudo tee /etc/cni/net.d/99-loopback.conf
+{
+    "cniVersion": "${cni_spec_version}",
+    "name": "lo",
+    "type": "loopback"
+}
+EOF
+
 # kubelet
 
-sudo cp ${hostname}-key.pem ${hostname}.pem /var/lib/kubelet/
-sudo cp ${hostname}.kubeconfig /var/lib/kubelet/kubeconfig
+sudo cp ${vmname}-key.pem ${vmname}.pem /var/lib/kubelet/
+sudo cp ${vmname}.kubeconfig /var/lib/kubelet/kubeconfig
 sudo cp ca.pem /var/lib/kubernetes/
 
 cat <<EOF | sudo tee /var/lib/kubelet/kubelet-config.yaml
@@ -92,8 +131,8 @@ clusterDNS:
 podCIDR: "${pod_cidr}"
 resolvConf: "/run/systemd/resolve/resolv.conf"
 runtimeRequestTimeout: "15m"
-tlsCertFile: "/var/lib/kubelet/${hostname}.pem"
-tlsPrivateKeyFile: "/var/lib/kubelet/${hostname}-key.pem"
+tlsCertFile: "/var/lib/kubelet/${vmname}.pem"
+tlsPrivateKeyFile: "/var/lib/kubelet/${vmname}-key.pem"
 containerRuntimeEndpoint: "unix:///var/run/containerd/containerd.sock"
 cgroupDriver: "systemd"
 EOF
@@ -118,7 +157,37 @@ RestartSec=5
 WantedBy=multi-user.target
 EOF
 
+# kube-proxy
+
+sudo cp kube-proxy.kubeconfig /var/lib/kube-proxy/kubeconfig
+
+cat <<EOF | sudo tee /var/lib/kube-proxy/kube-proxy-config.yaml
+kind: KubeProxyConfiguration
+apiVersion: kubeproxy.config.k8s.io/v1alpha1
+clientConnection:
+  kubeconfig: "/var/lib/kube-proxy/kubeconfig"
+mode: "iptables"
+clusterCIDR: "10.0.0.0/12"
+EOF
+
+cat <<EOF | sudo tee /etc/systemd/system/kube-proxy.service
+[Unit]
+Description=Kubernetes Kube Proxy
+Documentation=https://github.com/kubernetes/kubernetes
+
+[Service]
+ExecStart=/usr/local/bin/kube-proxy \\
+  --config=/var/lib/kube-proxy/kube-proxy-config.yaml
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# run it all
+
 sudo systemctl daemon-reload
-sudo systemctl enable containerd kubelet
-sudo systemctl start containerd kubelet
+sudo systemctl enable containerd kubelet kube-proxy
+sudo systemctl start containerd kubelet kube-proxy
 

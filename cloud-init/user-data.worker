@@ -5,3 +5,6 @@ ssh_authorized_keys:
 package_update: true
 package_upgrade: true
 package_reboot_if_required: false
+
+runcmd:
+  - modprobe br_netfilter

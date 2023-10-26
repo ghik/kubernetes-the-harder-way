@@ -711,7 +711,7 @@ Documentation=https://github.com/kubernetes/kubernetes
 [Service]
 ExecStart=/usr/local/bin/kube-controller-manager \\
   --bind-address=0.0.0.0 \\
-  --cluster-cidr=10.0.0.0/8 \\
+  --cluster-cidr=10.0.0.0/12 \\
   --cluster-name=kubernetes \\
   --cluster-signing-cert-file=/var/lib/kubernetes/ca.pem \\
   --cluster-signing-key-file=/var/lib/kubernetes/ca-key.pem \\
@@ -736,8 +736,8 @@ Some things to note from the options:
 * The `--cluster-signing-cert-file` and `--cluster-signing-key-file` are related to a feature that was not yet
   mentioned - an [API to dynamically sign certificates](https://kubernetes.io/docs/reference/access-authn-authz/certificate-signing-requests/)
 * The `--service-cluster-ip-range` must be the same as in `kube-apiserver`
-* The `--cluster-cidr` specifies the overall cluster-internal IP range that encompasses both Service IPs and
-  individual Pod IPs.
+* The `--cluster-cidr` specifies IP range for pods in the cluster. We will discuss this in more detail in
+  the [next chapter](Spinning_up_Worker_Nodes.md#splitting-pod-ip-range-between-nodes)
 
 Launch it:
 
