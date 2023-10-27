@@ -6,5 +6,8 @@ package_update: true
 package_upgrade: true
 package_reboot_if_required: false
 
+packages:
+  - nfs-common
+
 runcmd:
   - modprobe br_netfilter

@@ -754,3 +754,5 @@ In this chapter, we have:
 - set up an IPVS based load balancer for the Kubernetes API
 
 At this point we have a fully functional Kubernetes API, but there aren't yet any worker nodes to schedule actual work.
+
+Next: [Spinning up Worker Nodes](Spinning_up_Worker_Nodes.md)
