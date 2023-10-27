@@ -14,5 +14,10 @@ write_files:
     content: |
       net.ipv4.conf.all.arp_announce = 2
       net.ipv4.conf.all.arp_ignore = 1
+  - path: /etc/modules-load.d/cloud-init.conf
+    content: |
+      br_netfilter
+
 runcmd:
   - sysctl -p /etc/sysctl.d/50-vip-arp.conf
+  - modprobe br_netfilter

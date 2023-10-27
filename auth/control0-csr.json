@@ -1,0 +1,21 @@
+{
+  "CN": "system:node:control0",
+  "key": {
+    "algo": "rsa",
+    "size": 2048
+  },
+  "names": [
+    {
+      "C": "PL",
+      "L": "Krakow",
+      "O": "system:nodes",
+      "OU": "kubenet",
+      "ST": "Lesser Poland"
+    }
+  ],
+  "hosts": [
+    "control0",
+    "control0.kubenet",
+    "192.168.1.11"
+  ]
+}

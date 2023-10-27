@@ -12,8 +12,17 @@ cni_plugins_version=1.3.0
 cni_spec_version=1.0.0
 
 vmname=$(hostname -s)
-workeridx=${vmname:6}
-pod_cidr=10.0.${workeridx}.0/24
+
+case "$vmname" in
+  control*)
+    vmid=$((1 + ${vmname:7}));;
+  worker*)
+    vmid=$((4 + ${vmname:6}));;
+  *)
+    echo "expected control or worker VM, got $vmname"; return 1;;
+esac
+
+pod_cidr=10.${vmid}.0.0/16
 
 crictl_archive=crictl-v${cri_version}-linux-${arch}.tar.gz
 containerd_archive=containerd-${containerd_version}-linux-${arch}.tar.gz
@@ -128,7 +137,6 @@ authorization:
 clusterDomain: "cluster.local"
 clusterDNS:
   - "10.32.0.10"
-podCIDR: "${pod_cidr}"
 resolvConf: "/run/systemd/resolve/resolv.conf"
 runtimeRequestTimeout: "15m"
 tlsCertFile: "/var/lib/kubelet/${vmname}.pem"
@@ -136,6 +144,14 @@ tlsPrivateKeyFile: "/var/lib/kubelet/${vmname}-key.pem"
 containerRuntimeEndpoint: "unix:///var/run/containerd/containerd.sock"
 cgroupDriver: "systemd"
 EOF
+
+if [[ $vmname =~ ^control[0-9]+ ]]; then cat <<EOF | sudo tee -a /var/lib/kubelet/kubelet-config.yaml
+registerWithTaints:
+  - key: node-roles.kubernetes.io/control-plane
+    value: ""
+    effect: NoSchedule
+EOF
+fi
 
 cat <<EOF | sudo tee /etc/systemd/system/kubelet.service
 [Unit]
@@ -148,7 +164,6 @@ Requires=containerd.service
 ExecStart=/usr/local/bin/kubelet \\
   --config=/var/lib/kubelet/kubelet-config.yaml \\
   --kubeconfig=/var/lib/kubelet/kubeconfig \\
-  --register-node=true \\
   --v=2
 Restart=on-failure
 RestartSec=5

@@ -16,6 +16,10 @@ for i in $(seq 0 2); do
       "$dir/kube-controller-manager.kubeconfig" \
       "$dir/kube-scheduler.kubeconfig" \
       "$dir/encryption-config.yaml" \
+      "$dir/$vmname.pem" \
+      "$dir/$vmname-key.pem" \
+      "$dir/$vmname.kubeconfig" \
+      "$dir/kube-proxy.kubeconfig" \
       ubuntu@$vmname:~
 done
 

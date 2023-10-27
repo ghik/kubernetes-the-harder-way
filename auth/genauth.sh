@@ -46,6 +46,7 @@ for name in kubernetes admin kube-scheduler kube-controller-manager kube-proxy s
 done
 
 for i in $(seq 0 2); do
+  gencert control$i
   gencert worker$i
 done
 
@@ -55,5 +56,6 @@ genkubeconfig kube-controller-manager system:kube-controller-manager
 genkubeconfig kube-proxy system:kube-proxy
 
 for i in $(seq 0 2); do
+  genkubeconfig control$i system:node:control$i
   genkubeconfig worker$i system:node:worker$i
 done

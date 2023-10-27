@@ -10,7 +10,7 @@ k8s_version=1.28.3
 vmaddr=$(ip addr show enp0s1 | grep -Po 'inet \K192\.168\.1\.\d+')
 vmname=$(hostname -s)
 
-# etcd setup
+# etcd
 
 etcd_archive=etcd-v${etcd_version}-linux-${arch}.tar.gz
 if [[ ! -e $etcd_archive ]]; then
@@ -80,6 +80,8 @@ sudo cp ca.pem ca-key.pem kubernetes-key.pem kubernetes.pem \
   service-account-key.pem service-account.pem \
   encryption-config.yaml /var/lib/kubernetes/
 
+# kube-apiserver
+
 cat <<EOF | sudo tee /etc/systemd/system/kube-apiserver.service
 [Unit]
 Description=Kubernetes API Server
@@ -123,6 +125,8 @@ RestartSec=5
 WantedBy=multi-user.target
 EOF
 
+# kube-controller-manager
+
 sudo cp kube-controller-manager.kubeconfig /var/lib/kubernetes/
 
 cat <<EOF | sudo tee /etc/systemd/system/kube-controller-manager.service
@@ -150,6 +154,8 @@ RestartSec=5
 [Install]
 WantedBy=multi-user.target
 EOF
+
+# kube-scheduler
 
 sudo cp kube-scheduler.kubeconfig /var/lib/kubernetes/
 

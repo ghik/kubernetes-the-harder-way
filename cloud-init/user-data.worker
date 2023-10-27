@@ -9,5 +9,10 @@ package_reboot_if_required: false
 packages:
   - nfs-common
 
+write_files:
+  - path: /etc/modules-load.d/cloud-init.conf
+    content: |
+      br_netfilter
+
 runcmd:
   - modprobe br_netfilter

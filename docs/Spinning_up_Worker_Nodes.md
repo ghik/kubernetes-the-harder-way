@@ -341,7 +341,6 @@ authorization:
 clusterDomain: "cluster.local"
 clusterDNS:
   - "10.32.0.10"
-podCIDR: "${pod_cidr}"
 resolvConf: "/run/systemd/resolve/resolv.conf"
 runtimeRequestTimeout: "15m"
 tlsCertFile: "/var/lib/kubelet/${vmname}.pem"
@@ -370,7 +369,6 @@ Requires=containerd.service
 ExecStart=/usr/local/bin/kubelet \\
   --config=/var/lib/kubelet/kubelet-config.yaml \\
   --kubeconfig=/var/lib/kubelet/kubeconfig \\
-  --register-node=true \\
   --v=2
 Restart=on-failure
 RestartSec=5
