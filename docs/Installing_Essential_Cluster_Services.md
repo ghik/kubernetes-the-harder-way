@@ -167,7 +167,7 @@ NAME                   PROVISIONER                                              
 nfs-client (default)   cluster.local/nfs-provisioner-nfs-subdir-external-provisioner   Delete          Immediate           true                   14s
 ```
 
-### Testing it out
+### Testing the dynamic provisioner
 
 Let's see if external storage works by installing something that needs it.
 In our case, this will be [Redis](https://redis.io/):
@@ -222,9 +222,9 @@ be an implementation like this available (likely because this is a very "educati
 in the real world very often).
 
 We'll use a different method instead, implemented by the [MetalLB](https://metallb.universe.tf/) project.
-In this approach, one of the worker nodes becomes the load balancer for Kubernetes services. This node dynamically
-assigns itself Service external IPs as its own IPs. The role of a load balancer may be taken over any other worker node
-in case the current node becomes unavailable.
+In this approach, one of the worker nodes takes the role of a load balancer and assumes the ownership of external IPs
+of `LoadBalancer`-type services. In case this node fails, another node takes over its job. This way the load-balancing 
+node is not a single point of failure.
 
 Let's install `metallb`:
 
@@ -263,3 +263,71 @@ EOF
 Note the allocated range for Service external IPs (192.168.1.30-254). It's important for this range to be within
 the local network of the VMs, but outside the DHCP-assignable range. This is why we have previously
 [configured](Preparing_Environment_for_a_VM_Cluster.md#dhcp-server-configuration) it to be very narrow.
+
+### Testing MetalLB
+
+Let's create a simple HTTP echo service, similar to the one from 
+[previous chapter](Spinning_up_Worker_Nodes.md#testing-out-service-traffic):
+
+```bash
+cat <<EOF | kubectl apply -f -
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: echo-lb
+  labels:
+    app: echo-lb
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: echo-lb
+  template:
+    metadata:
+      labels:
+        app: echo-lb
+    spec:
+      containers:
+      - name: echo
+        image: hashicorp/http-echo
+        ports:
+        - containerPort: 5678
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: echo-lb
+spec:
+  type: LoadBalancer
+  selector:
+    app: echo-lb
+  ports:
+    - protocol: TCP
+      port: 5678
+      targetPort: 5678
+EOF
+```
+
+After a while, you should see an external IP assigned to it:
+
+```bash
+$ kubectl get svc echo-lb
+NAME      TYPE           CLUSTER-IP     EXTERNAL-IP    PORT(S)          AGE
+echo-lb   LoadBalancer   10.32.89.174   192.168.1.31   5678:32479/TCP   72s
+```
+
+Try connecting to it from your host machine:
+
+```bash
+$ curl http://192.168.1.31:5678
+hello-world
+```
+
+And this way the service has become available from outside the cluster!
+
+## Summary
+
+In this chapter we, have installed essential services necessary to run typical workloads:
+* a cluster-internal DNS server
+* a dynamic storage provisioner
+* a load balancer for Kubernetes services
