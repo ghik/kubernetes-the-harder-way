@@ -71,6 +71,9 @@ Worker nodes run the following components:
 * `kube-proxy` - serves as a local proxy/load balancer for 
   [Kubernetes services](https://kubernetes.io/docs/concepts/services-networking/service/) on a given node
 
+For [technical reasons explained later](Spinning_up_Worker_Nodes.md#turning-control-plane-nodes-into-worker-like-nodes),
+we'll run `kubelet` and `kube-proxy` on control plane nodes as well.
+
 ### Communication channels
 
 Now, let's outline all the ways these components 
@@ -126,7 +129,7 @@ This gives us an overview of all the certificates that we need to prepare for fu
 * client certificates
   * `kube-apiserver` client certificate to communicate with `etcd`
   * `kube-apiserver` client certificate to communicate with `kubelet`s
-  * `kubelet` client certificate to communicate with `kube-apiserver`, for every worker node
+  * `kubelet` client certificate to communicate with `kube-apiserver`, for every control and worker node
   * `kube-scheduler` client certificate to communicate with `kube-apiserver`
   * `kube-controller-manager` client certificate to communicate with `kube-apiserver`
   * `kube-proxy` client certificate to communicate with `kube-apiserver`
@@ -163,7 +166,7 @@ We'll simplify things in the following ways:
 * Each `kubelet`'s server certificate will also serve as its client certificate to communicate with `kube-apiserver`.
 
 As for the client certificates used to communicate with `kube-apiserver`, we must keep them separate. The reason is
-that we must maintain separate identities for `kube-scheduler`, `kube-controller-manager`, every worker node's
+that we must maintain separate identities for `kube-scheduler`, `kube-controller-manager`, every node's
 `kubelet`, `kube-proxy`, and external, human users. This is so that each of these actors can get an appropriate 
 set of permissions within the Kubernetes API server.
 
@@ -174,7 +177,7 @@ Ultimately, this gives us the following list of certificates to generate:
 1. The root CA
 2. The main Kubernetes API certificate
 3. The `admin` user certificate
-4. Worker node (`kubelet`) certificates, separate for each node
+4. Node (`kubelet`) certificates, separate for each control and worker node
 5. The `kube-scheduler` certificate
 6. The `kube-controller-manager` certificate
 7. The `kube-proxy` certificate
@@ -192,7 +195,7 @@ multiple independent Kubernetes clusters.
 
 We will need to generate a kubeconfig for every client of the Kubernetes API:
 * The `admin` user
-* Each worker node (i.e. `kubelet`)
+* Each node (i.e. `kubelet`)
 * `kube-scheduler`
 * `kube-controller-manager`
 * `kube-proxy`
@@ -402,13 +405,17 @@ This will generate `admin.pem` and `admin-key.pem`.
 
 #### Worker node certificates
 
-We need three separate certificates for worker nodes. They differ only in names, IPs and hostnames, so let's use
-some scripting. Write the `workerX-csr.json` files:
+We need six separate certificates for control and worker nodes. They differ only in names, IPs and hostnames, so let's use
+some scripting. Write out the `controlX-csr.json` and `workerX-csr.json` files:
 
 ```bash
-for i in $(seq 0 2); do cat << EOF > "worker$i-csr.json"
+vmnames=(control{0,1,2} worker{0,1,2})
+
+for vmid in $(seq 1 ${#vmnames[@]}); do 
+vmname=${vmnames[$vmid]}
+cat <<EOF > "$vmname-csr.json"
 {
-  "CN": "system:node:worker$i",
+  "CN": "system:node:$vmname",
   "key": {
     "algo": "rsa",
     "size": 2048
@@ -423,9 +430,9 @@ for i in $(seq 0 2); do cat << EOF > "worker$i-csr.json"
     }
   ],
   "hosts": [
-    "worker$i",
-    "worker$i.kubenet",
-    "192.168.1.$((14 + $i))"
+    "$vmname",
+    "$vmname.kubenet",
+    "192.168.1.$((10 + $vmid))"
   ]
 }
 EOF
@@ -435,17 +442,17 @@ done
 and generate the certificates:
 
 ```bash
-for i in $(seq 0 2); do cfssl gencert \
+for vmname in $vmnames; do cfssl gencert \
   -ca=ca.pem \
   -ca-key=ca-key.pem \
   -config=ca-config.json \
   -profile=kubernetes \
-  worker$i-csr.json | cfssljson -bare worker$i
+  $vmname-csr.json | cfssljson -bare $vmname
 done
 ```
 
 > [!IMPORTANT]
-> `system:node:workerX` and `system:nodes` are magic user and group names interpreted by
+> `system:node:<nodename>` and `system:nodes` are magic user and group names interpreted by
 > Kubernetes [node authorization mode](https://kubernetes.io/docs/reference/access-authn-authz/node/).
 
 #### The `kube-scheduler` certificate
@@ -626,6 +633,7 @@ for name in kubernetes admin kube-scheduler kube-controller-manager kube-proxy s
 done
 
 for i in $(seq 0 2); do
+  gencert control$i
   gencert worker$i
 done
 
@@ -670,6 +678,7 @@ genkubeconfig kube-controller-manager system:kube-controller-manager
 genkubeconfig kube-proxy system:kube-proxy
 
 for i in $(seq 0 2); do
+  genkubeconfig control$i system:node:control$i
   genkubeconfig worker$i system:node:worker$i
 done
 ```
@@ -733,6 +742,10 @@ for i in $(seq 0 2); do
       "$dir/kube-controller-manager.kubeconfig" \
       "$dir/kube-scheduler.kubeconfig" \
       "$dir/encryption-config.yaml" \
+      "$dir/$vmname.pem" \
+      "$dir/$vmname-key.pem" \
+      "$dir/$vmname.kubeconfig" \
+      "$dir/kube-proxy.kubeconfig" \
       ubuntu@$vmname:~
 done
 

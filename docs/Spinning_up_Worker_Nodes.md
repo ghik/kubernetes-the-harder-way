@@ -36,7 +36,7 @@ and what are the underlying mechanisms responsible for Kubernetes networking.
 ## Prerequisites
 
 Just like in the [previous chapter](Installing_Kubernetes_Control_Plane.md), we'll be installing stuff
-on multiple nodes at once (the worker VMs). It is recommended to do this with `tmux` pane synchronization,
+on multiple nodes at once (both control and worker VMs). It is recommended to do this with `tmux` pane synchronization,
 as [described before](Launching_the_VM_Cluster.md#tmux-crash-course).
 
 ## Overview
@@ -52,14 +52,32 @@ extensible. Namely, there are (at least) two abstract specifications that `kubel
 * The [Container Network Interface](https://github.com/containernetworking/cni)
 
 The CRI is implemented by a _container runtime_ while the CNI is implemented by the so called CNI _plugins_. 
-We'll need to install them manually on worker nodes and configure `kubelet` properly to use them.
+We'll need to install them manually and configure `kubelet` properly to use them.
 
 Finally, a worker node typically runs a `kube-proxy`, a component responsible for handling and load balancing
 traffic to Kubernetes [Services](https://kubernetes.io/docs/concepts/services-networking/service/).
 
+## Turning control plane nodes into worker-like nodes
+
+`kubelet`, container runtime and `kube-proxy` are typically necessary only on worker nodes, as these are the
+components needed to run actual cluster workloads inside pods.
+
+However, in this guide, **we'll install these components on control plane nodes, too**. The reasons for that are
+technical, the most important of them being the fact that `kube-apiserver` occasionally needs to communicate with
+services running inside the cluster (e.g. [admission webhooks](https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/#what-are-admission-webhooks)).
+
+This requires control plane nodes to participate in the cluster overlay network, so that service Cluster IPs are
+routable from them. This means that, at minimum, we need to run `kube-proxy` on control plane nodes. Unfortunately, 
+`kube-proxy` refuses to run on a non-registered node, so we are forced to turn control plane nodes into fully-configured
+worker-like nodes with `kubelet` and container runtime.
+
+Having said that, we still don't want to run any actual workloads on control plane nodes. Fortunately, Kubernetes
+has [mechanisms](https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/) for excluding nodes 
+from regular pod scheduling, and we'll take advantage of that.
+
 ## Shell variables
 
-Let's define some reusable shell variables for this chapter. Run this in the SSH shell on worker nodes:
+Let's define some reusable shell variables for this chapter. Run this in the SSH shell on all control & worker nodes:
 
 ```bash
 arch=arm64
@@ -77,7 +95,7 @@ All further instructions assume availability of these variables (i.e. run everyt
 
 Let's start worker setup with installation of the container runtime. We'll take this step as an opportunity to
 do a little introduction (or refresh) on what containerization fundamentally is and how it is realized in
-Linux.
+Linux. If you're not interested in this theoretical introduction, you can safely skip it.
 
 ### What are containers?
 
@@ -138,12 +156,12 @@ The container runtime for our deployment consists of three elements:
 
 > [!NOTE]
 > Note how Docker is not involved in the container runtime, even though we are going to be running
-> Docker images. The relationship between Docker, `containerd`, CRI, OCI, etc. is complex, and have changed multiple
+> Docker images. The relationship between Docker, `containerd`, CRI, OCI, etc. is complex, and has changed multiple
 > times since Kubernetes was created. Long story short, using `containerd` and `runc` is - for our purposes -
 > equivalent to using Docker, because nowadays Docker is built on top of these lower-level utilities. We are only
 > getting rid of Docker's "frontend" - which is nice if you want to use it directly but not essential for Kubernetes.
 
-Download and install the container runtime binaries on worker nodes:
+Download and install the container runtime binaries on control & worker nodes:
 
 ```bash
 crictl_archive=crictl-v${cri_version}-linux-${arch}.tar.gz
@@ -236,23 +254,27 @@ pods.
 During [control plane setup](Installing_Kubernetes_Control_Plane.md#installing-kube-controller-manager), 
 we have already decided that 10.0.0.0/12 is going to be the IP range for all pods in the cluster.
 
-Now we also need to split this range between individual worker nodes. Let's assign
-10.4.0.0/16 to `worker0`, 10.5.0.0/16 to `worker1` and 10.6.0.0/16 to `worker2`. This way the second byte of pod's
-IP is always equal to the [VM id](Preparing_Environment_for_a_VM_Cluster.md#topology-overview).
+Now we also need to split this range between individual nodes. We'll use the second octet of IP address to
+encode [VM id](Preparing_Environment_for_a_VM_Cluster.md#topology-overview), and reduce subnet size to `/16`.
 
 Let's save this into some shell variables:
 
 ```bash
 vmname=$(hostname -s)
-vmid=$((4 + ${vmname:6}))
+
+case "$vmname" in
+  control*)
+    vmid=$((1 + ${vmname:7}));;
+  worker*)
+    vmid=$((4 + ${vmname:6}));;
+  *)
+    echo "expected control or worker VM, got $vmname"; return 1;;
+esac
+
 pod_cidr=10.${vmid}.0.0/16
 ```
 
 Note how pod CIDR is disjoint from Service CIDR, which we have configured to 10.32.0.0/16
-
-> [!NOTE]
-> We have chosen this CIDR scheme so that we leave room for potentially turning control plane nodes into
-> regular, registered nodes (albeit with special _taints_). We might need that later.
 
 ### Installing and configuring standard CNI plugins
 
@@ -351,7 +373,17 @@ tlsPrivateKeyFile: "/var/lib/kubelet/${vmname}-key.pem"
 containerRuntimeEndpoint: "unix:///var/run/containerd/containerd.sock"
 cgroupDriver: "systemd"
 EOF
+
+if [[ $vmname =~ ^control[0-9]+ ]]; then cat <<EOF | sudo tee -a /var/lib/kubelet/kubelet-config.yaml
+registerWithTaints:
+  - key: node-roles.kubernetes.io/control-plane
+    value: ""
+    effect: NoSchedule
+EOF
 ```
+
+The `registerWithTaints` configuration option is appended only for control plane nodes, and it ensures that
+they are excluded from regular pod scheduling (unless very explicitly requested).
 
 > [!NOTE]
 > 10.32.0.10 is the (arbitrarily chosen) address of a cluster-internal DNS server.
@@ -405,6 +437,9 @@ You should see an output like this:
 
 ```
 NAME      STATUS   ROLES    AGE   VERSION   INTERNAL-IP    EXTERNAL-IP   OS-IMAGE             KERNEL-VERSION      CONTAINER-RUNTIME
+control0  Ready    <none>   59s   v1.28.3   192.168.1.11   <none>        Ubuntu 22.04.3 LTS   5.15.0-83-generic   containerd://1.7.7
+control1  Ready    <none>   59s   v1.28.3   192.168.1.12   <none>        Ubuntu 22.04.3 LTS   5.15.0-83-generic   containerd://1.7.7
+control2  Ready    <none>   59s   v1.28.3   192.168.1.13   <none>        Ubuntu 22.04.3 LTS   5.15.0-83-generic   containerd://1.7.7
 worker0   Ready    <none>   59s   v1.28.3   192.168.1.14   <none>        Ubuntu 22.04.3 LTS   5.15.0-83-generic   containerd://1.7.7
 worker1   Ready    <none>   59s   v1.28.3   192.168.1.15   <none>        Ubuntu 22.04.3 LTS   5.15.0-83-generic   containerd://1.7.7
 worker2   Ready    <none>   59s   v1.28.3   192.168.1.16   <none>        Ubuntu 22.04.3 LTS   5.15.0-83-generic   containerd://1.7.7
@@ -522,9 +557,9 @@ We are going to solve this problem properly in the future, by replacing default 
 [Cilium](https://cilium.io) CNI. For now, we'll just patch it up by adding appropriate routes on the host machine:
 
 ```bash
-sudo route -n add -net 10.4.0.0/16 192.168.1.14
-sudo route -n add -net 10.5.0.0/16 192.168.1.15
-sudo route -n add -net 10.6.0.0/16 192.168.1.16
+for vmid in $(seq 1 6); do
+  sudo route -n add -net 10.${vmid}.0.0/16 192.168.1.$((10 + $vmid))
+done
 ```
 
 > [!NOTE]
@@ -590,7 +625,7 @@ kubectl exec -it busybox -- sh
 
 ## `kube-proxy`
 
-The final component we need for a fully configured worker node is `kube-proxy`, which is responsible for
+The final component we need for a fully configured node is `kube-proxy`, which is responsible for
 handling and load balancing traffic destined for Kubernetes 
 [Services](https://kubernetes.io/docs/concepts/services-networking/service/).
 
@@ -676,9 +711,15 @@ about it. Luckily, there's a hack to force Linux to run `iptables` even for brid
 sudo modprobe br_netfilter
 ```
 
-Run this on all worker nodes. In order to make it persistent, add it to `cloud-init/user-data.worker`:
+Run this on all worker nodes. In order to make it persistent, add it to 
+`cloud-init/user-data.control` and `cloud-init/user-data.worker:
 
 ```yaml
+write_files:
+  - path: /etc/modules-load.d/cloud-init.conf
+    content: |
+      br_netfilter
+
 runcmd:
   - modprobe br_netfilter
 ```
@@ -687,6 +728,96 @@ runcmd:
 > We won't need this when we replace `kube-proxy` with [Cilium](https://cilium.io) based solution
 > (or any other that doesn't use `iptables`).
 
+### Testing out service traffic
+
+Let's deploy a dummy `Deployment` with 3 replicas of an HTTP echo server, along with a `Service` on top of it:
+
+```bash
+cat <<EOF | kubectl apply -f -
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: echo
+  labels:
+    app: echo
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: echo
+  template:
+    metadata:
+      labels:
+        app: echo
+    spec:
+      containers:
+      - name: echo
+        image: hashicorp/http-echo
+        ports:
+        - containerPort: 5678
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: echo
+spec:
+  selector:
+    app: echo
+  ports:
+    - protocol: TCP
+      port: 5678
+      targetPort: 5678
+EOF
+```
+
+Let's test it out by running a pod that makes a request to this service. First we'll need the cluster IP of the
+service (we don't have a cluster-internal DNS server installed yet). You can easily find out this ip with
+`kubectl get svc echo`. In my case, it was 10.32.152.5
+
+Now, let's try to contact this service from within a node. Invoke this on any control or worker node:
+
+```bash
+curl http://10.32.152.5:5678
+```
+
+You should see an output consisting of `hello world` - which indicates that the service works and has returned 
+an HTTP response.
+
+### Digging deeper into 
+
+Now, let's take a peek in what's really going on. The service IP is picked up by `iptables` rules and translated
+into the IP of one of the pods implementing the service (randomly). When we go through the output of `iptables-save`
+on any of the nodes, we can pick up the relevant parts. For example:
+
+```
+*nat
+...
+-A PREROUTING -m comment --comment "kubernetes service portals" -j KUBE-SERVICES
+-A OUTPUT -m comment --comment "kubernetes service portals" -j KUBE-SERVICES
+...
+-A KUBE-SERVICES -d 10.32.152.5/32 -p tcp -m comment --comment "default/echo cluster IP" -m tcp --dport 5678 -j KUBE-SVC-HV6DMF63W6MGLRDE
+...
+-A KUBE-SVC-HV6DMF63W6MGLRDE -m comment --comment "default/echo -> 10.4.0.14:5678" -m statistic --mode random --probability 0.33333333349 -j KUBE-SEP-7G5D55VBK7L326G3
+-A KUBE-SVC-HV6DMF63W6MGLRDE -m comment --comment "default/echo -> 10.5.0.25:5678" -m statistic --mode random --probability 0.50000000000 -j KUBE-SEP-HS2AVEBF7XNLG3WC
+-A KUBE-SVC-HV6DMF63W6MGLRDE -m comment --comment "default/echo -> 10.6.0.18:5678" -j KUBE-SEP-OQSOJ7ZUSSHWFS7Y
+...
+-A KUBE-SEP-7G5D55VBK7L326G3 -p tcp -m comment --comment "default/echo" -m tcp -j DNAT --to-destination 10.4.0.14:5678
+-A KUBE-SEP-HS2AVEBF7XNLG3WC -p tcp -m comment --comment "default/echo" -m tcp -j DNAT --to-destination 10.5.0.25:5678
+-A KUBE-SEP-OQSOJ7ZUSSHWFS7Y -p tcp -m comment --comment "default/echo" -m tcp -j DNAT --to-destination 10.6.0.18:5678
+```
+
+The interesting rules are the ones in the `KUBE-SVC-HV6DMF63W6MGLRDE` chain, which are set up so that only one of
+them fires, at random, and with uniform probability. This is how `kube-proxy` leverages `iptables` to implement
+load balancing.
+
 ## Summary
+
+In this chapter, we have:
+* learned about container runtimes and foundation of Kubernetes networking
+* learned about linux namespaces and cgroups, core kernel features that make containers possible
+* installed the container runtime, CNI plugins, `kubelet` and `kube-proxy` on control and worker nodes
+* tested the cluster by deploying pods and services
+* peeked into the inner workings of CNI plugins and `kube-proxy` by inspecting network interfaces and namespaces,
+  as well as `iptables` rules that make up the Kubernetes overlay network
 
 Next: [Installing Essential Cluster Services](Installing_Essential_Cluster_Services.md)

@@ -35,8 +35,8 @@ for vmid in $(seq 1 3); do
   if [[ $vmid != 3 ]]; then
     tmux split-window -t "$sname" -v
   fi
+  tmux select-layout -t "$sname" even-vertical
 done
-tmux select-layout -t "$sname" even-vertical
 
 # Create a window for SSH connections to `worker` VMs and connects to them
 tmux new-window -t "$sname" -n ssh-workers
@@ -45,8 +45,17 @@ for vmid in $(seq 4 6); do
   if [[ $vmid != 6 ]]; then
     tmux split-window -t "$sname" -v
   fi
+  tmux select-layout -t "$sname" even-vertical
 done
-tmux select-layout -t "$sname" even-vertical
+
+tmux new-window -t "$sname" -n ssh-nodes
+for vmid in $(seq 1 6); do
+  vm_ssh "$vmid"
+  if [[ $vmid != 6 ]]; then
+    tmux split-window -t "$sname" -v
+  fi
+  tmux select-layout -t "$sname" tiled
+done
 
 # Finally, attach the session back to the current terminal and activate the second window
 tmux attach -t "$sname:ssh-controls"

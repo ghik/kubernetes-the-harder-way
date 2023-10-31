@@ -7,7 +7,7 @@ source "$dir/helpers.sh"
 
 # Parse the argument
 vmid=$1
-vmname=$(id_to_name $vmid)
+vmname=$(id_to_name "$vmid")
 vmdir="$dir/$vmname"
 
 # Strips the number off VM name, leaving only VM "type", i.e. gateway/control/worker

@@ -231,14 +231,16 @@ We now know enough about `tmux` to use it for our goal: launch all the VMs and c
 We'll launch 2 tmux sessions:
 * One to run all the VMs, one machine per pane, in a single window. It will run detached and with elevated
   privileges.
-* One for SSH connections to all the VMs. It will have a separate window for each machine type:
+* One for SSH connections to all the VMs. It will have several windows:
   * a window for an SSH connection to the `gateway` VM
   * a window for SSH connections to `control` VMs (3 panes)
   * a window for SSH connections to `worker` VMs (3 panes)
+  * a window for SSH connections to both `control` and `worker` VMs (6 panes)
 
-The reason why we're splitting SSH connections into 3 separate windows is because we're going to do different
-things with these three types of VMs. Therefore, we would usually send commands simultaneously to all VMs in
-**each** of these groups, independently. We can achieve that with pane synchronization separately in each window.
+The reason why we're splitting SSH connections into 4 separate windows is because we're going to do different
+things with these three types of VMs. For example, we'll need to do some things on all control nodes at the same time.
+Then, we'll need to do something on all worker nodes. Finally, we'll need to perform some actions on _both_ control
+and worker nodes, simultaneously.
 
 > [!NOTE]
 > We must also launch two separate sessions because:
@@ -355,8 +357,8 @@ for vmid in $(seq 1 3); do
   if [[ $vmid != 3 ]]; then
     tmux split-window -t "$sname" -v
   fi
+  tmux select-layout -t "$sname" even-vertical
 done
-tmux select-layout -t "$sname" even-vertical
 
 # Create a window for SSH connections to `worker` VMs and connects to them
 tmux new-window -t "$sname" -n ssh-workers
@@ -365,8 +367,17 @@ for vmid in $(seq 4 6); do
   if [[ $vmid != 6 ]]; then
     tmux split-window -t "$sname" -v
   fi
+  tmux select-layout -t "$sname" even-vertical
 done
-tmux select-layout -t "$sname" even-vertical
+
+tmux new-window -t "$sname" -n ssh-nodes
+for vmid in $(seq 1 6); do
+  vm_ssh "$vmid"
+  if [[ $vmid != 6 ]]; then
+    tmux split-window -t "$sname" -v
+  fi
+  tmux select-layout -t "$sname" tiled
+done
 
 # Finally, attach the session back to the current terminal and activate the second window
 tmux attach -t "$sname:ssh-controls"
