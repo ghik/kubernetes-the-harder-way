@@ -87,6 +87,8 @@ Every communication channel must be properly secured.
   or setting up port forwarding to pods
 * external clients talk to `kube-apiserver`, typically using `kubectl`
 * pods running in the cluster may talk to `kube-apiserver` as clients
+* `kube-apiserver` may invoke services running in the cluster 
+  (e.g. [admission webhooks](https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/))
 
 Most of this communication will be secured using TLS with X.509 certificates for authentication.
 Authentication must be mutual, i.e. both the server and the client must present a valid certificate.

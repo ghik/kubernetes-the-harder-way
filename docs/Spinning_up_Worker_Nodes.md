@@ -237,19 +237,22 @@ During [control plane setup](Installing_Kubernetes_Control_Plane.md#installing-k
 we have already decided that 10.0.0.0/12 is going to be the IP range for all pods in the cluster.
 
 Now we also need to split this range between individual worker nodes. Let's assign
-10.0.0.0/16 to `worker0`, 10.1.0.0/16 to `worker1` and 10.2.0.0/16 to `worker2`. This way the second byte of pod's
-IP is always equal to the worker node index. You may notice that this scheme allows up to 16 worker nodes and
-up to 65535 pod addresses per node.
+10.4.0.0/16 to `worker0`, 10.5.0.0/16 to `worker1` and 10.6.0.0/16 to `worker2`. This way the second byte of pod's
+IP is always equal to the [VM id](Preparing_Environment_for_a_VM_Cluster.md#topology-overview).
 
 Let's save this into some shell variables:
 
 ```bash
 vmname=$(hostname -s)
-workeridx=${vmname:6}
-pod_cidr=10.${workeridx}.0.0/16
+vmid=$((4 + ${vmname:6}))
+pod_cidr=10.${vmid}.0.0/16
 ```
 
-Note how pod CIDR is disjoint from Service CIDR, which we have configured to 
+Note how pod CIDR is disjoint from Service CIDR, which we have configured to 10.32.0.0/16
+
+> [!NOTE]
+> We have chosen this CIDR scheme so that we leave room for potentially turning control plane nodes into
+> regular, registered nodes (albeit with special _taints_). We might need that later.
 
 ### Installing and configuring standard CNI plugins
 
@@ -418,7 +421,7 @@ Then, run `kubectl get pods -o wide` and you should see an output like this:
 
 ```
 NAME      READY   STATUS    RESTARTS   AGE    IP         NODE      NOMINATED NODE   READINESS GATES
-busybox   1/1     Running   0          6m4s   10.1.0.2   worker1   <none>           <none>
+busybox   1/1     Running   0          6m4s   10.5.0.2   worker1   <none>           <none>
 ```
 
 ### Peeking into pod networking
@@ -430,7 +433,7 @@ running the pod (use `Ctrl`+`b`,`z` in `tmux` to zoom a single pane) and list ne
 ```
 3: cnio0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default qlen 1000
     link/ether 46:ec:cb:d5:8a:ab brd ff:ff:ff:ff:ff:ff
-    inet 10.1.0.1/16 brd 10.1.255.255 scope global cnio0
+    inet 10.5.0.1/16 brd 10.5.255.255 scope global cnio0
        valid_lft forever preferred_lft forever
     inet6 fe80::44ec:cbff:fed5:8aab/64 scope link
        valid_lft forever preferred_lft forever
@@ -470,7 +473,7 @@ This command executes an `ip addr` command from within a specified network names
        valid_lft forever preferred_lft forever
 2: eth0@if4: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default
     link/ether 3a:9e:9b:36:b7:08 brd ff:ff:ff:ff:ff:ff link-netnsid 0
-    inet 10.1.0.2/16 brd 10.1.255.255 scope global eth0
+    inet 10.5.0.2/16 brd 10.5.255.255 scope global eth0
        valid_lft forever preferred_lft forever
     inet6 fe80::389e:9bff:fe36:b708/64 scope link
        valid_lft forever preferred_lft forever
@@ -490,8 +493,8 @@ We can see a chain and some rules that got created specifically for this particu
 
 ```
 :CNI-c8c65bddd829b2f007c0887f - [0:0]
--A POSTROUTING -s 10.1.0.2/32 -m comment --comment "name: \"bridge\" id: \"1719d3feb472cc90d9694f539d72fe284ad49ac4dae226e91936e3f80a326828\"" -j CNI-c8c65bddd829b2f007c0887f
--A CNI-c8c65bddd829b2f007c0887f -d 10.1.0.0/16 -m comment --comment "name: \"bridge\" id: \"1719d3feb472cc90d9694f539d72fe284ad49ac4dae226e91936e3f80a326828\"" -j ACCEPT
+-A POSTROUTING -s 10.5.0.2/32 -m comment --comment "name: \"bridge\" id: \"1719d3feb472cc90d9694f539d72fe284ad49ac4dae226e91936e3f80a326828\"" -j CNI-c8c65bddd829b2f007c0887f
+-A CNI-c8c65bddd829b2f007c0887f -d 10.5.0.0/16 -m comment --comment "name: \"bridge\" id: \"1719d3feb472cc90d9694f539d72fe284ad49ac4dae226e91936e3f80a326828\"" -j ACCEPT
 -A CNI-c8c65bddd829b2f007c0887f ! -d 224.0.0.0/4 -m comment --comment "name: \"bridge\" id: \"1719d3feb472cc90d9694f539d72fe284ad49ac4dae226e91936e3f80a326828\"" -j MASQUERADE
 ```
 
@@ -501,12 +504,12 @@ scheduled on another node.
 ## Routing pod traffic via the host machine
 
 Imagine a scenario like this:
-1. Pod A is running on `worker0`, with address 10.0.0.2 
-2. Pod B is running on `worker1`, with address 10.1.0.2
-3. Pod A sends a packet to pod B (i.e. source: 10.0.0.2, destination: 10.1.0.2)
-4. `worker0` does a routing decision, it does not know about the network 10.1.0.0/16,
+1. Pod A is running on `worker0`, with address 10.4.0.2 
+2. Pod B is running on `worker1`, with address 10.5.0.2
+3. Pod A sends a packet to pod B (i.e. source: 10.4.0.2, destination: 10.5.0.2)
+4. `worker0` does a routing decision, it does not know about the network 10.5.0.0/16,
    so the packet is destined to be sent via the default route, i.e. to the host machine
-5. The host machine has no idea what to do with a packet destined to 10.1.0.2 as it is not aware of Kubernetes
+5. The host machine has no idea what to do with a packet destined to 10.5.0.2 as it is not aware of Kubernetes
    cluster-internal IP ranges
 6. The packet gets lost
 
@@ -519,9 +522,9 @@ We are going to solve this problem properly in the future, by replacing default 
 [Cilium](https://cilium.io) CNI. For now, we'll just patch it up by adding appropriate routes on the host machine:
 
 ```bash
-sudo route -n add -net 10.0.0.0/16 192.168.1.14
-sudo route -n add -net 10.1.0.0/16 192.168.1.15
-sudo route -n add -net 10.2.0.0/16 192.168.1.16
+sudo route -n add -net 10.4.0.0/16 192.168.1.14
+sudo route -n add -net 10.5.0.0/16 192.168.1.15
+sudo route -n add -net 10.6.0.0/16 192.168.1.16
 ```
 
 > [!NOTE]
@@ -654,15 +657,15 @@ Service IP handling and load balancing. Unfortunately, this does not always work
 configuration and default Linux behaviour.
 
 Here's a problematic scenario:
-* Pod A (10.0.0.2), running on `worker0`, connects to Service S (10.32.0.2)
-* `kube-proxy` load balancing chooses Pod B (10.0.0.3), also running on `worker0`, as the endpoint for this connection
-* `iptables` rules translate the destination Service address (10.32.0.2) to Pod B address (10.0.0.3)
-* Pod B receives the connection and responds. The returning packet has source 10.0.0.3 and destination 10.0.0.2
+* Pod A (10.4.0.2), running on `worker0`, connects to Service S (10.32.0.2)
+* `kube-proxy` load balancing chooses Pod B (10.4.0.3), also running on `worker0`, as the endpoint for this connection
+* `iptables` rules translate the destination Service address (10.32.0.2) to Pod B address (10.4.0.3)
+* Pod B receives the connection and responds. The returning packet has source 10.4.0.3 and destination 10.4.0.2
 * At this point, `iptables` should translate the source address of returning packet back to the Service address,
   10.32.0.2. Unfortunately, *this does not happen*. As a result, Pod A receives a packet whose source address does not
   match the original destination address, and the packet is dropped.
 
-Why don't `iptables` fire on the returning packet? The reason is that a packet from 10.0.0.3 to 10.0.0.2 is a
+Why don't `iptables` fire on the returning packet? The reason is that a packet from 10.4.0.3 to 10.4.0.2 is a
 Layer 2 only traffic - it just needs to pass the bridge shared between pods. `iptables`, on the other hand, is a 
 Layer 3 thing.
 
