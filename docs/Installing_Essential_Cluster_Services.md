@@ -230,8 +230,7 @@ Let's install `metallb`:
 
 ```bash
 helm repo add metallb https://metallb.github.io/metallb
-kubectl create namespace metallb-system
-helm install -n metallb-system metallb metallb/metallb
+helm install -n kube-system metallb metallb/metallb
 ```
 
 Now we need to configure it with some additional Kubernetes resources:
@@ -242,7 +241,7 @@ apiVersion: metallb.io/v1beta1
 kind: IPAddressPool
 metadata:
   name: lb-pool
-  namespace: metallb-system
+  namespace: kube-system
 spec:
   addresses:
     - 192.168.1.30-192.168.1.254
@@ -251,7 +250,7 @@ apiVersion: metallb.io/v1beta1
 kind: L2Advertisement
 metadata:
   name: lb-l2adv
-  namespace: metallb-system
+  namespace: kube-system
 spec:
   ipAddressPools:
     - lb-pool
@@ -313,13 +312,13 @@ After a while, you should see an external IP assigned to it:
 ```bash
 $ kubectl get svc echo-lb
 NAME      TYPE           CLUSTER-IP     EXTERNAL-IP    PORT(S)          AGE
-echo-lb   LoadBalancer   10.32.89.174   192.168.1.31   5678:32479/TCP   72s
+echo-lb   LoadBalancer   10.32.89.174   192.168.1.30   5678:32479/TCP   72s
 ```
 
 Try connecting to it from your host machine:
 
 ```bash
-$ curl http://192.168.1.31:5678
+$ curl http://192.168.1.30:5678
 hello-world
 ```
 
@@ -331,3 +330,4 @@ In this chapter we, have installed essential services necessary to run typical w
 * a cluster-internal DNS server
 * a dynamic storage provisioner
 * a load balancer for Kubernetes services
+

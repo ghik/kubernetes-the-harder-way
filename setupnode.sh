@@ -1,7 +1,11 @@
 #!/usr/bin/env bash
 
 set -xe
-sudo -v
+
+if [[ "$EUID" -ne 0 ]]; then
+  echo "this script must be run as root" >&2
+  return 1
+fi
 
 arch=arm64
 k8s_version=1.28.3
@@ -19,7 +23,8 @@ case "$vmname" in
   worker*)
     vmid=$((4 + ${vmname:6}));;
   *)
-    echo "expected control or worker VM, got $vmname"; return 1;;
+    echo "expected control or worker VM, got $vmname" >&2
+    return 1;;
 esac
 
 pod_cidr=10.${vmid}.0.0/16
@@ -31,12 +36,9 @@ cni_plugins_archive=cni-plugins-linux-${arch}-v${cni_plugins_version}.tgz
 wget -q --show-progress --https-only --timestamping \
   https://github.com/kubernetes-sigs/cri-tools/releases/download/v${cri_version}/${crictl_archive} \
   https://github.com/opencontainers/runc/releases/download/v${runc_version}/runc.${arch} \
-  https://github.com/containerd/containerd/releases/download/v${containerd_version}/${containerd_archive} \
-  https://github.com/containernetworking/plugins/releases/download/v${cni_plugins_version}/${cni_plugins_archive} \
-  https://storage.googleapis.com/kubernetes-release/release/v${k8s_version}/bin/linux/${arch}/kubelet \
-  https://storage.googleapis.com/kubernetes-release/release/v${k8s_version}/bin/linux/${arch}/kube-proxy
+  https://github.com/containerd/containerd/releases/download/v${containerd_version}/${containerd_archive} 
 
-sudo mkdir -p \
+mkdir -p \
   /opt/cni/bin \
   /etc/cni/net.d \
   /var/lib/kubelet \
@@ -48,16 +50,25 @@ mkdir -p containerd
 tar -xvf $crictl_archive
 tar -xvf $containerd_archive -C containerd
 cp runc.${arch} runc
-chmod +x runc crictl kubelet kube-proxy
-sudo cp runc crictl kubelet kube-proxy /usr/local/bin/
-sudo cp containerd/bin/* /bin/
-sudo tar -xvf $cni_plugins_archive -C /opt/cni/bin/
+chmod +x runc crictl kubelet
+cp runc crictl kubelet /usr/local/bin/
+cp containerd/bin/* /bin/
+
+if [[ -z $USE_CILIUM ]]; then
+  wget -q --show-progress --https-only --timestamping \
+    https://github.com/containernetworking/plugins/releases/download/v${cni_plugins_version}/${cni_plugins_archive} \
+    https://storage.googleapis.com/kubernetes-release/release/v${k8s_version}/bin/linux/${arch}/kube-proxy
+    
+  chmod +x kube-proxy
+  cp kube-proxy /usr/local/bin/
+  tar -xvf $cni_plugins_archive -C /opt/cni/bin/
+fi 
 
 # containerd
 
-sudo mkdir -p /etc/containerd/
+mkdir -p /etc/containerd/
 
-cat << EOF | sudo tee /etc/containerd/config.toml
+cat << EOF | tee /etc/containerd/config.toml
 version = 2
 [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc]
   runtime_type = "io.containerd.runc.v2"
@@ -66,7 +77,7 @@ version = 2
     BinaryName = "/usr/local/bin/runc"
 EOF
 
-cat <<EOF | sudo tee /etc/systemd/system/containerd.service
+cat <<EOF | tee /etc/systemd/system/containerd.service
 [Unit]
 Description=containerd container runtime
 Documentation=https://containerd.io
@@ -90,7 +101,9 @@ EOF
 
 # cni
 
-cat <<EOF | sudo tee /etc/cni/net.d/10-bridge.conf
+if [[ -z $USE_CILIUM ]]; then
+
+cat <<EOF | tee /etc/cni/net.d/10-bridge.conf
 {
     "cniVersion": "${cni_spec_version}",
     "name": "bridge",
@@ -108,7 +121,7 @@ cat <<EOF | sudo tee /etc/cni/net.d/10-bridge.conf
 }
 EOF
 
-cat <<EOF | sudo tee /etc/cni/net.d/99-loopback.conf
+cat <<EOF | tee /etc/cni/net.d/99-loopback.conf
 {
     "cniVersion": "${cni_spec_version}",
     "name": "lo",
@@ -116,13 +129,15 @@ cat <<EOF | sudo tee /etc/cni/net.d/99-loopback.conf
 }
 EOF
 
+fi
+
 # kubelet
 
-sudo cp ${vmname}-key.pem ${vmname}.pem /var/lib/kubelet/
-sudo cp ${vmname}.kubeconfig /var/lib/kubelet/kubeconfig
-sudo cp ca.pem /var/lib/kubernetes/
+cp ${vmname}-key.pem ${vmname}.pem /var/lib/kubelet/
+cp ${vmname}.kubeconfig /var/lib/kubelet/kubeconfig
+cp ca.pem /var/lib/kubernetes/
 
-cat <<EOF | sudo tee /var/lib/kubelet/kubelet-config.yaml
+cat <<EOF | tee /var/lib/kubelet/kubelet-config.yaml
 kind: KubeletConfiguration
 apiVersion: kubelet.config.k8s.io/v1beta1
 authentication:
@@ -145,7 +160,7 @@ containerRuntimeEndpoint: "unix:///var/run/containerd/containerd.sock"
 cgroupDriver: "systemd"
 EOF
 
-if [[ $vmname =~ ^control[0-9]+ ]]; then cat <<EOF | sudo tee -a /var/lib/kubelet/kubelet-config.yaml
+if [[ $vmname =~ ^control[0-9]+ ]]; then cat <<EOF | tee -a /var/lib/kubelet/kubelet-config.yaml
 registerWithTaints:
   - key: node-roles.kubernetes.io/control-plane
     value: ""
@@ -153,7 +168,7 @@ registerWithTaints:
 EOF
 fi
 
-cat <<EOF | sudo tee /etc/systemd/system/kubelet.service
+cat <<EOF | tee /etc/systemd/system/kubelet.service
 [Unit]
 Description=Kubernetes Kubelet
 Documentation=https://github.com/kubernetes/kubernetes
@@ -174,9 +189,11 @@ EOF
 
 # kube-proxy
 
-sudo cp kube-proxy.kubeconfig /var/lib/kube-proxy/kubeconfig
+if [[ -z $USE_CILIUM ]]; then
 
-cat <<EOF | sudo tee /var/lib/kube-proxy/kube-proxy-config.yaml
+cp kube-proxy.kubeconfig /var/lib/kube-proxy/kubeconfig
+
+cat <<EOF | tee /var/lib/kube-proxy/kube-proxy-config.yaml
 kind: KubeProxyConfiguration
 apiVersion: kubeproxy.config.k8s.io/v1alpha1
 clientConnection:
@@ -185,7 +202,7 @@ mode: "iptables"
 clusterCIDR: "10.0.0.0/12"
 EOF
 
-cat <<EOF | sudo tee /etc/systemd/system/kube-proxy.service
+cat <<EOF | tee /etc/systemd/system/kube-proxy.service
 [Unit]
 Description=Kubernetes Kube Proxy
 Documentation=https://github.com/kubernetes/kubernetes
@@ -200,9 +217,15 @@ RestartSec=5
 WantedBy=multi-user.target
 EOF
 
+fi
+
 # run it all
 
-sudo systemctl daemon-reload
-sudo systemctl enable containerd kubelet kube-proxy
-sudo systemctl start containerd kubelet kube-proxy
+systemctl daemon-reload
+systemctl enable containerd kubelet
+systemctl start containerd kubelet
 
+if [[ -z $USE_CILIUM ]]; then
+  systemctl enable kube-proxy
+  systemctl start kube-proxy
+fi

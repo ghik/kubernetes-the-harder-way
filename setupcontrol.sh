@@ -1,7 +1,11 @@
 #!/usr/bin/env bash
 
 set -xe
-sudo -v
+
+if [[ "$EUID" -ne 0 ]]; then
+  echo "this script must be run as root" >&2
+  return 1
+fi
 
 arch=arm64
 etcd_version=3.5.9
@@ -18,12 +22,12 @@ if [[ ! -e $etcd_archive ]]; then
 fi
   
 tar -xvf $etcd_archive
-sudo cp etcd-v${etcd_version}-linux-${arch}/etcd* /usr/local/bin
-sudo mkdir -p /etc/etcd /var/lib/etcd
-sudo chmod 700 /var/lib/etcd/
-sudo cp ca.pem kubernetes-key.pem kubernetes.pem /etc/etcd/
+cp etcd-v${etcd_version}-linux-${arch}/etcd* /usr/local/bin
+mkdir -p /etc/etcd /var/lib/etcd
+chmod 700 /var/lib/etcd/
+cp ca.pem kubernetes-key.pem kubernetes.pem /etc/etcd/
 
-cat <<EOF | sudo tee /etc/systemd/system/etcd.service
+cat <<EOF | tee /etc/systemd/system/etcd.service
 [Unit]
 Description=etcd
 Documentation=https://github.com/coreos
@@ -56,13 +60,13 @@ RestartSec=5
 WantedBy=multi-user.target
 EOF
 
-sudo systemctl daemon-reload
-sudo systemctl enable etcd
-sudo systemctl start etcd
+systemctl daemon-reload
+systemctl enable etcd
+systemctl start etcd
 
 # kubernetes control plane setup
 
-sudo mkdir -p /etc/kubernetes/config
+mkdir -p /etc/kubernetes/config
 
 if [[ !(-e kube-apiserver && -e kube-controller-manager && -e kube-scheduler && -e kubectl) ]]; then
   wget -q --show-progress --https-only --timestamping \
@@ -73,16 +77,16 @@ if [[ !(-e kube-apiserver && -e kube-controller-manager && -e kube-scheduler && 
 fi
 
 chmod +x kube-apiserver kube-controller-manager kube-scheduler kubectl
-sudo cp kube-apiserver kube-controller-manager kube-scheduler kubectl /usr/local/bin/
+cp kube-apiserver kube-controller-manager kube-scheduler kubectl /usr/local/bin/
 
-sudo mkdir -p /var/lib/kubernetes/
-sudo cp ca.pem ca-key.pem kubernetes-key.pem kubernetes.pem \
+mkdir -p /var/lib/kubernetes/
+cp ca.pem ca-key.pem kubernetes-key.pem kubernetes.pem \
   service-account-key.pem service-account.pem \
   encryption-config.yaml /var/lib/kubernetes/
 
 # kube-apiserver
 
-cat <<EOF | sudo tee /etc/systemd/system/kube-apiserver.service
+cat <<EOF | tee /etc/systemd/system/kube-apiserver.service
 [Unit]
 Description=Kubernetes API Server
 Documentation=https://github.com/kubernetes/kubernetes
@@ -127,9 +131,9 @@ EOF
 
 # kube-controller-manager
 
-sudo cp kube-controller-manager.kubeconfig /var/lib/kubernetes/
+cp kube-controller-manager.kubeconfig /var/lib/kubernetes/
 
-cat <<EOF | sudo tee /etc/systemd/system/kube-controller-manager.service
+cat <<EOF | tee /etc/systemd/system/kube-controller-manager.service
 [Unit]
 Description=Kubernetes Controller Manager
 Documentation=https://github.com/kubernetes/kubernetes
@@ -157,9 +161,9 @@ EOF
 
 # kube-scheduler
 
-sudo cp kube-scheduler.kubeconfig /var/lib/kubernetes/
+cp kube-scheduler.kubeconfig /var/lib/kubernetes/
 
-cat <<EOF | sudo tee /etc/kubernetes/config/kube-scheduler.yaml
+cat <<EOF | tee /etc/kubernetes/config/kube-scheduler.yaml
 apiVersion: kubescheduler.config.k8s.io/v1beta3
 kind: KubeSchedulerConfiguration
 clientConnection:
@@ -168,7 +172,7 @@ leaderElection:
   leaderElect: true
 EOF
 
-cat <<EOF | sudo tee /etc/systemd/system/kube-scheduler.service
+cat <<EOF | tee /etc/systemd/system/kube-scheduler.service
 [Unit]
 Description=Kubernetes Scheduler
 Documentation=https://github.com/kubernetes/kubernetes
@@ -184,6 +188,6 @@ RestartSec=5
 WantedBy=multi-user.target
 EOF
 
-sudo systemctl daemon-reload
-sudo systemctl enable kube-apiserver kube-controller-manager kube-scheduler
-sudo systemctl start kube-apiserver kube-controller-manager kube-scheduler
+systemctl daemon-reload
+systemctl enable kube-apiserver kube-controller-manager kube-scheduler
+systemctl start kube-apiserver kube-controller-manager kube-scheduler

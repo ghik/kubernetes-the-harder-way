@@ -1,9 +1,13 @@
 #!/usr/bin/env bash
 
 set -xe
-sudo -v
 
-cat <<EOF | sudo tee /etc/ha.d/ldirectord.cf
+if [[ "$EUID" -ne 0 ]]; then
+  echo "this script must be run as root" >&2
+  return 1
+fi
+
+cat <<EOF | tee /etc/ha.d/ldirectord.cf
 checktimeout=5
 checkinterval=1
 autoreload=yes
@@ -21,4 +25,4 @@ virtual=192.168.1.21:6443
     receive="ok"
 EOF
 
-sudo systemctl restart ldirectord
+systemctl restart ldirectord
