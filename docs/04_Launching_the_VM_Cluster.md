@@ -334,15 +334,17 @@ if [[ -z $sname ]]; then
   exit 1
 fi
 
+# Wait for VMs to start up and expose their SSH port. Scan their keys and add them to known_hosts.
+for vmid in $(seq 0 6); do
+  "$dir/vmsshsetup.sh" $vmid
+done
+
 # A function that prepares a pane for connecting to a VM with SSH, and connects to it.
 # Takes VM ID as an argument.
 vm_ssh() {
   vmid=$1
   vmname=$(id_to_name "$vmid")
-  tmux send-keys -t "$sname" "cd $dir" C-m
-  tmux send-keys -t "$sname" "vmid=$vmid; vmname=$vmname" C-m
-  tmux send-keys -t "$sname" './vmsshsetup.sh $vmid' C-m
-  tmux send-keys -t "$sname" 'ssh ubuntu@$vmname' C-m
+  tmux send-keys -t "$sname" "ssh ubuntu@$vmname" C-m
 }
 
 # Launch a new session with initial window named "ssh-gateway"

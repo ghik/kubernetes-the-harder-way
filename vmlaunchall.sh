@@ -2,6 +2,11 @@
 set -xe
 dir=$(dirname "$0")
 
+if [[ "$EUID" -ne 0 ]]; then
+  echo "this script must be run as root" >&2
+  exit 1
+fi
+
 # Grab the helpers
 source "$dir/helpers.sh"
 
@@ -25,3 +30,6 @@ for vmid in $(seq 0 6); do
   fi
   tmux select-layout -t "$sname" tiled
 done
+
+# Reattach the session
+tmux attach -t "$sname"

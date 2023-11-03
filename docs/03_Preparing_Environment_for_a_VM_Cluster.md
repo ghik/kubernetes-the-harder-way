@@ -545,19 +545,12 @@ vmname=$(id_to_name $vmid)
 # Wait until the VM is ready to accept SSH connections
 until nc -zG120 $vmname 22; do sleep 1; done
 
-# Acquire an exclusive lock for modifying ~/.ssh/known_hosts
-FD=3
-exec $FD>~/.ssh/known_hosts.lock && flock $FD
-
 # Remove any stale entries for this VM from known_hosts
 sed -i.bak "/^$vmname/d" ~/.ssh/known_hosts
 rm -f ~/.ssh/known_hosts.bak
 
 # Add new entries for this VM to known_hosts
 ssh-keyscan $vmname 2> /dev/null >> ~/.ssh/known_hosts
-
-# Release the lock by closing the file descriptor
-exec $FD>&-
 ```
 
 > [!WARNING]
@@ -570,13 +563,9 @@ Let's break it down:
 1. Just like `vmsetup.sh`, `vmsshsetup.sh` takes VM ID as an argument.
 2. The script waits until the VM is able to accept SSH connections.
    This is useful if you want to run this script immediately before of after launching the VM.
-3. Before making any changes to `known_hosts` file, the script acquires a lock - this way the script
-   is safe to run concurrently (which it will).
-4. The script removes entries from any previous runs of this VM from the `known_hosts` file.
-5. Using `ssh-keyscan`, the script grabs VM's SSH keys and makes them trusted by adding them
+3. The script removes entries from any previous runs of this VM from the `known_hosts` file.
+4. Using `ssh-keyscan`, the script grabs VM's SSH keys and makes them trusted by adding them
    to the `known_hosts` file
-6. Lock is released. It would be released anyway after the script finishes, but it's much more clear
-   and safe to do this explicitly.
 
 Don't forget to give the script executable permissions and run it with `./vmsshsetup 0` (make sure the VM is running).
 
