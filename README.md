@@ -1,6 +1,6 @@
 # `kubenet`
 
-Repository for a [**guide**](docs/01_Introduction.md) that
+This repository contains a [**guide**](docs/01_Introduction.md) that
 describes how to set up a production-like Kubernetes cluster on a laptop.
 
 It is written in the spirit, and with the inspiration from
