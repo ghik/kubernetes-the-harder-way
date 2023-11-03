@@ -1,30 +1,60 @@
 # Introduction
 
-In this tutorial, I will show you how to set up a production-like Kubernetes cluster on a laptop.
+This guide describes how to set up a production-like Kubernetes cluster on a laptop.
 
 The purpose is primarily educational: to understand better how Kubernetes works under the hood, what it is made of and how its 
-components fit together. For this reason we'll be doing everything _from scratch_ and we'll avoid using any "convenience" 
+components fit together. For this reason we'll be doing everything _from scratch_, and we'll avoid using any "convenience" 
 tools that hide all the interesting details from us. If you're looking for a quick recipe to have a working cluster as fast
-as possible, this guide is probably not for you.
+as possible, this guide is probably not for you (although you can also take a look at the 
+[TLDR version](10_TLDR_Version_of_the_Guide.md)).
 
 In order to make this guide complete, we won't focus just on Kubernetes. We'll also look at some foundational stuff within
 Linux that makes containerization and Kubernetes possible. We'll also spend some time with some general-purpose system tools 
 that happen to be useful for installing and maintaining our deployment.
 
+In particular, these are the tools and subjects, apart from Kubernetes itself, that we'll learn to some degree:
+* [`qemu`](https://www.qemu.org/) and virtualization in general
+* [`cloud-init`](https://canonical-cloud-init.readthedocs-hosted.com/en/latest/)
+* [`dnsmasq`](https://en.wikipedia.org/wiki/Dnsmasq)
+* [`tmux`](https://github.com/tmux/tmux/wiki)
+* [`cfssl`](https://github.com/cloudflare/cfssl)
+* [IPVS](https://en.wikipedia.org/wiki/IP_Virtual_Server) (`ipvsadm` and `ldirectord`)
+* basics of Linux containerization: namespaces and cgroups
+* a bit of `iptables`
+
+Apart from Kubernetes core, our deployment will also include the following third party projects:
+* [`nfs-subdir-external-provisioner`](https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner)
+* [MetalLB](https://metallb.universe.tf/)
+* [Cilium](https://cilium.io)
+
+
 ## Credits
 
-This guide is a result of my own learning process. It would not be possible without Kelsey Hightower's 
-great [Kubernetes the Hard Way](https://github.com/kelseyhightower/kubernetes-the-hard-way) guide. Some parts of this tutorial
-are largely based on it.
+This guide is a result of its author's learning process, which was largely facilitated by Kelsey Hightower's 
+[Kubernetes the Hard Way](https://github.com/kelseyhightower/kubernetes-the-hard-way) tutorial. Some parts of this guide are based on it.
 
-However, as compared to _Kubernetes the Hard Way_, this guide:
+However, compared to the original _Kubernetes the Hard Way_, this guide:
 
-* describes how to create a deployment on a local machine as opposed to Google Cloud Platform
-* is more up-to-date with tools and components being used
+* uses local environment (a laptop), as opposed to Google Cloud Platform (at least in the first version of KTHW)
+* describes in detail how to set up local environment and automate running VMs
 * describes a more complete deployment, including storage and load balancer
 * tries to explain in more detail what's going on
 
 I've also used other sources which I will properly link throughout this guide.
+
+## Who is this guide intended for?
+
+This guide was created by a software engineer, i.e. not a platform/DevOps engineer with extensive OS 
+administration skills. The guide provides a good amount of "under the hood" knowledge that goes beyond simple working
+knowledge of Kubernetes. However, the prerequisites for completing this guide are not extensive:
+
+* Some working knowledge of Kubernetes, i.e. knowing what a Pod or Service is, having used `kubectl` to
+  deploy some simple workloads
+* General understanding of fundamental network protocols (IP, ARP, DNS, DHCP, etc.)
+* General familiarity with Linux and shell scripting
+
+As already hinted, this guide is meant for _learning by doing_, but the goal is learning and building understanding,
+rather than just having something that works.
 
 ## Deployment overview
 
@@ -60,5 +90,6 @@ also be sufficient.
 1. [Spinning up Worker Nodes](07_Spinning_up_Worker_Nodes.md)
 1. [Installing Essential Cluster Services](08_Installing_Essential_Cluster_Services.md)
 1. [Simplifying Network Setup with Cilium](09_Simplifying_Network_Setup_with_Cilium.md) (optional)
+1. [TLDR Version of the Guide](10_TLDR_Version_of_the_Guide.md) (auxiliary)
 
 Next: [Learning How to Run VMs with QEMU](02_Learning_How_to_Run_VMs_with_QEMU.md)
