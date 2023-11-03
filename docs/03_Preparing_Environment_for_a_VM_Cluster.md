@@ -1,4 +1,4 @@
-Previous: [Learning How to Run VMs with QEMU](Learning_How_to_Run_VMs_with_QEMU.md)
+Previous: [Learning How to Run VMs with QEMU](02_Learning_How_to_Run_VMs_with_QEMU.md)
 
 # Preparing Environment for a VM Cluster
 
@@ -48,7 +48,7 @@ brew install wget qemu cdrtools dnsmasq flock
 
 ## Topology overview
 
-Let's remind us how we want our cluster to look like. As already laid out in the [introduction](Introduction.md#deployment-overview),
+Let's remind us how we want our cluster to look like. As already laid out in the [introduction](01_Introduction.md#deployment-overview),
 we want 7 machines in total:
 
 * load balancer VM for the Kubernetes API, let's call it `gateway`
@@ -94,7 +94,7 @@ will create a directory for a VM, create a QCOW2 image backed by Ubuntu cloud im
 and format the `cidata.iso` image. The script will take machine ID as an argument.
 
 First, let's make sure we have the cloud image file in working directory. If you downloaded during the 
-[previous part](Learning_How_to_Run_VMs_with_QEMU.md) of this tutorial, move or copy it into current directory. 
+[previous part](02_Learning_How_to_Run_VMs_with_QEMU.md) of this tutorial, move or copy it into current directory. 
 If not, download it with:
 
 ```bash
@@ -617,4 +617,4 @@ In this chapter, we have:
 
 1. [`dnsmasq` manpage](https://manpages.debian.org/bookworm/dnsmasq-base/dnsmasq.8.en.html)
 
-Next: [Launching the VM Cluster](Launching_the_VM_Cluster.md)
+Next: [Launching the VM Cluster](04_Launching_the_VM_Cluster.md)

@@ -1,4 +1,4 @@
-Previous: [Installing Essential Cluster Services](Installing_Essential_Cluster_Services.md)
+Previous: [Installing Essential Cluster Services](08_Installing_Essential_Cluster_Services.md)
 
 # Simplifying Network Setup with Cilium
 
@@ -128,16 +128,16 @@ which indicates that they are running with `hostNetwork: true` setting.
 After Cilium is installed, we must restart all the pods in the cluster that were started with the previous CNI setup.
 The easiest way to do it is simply by deleting them, and letting them be respawned by their corresponding controller
 (e.g. a `Deployment` or `StatefulSet`). Restarted nodes should get new IP addresses that do not follow the CIDR
-scheme that we have chosen [previously](Spinning_up_Worker_Nodes.md#splitting-pod-ip-range-between-nodes).
+scheme that we have chosen [previously](07_Spinning_up_Worker_Nodes.md#splitting-pod-ip-range-between-nodes).
 
 ## Cleaning up
 
 Cilium implements Kubernetes overlay network with IP encapsulation between nodes, and with eBPF programs instead of
 `iptables`. This means that some previous tinkering is no longer necessary. Namely:
 
-* We can delete [routes](Spinning_up_Worker_Nodes.md#routing-pod-traffic-via-the-host-machine) 
+* We can delete [routes](07_Spinning_up_Worker_Nodes.md#routing-pod-traffic-via-the-host-machine) 
   to pod subnets from the host machine
-* We can disable the [`br_netfilter`](Spinning_up_Worker_Nodes.md#forcing-iptables-for-bridge-traffic) module
+* We can disable the [`br_netfilter`](07_Spinning_up_Worker_Nodes.md#forcing-iptables-for-bridge-traffic) module
   on all nodes
 
 ## Summary

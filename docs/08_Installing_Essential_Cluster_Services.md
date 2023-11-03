@@ -1,4 +1,4 @@
-Previous: [Spinning up Worker Nodes](Spinning_up_Worker_Nodes.md)
+Previous: [Spinning up Worker Nodes](07_Spinning_up_Worker_Nodes.md)
 
 # Installing Essential Cluster Services
 
@@ -75,7 +75,7 @@ helm install -n kube-system coredns coredns/coredns --set service.clusterIP=10.3
 
 > [!IMPORTANT]
 > Note the `--set service.clusterIP=10.32.0.10` option. This must be consistent with the DNS address specified
-> previously in [`kubelet`](Spinning_up_Worker_Nodes.md#kubelet) configuration.
+> previously in [`kubelet`](07_Spinning_up_Worker_Nodes.md#kubelet) configuration.
 
 Let's see if it works by inspecting pods with `kubectl -n kube-system get pods -o wide`.
 `coredns` may take some time to start. Ultimately, you should see something similar to this:
@@ -273,12 +273,12 @@ EOF
 
 Note the allocated range for Service external IPs (192.168.1.30-254). It's important for this range to be within
 the local network of the VMs, but outside the DHCP-assignable range. This is why we have previously
-[configured](Preparing_Environment_for_a_VM_Cluster.md#dhcp-server-configuration) it to be very narrow.
+[configured](03_Preparing_Environment_for_a_VM_Cluster.md#dhcp-server-configuration) it to be very narrow.
 
 ### Testing MetalLB
 
 Let's create a simple HTTP echo service, similar to the one from 
-[previous chapter](Spinning_up_Worker_Nodes.md#testing-out-service-traffic):
+[previous chapter](07_Spinning_up_Worker_Nodes.md#testing-out-service-traffic):
 
 ```bash
 cat <<EOF | kubectl apply -f -

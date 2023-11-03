@@ -11,15 +11,16 @@ In order to make this guide complete, we won't focus just on Kubernetes. We'll a
 Linux that makes containerization and Kubernetes possible. We'll also spend some time with some general-purpose system tools 
 that happen to be useful for installing and maintaining our deployment.
 
-<!-- START doctoc generated TOC please keep comment here to allow auto update -->
-<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+**Table of Contents** 
 
-- [Credits](#credits)
-- [Deployment overview](#deployment-overview)
-- [Hardware used](#hardware-used)
-
-<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+1. [Learning How to Run VMs with QEMU](02_Learning_How_to_Run_VMs_with_QEMU.md)
+1. [Preparing Environment for a VM Cluster](03_Preparing_Environment_for_a_VM_Cluster.md)
+1. [Launching the VM Cluster](04_Launching_the_VM_Cluster.md)
+1. [Bootstrapping Kubernetes Security](05_Bootstrapping_Kubernetes_Security.md)
+1. [Installing Kubernetes Control Plane](06_Installing_Kubernetes_Control_Plane.md)
+1. [Spinning up Worker Nodes](07_Spinning_up_Worker_Nodes.md)
+1. [Installing Essential Cluster Services](08_Installing_Essential_Cluster_Services.md)
+1. [Simplifying Network Setup with Cilium](09_Simplifying_Network_Setup_with_Cilium.md)
 
 ## Credits
 
@@ -53,9 +54,11 @@ The host (macOS) machine will also play some important roles:
 
 ## Hardware used
 
-The hardware that I use is a MacBook Pro M2 Max machine running macOS Ventura. This means that some of the commands and tools used by me will be specific 
-to the Apple Silicon CPU architecture (also known as AArch64 or ARM64). In principle however, everything I do here should be portable to Intel/AMD.
+The hardware that I use is a MacBook Pro M2 Max machine running macOS Ventura. This means that some of the commands 
+and tools used by me will be specific to the Apple Silicon CPU architecture (also known as AArch64 or ARM64). 
+In principle however, everything I do here should be portable to Intel/AMD.
 
-Since we'll run several VMs at once, a decent amount of RAM is recommended. My machine has 64GB but 32GB should also be sufficient.
+Since we'll run several VMs at once, a decent amount of RAM is recommended. My machine has 64GB but 32GB should 
+also be sufficient.
 
-Next: [Learning How to Run VMs with QEMU](Learning_How_to_Run_VMs_with_QEMU.md)
+Next: [Learning How to Run VMs with QEMU](02_Learning_How_to_Run_VMs_with_QEMU.md)

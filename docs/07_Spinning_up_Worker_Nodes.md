@@ -1,4 +1,4 @@
-Previous: [Installing Kubernetes Control Plane](Installing_Kubernetes_Control_Plane.md)
+Previous: [Installing Kubernetes Control Plane](06_Installing_Kubernetes_Control_Plane.md)
 
 # Spinning up Worker Nodes
 
@@ -38,9 +38,9 @@ and what are the underlying mechanisms responsible for Kubernetes networking.
 
 ## Prerequisites
 
-Just like in the [previous chapter](Installing_Kubernetes_Control_Plane.md), we'll be installing stuff
+Just like in the [previous chapter](06_Installing_Kubernetes_Control_Plane.md), we'll be installing stuff
 on multiple nodes at once (both control and worker VMs). It is recommended to do this with `tmux` pane synchronization,
-as [described before](Launching_the_VM_Cluster.md#tmux-crash-course).
+as [described before](04_Launching_the_VM_Cluster.md#tmux-crash-course).
 
 ## Overview
 
@@ -254,11 +254,11 @@ pods.
 
 ### Splitting pod IP range between nodes
 
-During [control plane setup](Installing_Kubernetes_Control_Plane.md#installing-kube-controller-manager), 
+During [control plane setup](06_Installing_Kubernetes_Control_Plane.md#installing-kube-controller-manager), 
 we have already decided that 10.0.0.0/12 is going to be the IP range for all pods in the cluster.
 
 Now we also need to split this range between individual nodes. We'll use the second octet of IP address to
-encode [VM id](Preparing_Environment_for_a_VM_Cluster.md#topology-overview), and reduce subnet size to `/16`.
+encode [VM id](03_Preparing_Environment_for_a_VM_Cluster.md#topology-overview), and reduce subnet size to `/16`.
 
 Let's save this into some shell variables:
 
@@ -570,7 +570,7 @@ done
 
 ## Authorizing `kube-apiserver` to `kubelet` traffic
 
-As mentioned in [Bootstrapping Kubernetes Security](Bootstrapping_Kubernetes_Security.md), some cluster operations
+As mentioned in [Bootstrapping Kubernetes Security](05_Bootstrapping_Kubernetes_Security.md), some cluster operations
 require `kube-apiserver` to call `kubelet`. Those operations include executing commands in pods, setting up port
 forwarding, fetching pod logs, etc.
 
@@ -823,4 +823,4 @@ In this chapter, we have:
 * peeked into the inner workings of CNI plugins and `kube-proxy` by inspecting network interfaces and namespaces,
   as well as `iptables` rules that make up the Kubernetes overlay network
 
-Next: [Installing Essential Cluster Services](Installing_Essential_Cluster_Services.md)
+Next: [Installing Essential Cluster Services](08_Installing_Essential_Cluster_Services.md)
