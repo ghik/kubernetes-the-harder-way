@@ -4,7 +4,7 @@ set -xe
 
 if [[ "$EUID" -ne 0 ]]; then
   echo "this script must be run as root" >&2
-  return 1
+  exit 1
 fi
 
 arch=arm64
@@ -17,10 +17,8 @@ vmname=$(hostname -s)
 # etcd
 
 etcd_archive=etcd-v${etcd_version}-linux-${arch}.tar.gz
-if [[ ! -e $etcd_archive ]]; then
-  wget -q --show-progress --https-only --timestamping https://github.com/etcd-io/etcd/releases/download/v${etcd_version}/$etcd_archive
-fi
-  
+wget -q --show-progress --https-only --timestamping https://github.com/etcd-io/etcd/releases/download/v${etcd_version}/$etcd_archive
+
 tar -xvf $etcd_archive
 cp etcd-v${etcd_version}-linux-${arch}/etcd* /usr/local/bin
 mkdir -p /etc/etcd /var/lib/etcd
@@ -68,16 +66,13 @@ systemctl start etcd
 
 mkdir -p /etc/kubernetes/config
 
-if [[ !(-e kube-apiserver && -e kube-controller-manager && -e kube-scheduler && -e kubectl) ]]; then
-  wget -q --show-progress --https-only --timestamping \
-    "https://storage.googleapis.com/kubernetes-release/release/v${k8s_version}/bin/linux/${arch}/kube-apiserver" \
-    "https://storage.googleapis.com/kubernetes-release/release/v${k8s_version}/bin/linux/${arch}/kube-controller-manager" \
-    "https://storage.googleapis.com/kubernetes-release/release/v${k8s_version}/bin/linux/${arch}/kube-scheduler" \
-    "https://storage.googleapis.com/kubernetes-release/release/v${k8s_version}/bin/linux/${arch}/kubectl"
-fi
+wget -q --show-progress --https-only --timestamping \
+  "https://storage.googleapis.com/kubernetes-release/release/v${k8s_version}/bin/linux/${arch}/kube-apiserver" \
+  "https://storage.googleapis.com/kubernetes-release/release/v${k8s_version}/bin/linux/${arch}/kube-controller-manager" \
+  "https://storage.googleapis.com/kubernetes-release/release/v${k8s_version}/bin/linux/${arch}/kube-scheduler" \
 
-chmod +x kube-apiserver kube-controller-manager kube-scheduler kubectl
-cp kube-apiserver kube-controller-manager kube-scheduler kubectl /usr/local/bin/
+chmod +x kube-apiserver kube-controller-manager kube-scheduler
+cp kube-apiserver kube-controller-manager kube-scheduler /usr/local/bin/
 
 mkdir -p /var/lib/kubernetes/
 cp ca.pem ca-key.pem kubernetes-key.pem kubernetes.pem \

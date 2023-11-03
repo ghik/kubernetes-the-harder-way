@@ -4,7 +4,7 @@ set -xe
 
 if [[ "$EUID" -ne 0 ]]; then
   echo "this script must be run as root" >&2
-  return 1
+  exit 1
 fi
 
 arch=arm64
@@ -36,7 +36,7 @@ cni_plugins_archive=cni-plugins-linux-${arch}-v${cni_plugins_version}.tgz
 wget -q --show-progress --https-only --timestamping \
   https://github.com/kubernetes-sigs/cri-tools/releases/download/v${cri_version}/${crictl_archive} \
   https://github.com/opencontainers/runc/releases/download/v${runc_version}/runc.${arch} \
-  https://github.com/containerd/containerd/releases/download/v${containerd_version}/${containerd_archive} 
+  https://github.com/containerd/containerd/releases/download/v${containerd_version}/${containerd_archive}
 
 mkdir -p \
   /opt/cni/bin \
