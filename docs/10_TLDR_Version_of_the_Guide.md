@@ -4,6 +4,20 @@ This chapter is a "TLDR" version of this guide that contains pure instructions f
 deployment. Explanations and "theoretical introductions" are omitted. Most of the work is contained within
 scripts shipped with this repository.
 
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [Install necessary software](#install-necessary-software)
+- [Clone the repository](#clone-the-repository)
+- [Prepare VM environment](#prepare-vm-environment)
+- [Launch and connect the VMs](#launch-and-connect-the-vms)
+- [Bootstrap security](#bootstrap-security)
+- [Install the control plane](#install-the-control-plane)
+- [Register Kubernetes nodes](#register-kubernetes-nodes)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 ## Install necessary software
 
 ```bash

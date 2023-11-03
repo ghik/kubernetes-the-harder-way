@@ -15,7 +15,7 @@ and what are the underlying mechanisms responsible for Kubernetes networking.
 
 - [Prerequisites](#prerequisites)
 - [Overview](#overview)
-- [Turning control plane nodes into worker-like nodes](#turning-control-plane-nodes-into-worker-like-nodes)
+- [Turning control plane nodes into "pseudo-workers"](#turning-control-plane-nodes-into-pseudo-workers)
 - [Shell variables](#shell-variables)
 - [The Container Runtime](#the-container-runtime)
   - [What are containers?](#what-are-containers)
@@ -44,9 +44,9 @@ as [described before](04_Launching_the_VM_Cluster.md#tmux-crash-course).
 
 ## Overview
 
-The most important Kubernetes component running on worker nodes is the `kubelet`. It is responsible for announcing
+The most important Kubernetes component running on worker nodes is `kubelet`. It is responsible for announcing
 worker node's presence in the cluster to `kube-apiserver`, and it is the toplevel entity responsible for the lifecycle
-of all the pods/containers running on the worker node.
+of all the pods/containers running on a worker node.
 
 However, `kubelet` does not manage containers directly. This part of Kubernetes is highly abstracted, pluggable and
 extensible. Namely, there are (at least) two abstract specifications that `kubelet` integrates with:
@@ -60,12 +60,12 @@ We'll need to install them manually and configure `kubelet` properly to use them
 Finally, a worker node typically runs a `kube-proxy`, a component responsible for handling and load balancing
 traffic to Kubernetes [Services](https://kubernetes.io/docs/concepts/services-networking/service/).
 
-## Turning control plane nodes into worker-like nodes
+## Turning control plane nodes into "pseudo-workers"
 
 `kubelet`, container runtime and `kube-proxy` are typically necessary only on worker nodes, as these are the
-components needed to run actual cluster workloads inside pods.
+components needed to run actual cluster workloads, inside pods.
 
-However, in this guide, **we'll install these components on control plane nodes, too**. The reasons for that are
+However, we'll install these components on control plane nodes as well. The reasons for that are
 technical, the most important of them being the fact that `kube-apiserver` occasionally needs to communicate with
 services running inside the cluster (e.g. [admission webhooks](https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/#what-are-admission-webhooks)).
 
@@ -74,7 +74,7 @@ routable from them. This means that, at minimum, we need to run `kube-proxy` on 
 `kube-proxy` refuses to run on a non-registered node, so we are forced to turn control plane nodes into fully-configured
 worker-like nodes with `kubelet` and container runtime.
 
-Having said that, we still don't want to run any actual workloads on control plane nodes. Fortunately, Kubernetes
+Having said that, we want to avoid running any actual workloads on control plane nodes. Fortunately, Kubernetes
 has [mechanisms](https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/) for excluding nodes 
 from regular pod scheduling, and we'll take advantage of that.
 

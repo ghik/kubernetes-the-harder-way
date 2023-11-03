@@ -8,6 +8,21 @@ tools that hide all the interesting details from us. If you're looking for a qui
 as possible, this guide is probably not for you (although you can also take a look at the 
 [TLDR version](10_TLDR_Version_of_the_Guide.md)).
 
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [Scope](#scope)
+- [Credits](#credits)
+- [Who is this guide intended for?](#who-is-this-guide-intended-for)
+- [Deployment overview](#deployment-overview)
+- [Hardware used](#hardware-used)
+- [Chapter list](#chapter-list)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
+## Scope
+
 In order to make this guide complete, we won't focus just on Kubernetes. We'll also look at some foundational stuff within
 Linux that makes containerization and Kubernetes possible. We'll also spend some time with some general-purpose system tools 
 that happen to be useful for installing and maintaining our deployment.
@@ -27,7 +42,6 @@ Apart from Kubernetes core, our deployment will also include the following third
 * [MetalLB](https://metallb.universe.tf/)
 * [Cilium](https://cilium.io)
 
-
 ## Credits
 
 This guide is a result of its author's learning process, which was largely facilitated by Kelsey Hightower's 
@@ -45,8 +59,8 @@ I've also used other sources which I will properly link throughout this guide.
 ## Who is this guide intended for?
 
 This guide was created by a software engineer, i.e. not a platform/DevOps engineer with extensive OS 
-administration skills. The guide provides a good amount of "under the hood" knowledge that goes beyond simple working
-knowledge of Kubernetes. However, the prerequisites for completing this guide are not extensive:
+administration skills. It provides a good amount of "under the hood" knowledge that goes beyond what a regular
+Kubernetes user would see. However, the prerequisites for completing this guide are not extensive:
 
 * Some working knowledge of Kubernetes, i.e. knowing what a Pod or Service is, having used `kubectl` to
   deploy some simple workloads
@@ -80,7 +94,7 @@ In principle however, everything I do here should be portable to Intel/AMD.
 Since we'll run several VMs at once, a decent amount of RAM is recommended. My machine has 64GB but 32GB should 
 also be sufficient.
 
-## Table of Contents
+## Chapter list
 
 1. [Learning How to Run VMs with QEMU](02_Learning_How_to_Run_VMs_with_QEMU.md)
 1. [Preparing Environment for a VM Cluster](03_Preparing_Environment_for_a_VM_Cluster.md)
