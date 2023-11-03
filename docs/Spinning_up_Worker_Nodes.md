@@ -15,6 +15,7 @@ and what are the underlying mechanisms responsible for Kubernetes networking.
 
 - [Prerequisites](#prerequisites)
 - [Overview](#overview)
+- [Turning control plane nodes into worker-like nodes](#turning-control-plane-nodes-into-worker-like-nodes)
 - [Shell variables](#shell-variables)
 - [The Container Runtime](#the-container-runtime)
   - [What are containers?](#what-are-containers)
@@ -29,6 +30,8 @@ and what are the underlying mechanisms responsible for Kubernetes networking.
 - [Authorizing `kube-apiserver` to `kubelet` traffic](#authorizing-kube-apiserver-to-kubelet-traffic)
 - [`kube-proxy`](#kube-proxy)
   - [Forcing `iptables` for bridge traffic](#forcing-iptables-for-bridge-traffic)
+  - [Testing out service traffic](#testing-out-service-traffic)
+  - [Digging deeper into](#digging-deeper-into)
 - [Summary](#summary)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->

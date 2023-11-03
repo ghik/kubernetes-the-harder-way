@@ -26,6 +26,18 @@ essential services:
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
+- [Prerequisites](#prerequisites)
+- [`helm`](#helm)
+- [`coredns`](#coredns)
+- [NFS dynamic provisioner](#nfs-dynamic-provisioner)
+  - [Setting up NFS on the host machine](#setting-up-nfs-on-the-host-machine)
+  - [Installing NFS client on worker nodes](#installing-nfs-client-on-worker-nodes)
+  - [Installing the dynamic provisioner](#installing-the-dynamic-provisioner)
+  - [Testing the dynamic provisioner](#testing-the-dynamic-provisioner)
+- [MetalLB](#metallb)
+  - [Testing MetalLB](#testing-metallb)
+- [Summary](#summary)
+
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 ## Prerequisites
