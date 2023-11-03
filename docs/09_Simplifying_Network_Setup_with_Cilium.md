@@ -1,6 +1,6 @@
 Previous: [Installing Essential Cluster Services](08_Installing_Essential_Cluster_Services.md)
 
-# Simplifying Network Setup with Cilium
+# Simplifying Network Setup with Cilium (optional)
 
 In this extra chapter we'll look at [Cilium](https://cilium.io), a project that will allow us to simplify
 our Kubernetes deployment, especially its networking part.

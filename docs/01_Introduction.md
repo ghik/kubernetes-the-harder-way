@@ -59,6 +59,6 @@ also be sufficient.
 1. [Installing Kubernetes Control Plane](06_Installing_Kubernetes_Control_Plane.md)
 1. [Spinning up Worker Nodes](07_Spinning_up_Worker_Nodes.md)
 1. [Installing Essential Cluster Services](08_Installing_Essential_Cluster_Services.md)
-1. [Simplifying Network Setup with Cilium](09_Simplifying_Network_Setup_with_Cilium.md)
+1. [Simplifying Network Setup with Cilium](09_Simplifying_Network_Setup_with_Cilium.md) (optional)
 
 Next: [Learning How to Run VMs with QEMU](02_Learning_How_to_Run_VMs_with_QEMU.md)
