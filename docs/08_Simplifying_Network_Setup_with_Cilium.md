@@ -1,4 +1,4 @@
-Previous: [Installing Essential Cluster Services](08_Installing_Essential_Cluster_Services.md)
+Previous: [Installing Essential Cluster Services](07_Installing_Essential_Cluster_Services.md)
 
 # Simplifying Network Setup with Cilium (optional)
 
@@ -136,9 +136,9 @@ managed by Cilium.
 Cilium implements Kubernetes overlay network with IP encapsulation between nodes, and with eBPF programs instead of
 `iptables`. This means that some previous tinkering is no longer necessary. Namely:
 
-* We can delete [routes](07_Spinning_up_Worker_Nodes.md#routing-pod-traffic-via-the-host-machine) 
+* We can delete [routes](06_Spinning_up_Worker_Nodes.md#routing-pod-traffic-via-the-host-machine) 
   to pod subnets from the host machine
-* We can disable the [`br_netfilter`](07_Spinning_up_Worker_Nodes.md#forcing-iptables-for-bridge-traffic) module
+* We can disable the [`br_netfilter`](06_Spinning_up_Worker_Nodes.md#forcing-iptables-for-bridge-traffic) module
   on all nodes
 
 ## Summary

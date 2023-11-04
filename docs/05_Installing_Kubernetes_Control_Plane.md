@@ -1,4 +1,4 @@
-Previous: [Bootstrapping Kubernetes Security](05_Bootstrapping_Kubernetes_Security.md)
+Previous: [Bootstrapping Kubernetes Security](04_Bootstrapping_Kubernetes_Security.md)
 
 # Installing Kubernetes Control Plane
 
@@ -39,8 +39,8 @@ On the way, we'll also learn/remind some basic Linux tools and concepts, e.g. `s
 
 ## Prerequisites
 
-Make sure you have completed all the previous chapters, your VMs are [running](04_Launching_the_VM_Cluster.md#a-script-to-launch-them-all) 
-and have all the certificates, keys and kubeconfigs [deployed](05_Bootstrapping_Kubernetes_Security.md#distributing-certificates-and-keys).
+Make sure you have completed all the previous chapters, your VMs are [running](03_Launching_the_VM_Cluster.md#a-script-to-launch-them-all) 
+and have all the certificates, keys and kubeconfigs [deployed](04_Bootstrapping_Kubernetes_Security.md#distributing-certificates-and-keys).
 
 ## Quick overview of `systemd`
 
@@ -86,8 +86,8 @@ start, stop, restart, inspect services, etc.
 ## Installing core components
 
 Let's start installing control plane components. In order to do this simultaneously on all control nodes, you can use 
-`tmux` with pane synchronization, as [described](04_Launching_the_VM_Cluster.md#tmux-crash-course) in one of the 
-previous chapters. Note that the way we have [set up](04_Launching_the_VM_Cluster.md#connecting-with-ssh) a `tmux` 
+`tmux` with pane synchronization, as [described](03_Launching_the_VM_Cluster.md#tmux-crash-course) in one of the 
+previous chapters. Note that the way we have [set up](03_Launching_the_VM_Cluster.md#connecting-with-ssh) a `tmux` 
 session with SSH connections to all VMs was designed specifically for that purpose.
 
 > [!NOTE]
@@ -170,7 +170,7 @@ EOF
 ```
 
 All the above options are not really worth describing in detail. The security related ones are a direct consequence
-of the security assumptions from the [previous chapter](05_Bootstrapping_Kubernetes_Security.md). The other ones simply
+of the security assumptions from the [previous chapter](04_Bootstrapping_Kubernetes_Security.md). The other ones simply
 tell the `etcd` cluster how it should initialize itself.
 
 Reload `systemd` unit definitions and start `etcd` service:
@@ -280,7 +280,7 @@ EOF
 
 Configuration options are not worth discussing in detail in this guide, but there are some interesting things to note:
 * the security related options (certs, etc.) simply reflect the assumptions made in the
-  [previous chapter](05_Bootstrapping_Kubernetes_Security.md).
+  [previous chapter](04_Bootstrapping_Kubernetes_Security.md).
 * the `--service-cluster-ip-range` specifies the range of IPs assigned to
   [Kubernetes Services](https://kubernetes.io/docs/concepts/services-networking/service/). These IPs will only
   be visible from within the cluster (i.e. pods).
@@ -304,14 +304,14 @@ curl -v --cacert /var/lib/kubernetes/ca.pem https://127.0.0.1:6443/healthz
 > [!NOTE]
 > `curl` may not be installed by default. You can install it manually with `sudo apt install curl`, but you can also
 > make `cloud-init` do this automatically for you, as 
-> [described previously](03_Preparing_Environment_for_a_VM_Cluster.md#installing-apt-packages).
+> [described previously](02_Preparing_Environment_for_a_VM_Cluster.md#installing-apt-packages).
 
 ## Kubernetes API load balancer
 
 The Kubernetes API server is now running, and we can try using it. Unfortunately, this would require referring to
 one of the control node IPs/addresses directly, rather than using a single, uniform IP and name for the entire
 API. We have configured all our kubeconfigs to use `https://kubernetes:6443` as the API url.
-The name `kubernetes` is [configured in the DNS server](03_Preparing_Environment_for_a_VM_Cluster.md#dns-server-configuration)
+The name `kubernetes` is [configured in the DNS server](02_Preparing_Environment_for_a_VM_Cluster.md#dns-server-configuration)
 to resolve to a mysterious, unassigned address 192.168.1.21. This is a virtual IP, and it is now time to properly
 set it up.
 
@@ -384,7 +384,7 @@ It would be nice for `cloud-init` to do all this setup for us. Otherwise, it wil
 
 In order to configure the virtual IP as a static one, we must use the `network-config` file for `cloud-init`.
 Edit the `cloud-init/network-config.control` template file that 
-[we have set up earlier](03_Preparing_Environment_for_a_VM_Cluster.md#impromptu-bash-templating-for-cloud-init-files)
+[we have set up earlier](02_Preparing_Environment_for_a_VM_Cluster.md#impromptu-bash-templating-for-cloud-init-files)
 and add the following content:
 
 ```yaml
@@ -732,12 +732,12 @@ EOF
 
 Some things to note from the options:
 * As with all other components, security-related options reflect the assumptions made in the 
-  [previous chapter](05_Bootstrapping_Kubernetes_Security.md)
+  [previous chapter](04_Bootstrapping_Kubernetes_Security.md)
 * The `--cluster-signing-cert-file` and `--cluster-signing-key-file` are related to a feature that was not yet
   mentioned - an [API to dynamically sign certificates](https://kubernetes.io/docs/reference/access-authn-authz/certificate-signing-requests/)
 * The `--service-cluster-ip-range` must be the same as in `kube-apiserver`
 * The `--cluster-cidr` specifies IP range for pods in the cluster. We will discuss this in more detail in
-  the [next chapter](07_Spinning_up_Worker_Nodes.md#splitting-pod-ip-range-between-nodes)
+  the [next chapter](06_Spinning_up_Worker_Nodes.md#splitting-pod-ip-range-between-nodes)
 
 Launch it:
 
@@ -755,4 +755,4 @@ In this chapter, we have:
 
 At this point we have a fully functional Kubernetes API, but there aren't yet any worker nodes to schedule actual work.
 
-Next: [Spinning up Worker Nodes](07_Spinning_up_Worker_Nodes.md)
+Next: [Spinning up Worker Nodes](06_Spinning_up_Worker_Nodes.md)

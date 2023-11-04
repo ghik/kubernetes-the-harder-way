@@ -1,4 +1,4 @@
-Previous: [Introduction](01_Introduction.md)
+Previous: [Introduction](00_Introduction.md)
 
 # Learning How to Run VMs with QEMU
 
@@ -10,7 +10,7 @@ For this reason, we will use perhaps the most _raw_ tool possible for running VM
 
 This chapter is an introduction to virtualization in general, exploration of QEMU, plus an overview of the `cloud-init` 
 tool. None of the actions in this chapter are necessary to progress with the deployment, they are intended purely 
-for learning. You may jump straight into the [next chapter](03_Preparing_Environment_for_a_VM_Cluster.md) if you wish.
+for learning. You may jump straight into the [next chapter](02_Preparing_Environment_for_a_VM_Cluster.md) if you wish.
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
@@ -676,4 +676,4 @@ installing Kubernetes on it.
 3. [`qemu-system-aarch64` manpage](https://manpages.debian.org/testing/qemu-system-arm/qemu-system-aarch64.1.en.html)
 4. [`cloud-init`](https://canonical-cloud-init.readthedocs-hosted.com/en/latest/index.html)
 
-Next: [Preparing Environment for a VM Cluster](03_Preparing_Environment_for_a_VM_Cluster.md)
+Next: [Preparing Environment for a VM Cluster](02_Preparing_Environment_for_a_VM_Cluster.md)

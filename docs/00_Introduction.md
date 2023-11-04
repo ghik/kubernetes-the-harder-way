@@ -6,7 +6,7 @@ The purpose is primarily educational: to understand better how Kubernetes works 
 components fit together. For this reason we'll be doing everything _from scratch_, and we'll avoid using any "convenience" 
 tools that hide all the interesting details from us. If you're looking for a quick recipe to have a working cluster as fast
 as possible, this guide is probably not for you (although you can also take a look at the 
-[TLDR version](10_TLDR_Version_of_the_Guide.md)).
+[TLDR version](09_TLDR_Version_of_the_Guide.md)).
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
@@ -96,14 +96,14 @@ also be sufficient.
 
 ## Chapter list
 
-1. [Learning How to Run VMs with QEMU](02_Learning_How_to_Run_VMs_with_QEMU.md)
-1. [Preparing Environment for a VM Cluster](03_Preparing_Environment_for_a_VM_Cluster.md)
-1. [Launching the VM Cluster](04_Launching_the_VM_Cluster.md)
-1. [Bootstrapping Kubernetes Security](05_Bootstrapping_Kubernetes_Security.md)
-1. [Installing Kubernetes Control Plane](06_Installing_Kubernetes_Control_Plane.md)
-1. [Spinning up Worker Nodes](07_Spinning_up_Worker_Nodes.md)
-1. [Installing Essential Cluster Services](08_Installing_Essential_Cluster_Services.md)
-1. [Simplifying Network Setup with Cilium](09_Simplifying_Network_Setup_with_Cilium.md) (optional)
-1. [TLDR Version of the Guide](10_TLDR_Version_of_the_Guide.md) (auxiliary)
+1. [Learning How to Run VMs with QEMU](01_Learning_How_to_Run_VMs_with_QEMU.md)
+1. [Preparing Environment for a VM Cluster](02_Preparing_Environment_for_a_VM_Cluster.md)
+1. [Launching the VM Cluster](03_Launching_the_VM_Cluster.md)
+1. [Bootstrapping Kubernetes Security](04_Bootstrapping_Kubernetes_Security.md)
+1. [Installing Kubernetes Control Plane](05_Installing_Kubernetes_Control_Plane.md)
+1. [Spinning up Worker Nodes](06_Spinning_up_Worker_Nodes.md)
+1. [Installing Essential Cluster Services](07_Installing_Essential_Cluster_Services.md)
+1. [Simplifying Network Setup with Cilium](08_Simplifying_Network_Setup_with_Cilium.md) (optional)
+1. [TLDR Version of the Guide](09_TLDR_Version_of_the_Guide.md) (auxiliary)
 
-Next: [Learning How to Run VMs with QEMU](02_Learning_How_to_Run_VMs_with_QEMU.md)
+Next: [Learning How to Run VMs with QEMU](01_Learning_How_to_Run_VMs_with_QEMU.md)

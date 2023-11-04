@@ -1,4 +1,4 @@
-Previous: [Preparing Environment for a VM Cluster](03_Preparing_Environment_for_a_VM_Cluster.md)
+Previous: [Preparing Environment for a VM Cluster](02_Preparing_Environment_for_a_VM_Cluster.md)
 
 # Launching the VM Cluster
 
@@ -408,4 +408,4 @@ In this chapter, we have:
 1. [Getting started with `tmux`](https://linuxize.com/post/getting-started-with-tmux/)
 2. [Tmux Cheat Sheet & Quick Reference](https://tmuxcheatsheet.com/)
 
-Next: [Bootstrapping Kubernetes Security](05_Bootstrapping_Kubernetes_Security.md)
+Next: [Bootstrapping Kubernetes Security](04_Bootstrapping_Kubernetes_Security.md)

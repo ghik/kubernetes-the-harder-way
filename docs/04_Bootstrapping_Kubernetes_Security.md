@@ -1,4 +1,4 @@
-Previous: [Launching the VM Cluster](04_Launching_the_VM_Cluster.md)
+Previous: [Launching the VM Cluster](03_Launching_the_VM_Cluster.md)
 
 # Bootstrapping Kubernetes Security
 
@@ -71,7 +71,7 @@ Worker nodes run the following components:
 * `kube-proxy` - serves as a local proxy/load balancer for 
   [Kubernetes services](https://kubernetes.io/docs/concepts/services-networking/service/) on a given node
 
-For [technical reasons explained later](07_Spinning_up_Worker_Nodes.md#turning-control-plane-nodes-into-worker-like-nodes),
+For [technical reasons explained later](06_Spinning_up_Worker_Nodes.md#turning-control-plane-nodes-into-worker-like-nodes),
 we'll run `kubelet` and `kube-proxy` on control plane nodes as well.
 
 ### Communication channels
@@ -717,8 +717,8 @@ EOF
 ## Distributing certificates and keys
 
 Let's upload all the files we have painstakingly prepared into the VMs.
-Make sure the VMs are running, as described in the [previous chapter](04_Launching_the_VM_Cluster.md).
-Also, make sure that [`vmsshsetup.sh`](03_Preparing_Environment_for_a_VM_Cluster.md#automating-establishment-of-vms-authenticity) 
+Make sure the VMs are running, as described in the [previous chapter](03_Launching_the_VM_Cluster.md).
+Also, make sure that [`vmsshsetup.sh`](02_Preparing_Environment_for_a_VM_Cluster.md#automating-establishment-of-vms-authenticity) 
 has been run for all the VMs.
 
 Then, upload the files with a script, `deployauth.sh`:
@@ -804,4 +804,4 @@ In this chapter, we have:
 * generated all the certificates and configuration files necessary for secure Kubernetes deployment
 * uploaded the files into the VMs, in anticipation of installing Kubernetes on them
 
-Next: [Installing Kubernetes Control Plane](06_Installing_Kubernetes_Control_Plane.md)
+Next: [Installing Kubernetes Control Plane](05_Installing_Kubernetes_Control_Plane.md)
