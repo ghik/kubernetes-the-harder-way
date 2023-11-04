@@ -29,8 +29,8 @@ brew install qemu wget curl cdrtools dnsmasq tmux cfssl kubernetes-cli helm
 ## Clone the repository
 
 ```bash
-git clone https://github.com/ghik/kubenet
-cd kubenet
+git clone https://github.com/ghik/kubernetes-the-harder-way
+cd kubernetes-the-harder-way
 ```
 
 ## Bootstrap security
