@@ -1,4 +1,4 @@
-# `kubernetes-the-harder-way`
+# Kubernetes the Harder Way
 
 This repository contains a guide that
 describes how to set up a production-like Kubernetes cluster on a laptop.
