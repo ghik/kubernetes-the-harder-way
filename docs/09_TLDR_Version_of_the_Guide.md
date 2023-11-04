@@ -16,6 +16,7 @@ scripts shipped with this repository.
 - [Install the control plane](#install-the-control-plane)
 - [Set up Kubernetes nodes](#set-up-kubernetes-nodes)
 - [Install essential cluster services](#install-essential-cluster-services)
+- [One script to run them all](#one-script-to-run-them-all)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -179,3 +180,8 @@ Or, if you want to use Cilium:
 ```bash
 USE_CILIUM=true ./setupcluster.sh
 ```
+
+## One script to run them all
+
+All of the above steps have been additionally automated with a single [`setupall.sh`](../setupall.sh) script.
+Invoke it as `./setupall.sh` or `USE_CILIUM=true ./setupall.sh`.
