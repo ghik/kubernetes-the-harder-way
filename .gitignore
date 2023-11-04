@@ -6,6 +6,8 @@ auth/*.pem
 auth/*.kubeconfig
 auth/encryption-config.yaml
 nfs-pvs/
+.idea/
+bin/
 *.img
 *.swp
 *~
