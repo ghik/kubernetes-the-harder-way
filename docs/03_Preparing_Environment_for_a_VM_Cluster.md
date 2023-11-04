@@ -43,7 +43,7 @@ This way we can easily do iterative improvements and experiments to our VM setup
 Make sure you have the following packages installed:
 
 ```bash
-brew install wget qemu cdrtools dnsmasq flock
+brew install wget qemu cdrtools dnsmasq
 ```
 
 ## Topology overview

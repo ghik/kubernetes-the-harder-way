@@ -32,7 +32,7 @@ It's time to automate the launch itself.
 Make sure you have the following packages installed:
 
 ```bash
-brew install wget qemu cdrtools dnsmasq flock tmux
+brew install wget qemu cdrtools dnsmasq tmux
 ```
 
 ## Granting resources

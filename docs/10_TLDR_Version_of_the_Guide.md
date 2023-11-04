@@ -21,7 +21,7 @@ scripts shipped with this repository.
 ## Install necessary software
 
 ```bash
-brew install qemu wget curl cdrtools dnsmasq flock tmux cfssl kubernetes-cli helm
+brew install qemu wget curl cdrtools dnsmasq tmux cfssl kubernetes-cli helm
 ```
 
 ## Clone the repository
