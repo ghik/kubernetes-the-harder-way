@@ -9,19 +9,22 @@ if [[ -n $USE_CILIUM ]]; then
     --set k8sServiceHost=kubernetes \
     --set k8sServicePort=6443 \
     --set cgroup.automount.enabled=false \
-    --set cgroup.hostRoot=/sys/fs/cgroup
+    --set cgroup.hostRoot=/sys/fs/cgroup \
+    --wait --timeout 15m
 fi
 
 helm install -n kube-system coredns coredns/coredns \
   --set service.clusterIP=10.32.0.10 \
-  --set replicaCount=2
+  --set replicaCount=2 \
+  --wait --timeout 3m
 
 helm install -n kube-system nfs-provisioner nfs-provisioner/nfs-subdir-external-provisioner \
   --set nfs.server=192.168.1.1 \
   --set nfs.path="$(realpath "$dir")/nfs-pvs" \
   --set storageClass.defaultClass=true
 
-helm install -n kube-system metallb metallb/metallb
+helm install -n kube-system metallb metallb/metallb \
+  --wait --timeout 3m
 
 cat <<EOF | kubectl apply -f -
 apiVersion: metallb.io/v1beta1
@@ -44,4 +47,3 @@ spec:
   interfaces:
     - enp0s1
 EOF
-

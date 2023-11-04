@@ -108,7 +108,7 @@ Upload VM setup scripts:
 Upload security files to VMs:
 
 ```bash
-./deployauth.sh
+./auth/deployauth.sh
 ```
 
 ## Install the control plane
@@ -143,6 +143,16 @@ Or, if you want to use Cilium:
 ```bash
 sudo USE_CILIUM=true ./setupnode.sh
 ```
+
+If you *do not* use Cilium, configure pod CIDR routes on the host machine:
+
+```bash
+sudo ./setuproutes.sh
+```
+
+> [!IMPORTANT]
+> Routes must be added while at least one VM is running, so that the bridge interface exists.
+> Unfortunately, they will be removed once you shut down all the VMs.
 
 Give `kube-apiserver` permissions to call `kubelet`. On the host machine, invoke:
 

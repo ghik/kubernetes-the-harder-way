@@ -7,6 +7,11 @@ if [[ "$EUID" -ne 0 ]]; then
   return 1
 fi
 
+while [[ ! -f /etc/ha.d/ldirectord.cf ]]; do
+  echo "waiting for ldirectord to be installed..."
+  sleep 1
+done
+
 cat <<EOF | tee /etc/ha.d/ldirectord.cf
 checktimeout=5
 checkinterval=1

@@ -62,16 +62,8 @@ if ! lsof -i4TCP:53 | grep -q vmhost; then
 
   # Restart dnsmasq while the bridge interface exists (because a VM is running)
   brew services restart dnsmasq
-  while ! lsof -i4TCP:53 | grep -q vmhost; do sleep 1; done
+  until lsof -i4TCP:53 | grep -q vmhost; do sleep 1; done
   kill $qemu_pid
-fi
-
-# Pod CIDR routes
-
-if [[ -z $USE_CILIUM ]]; then
-  for vmid in $(seq 1 6); do
-    route -n add -net 10.${vmid}.0.0/16 192.168.1.$((10 + $vmid))
-  done
 fi
 
 # NFS

@@ -30,6 +30,3 @@ for vmid in $(seq 0 6); do
   fi
   tmux select-layout -t "$sname" tiled
 done
-
-# Reattach the session
-tmux attach -t "$sname"
