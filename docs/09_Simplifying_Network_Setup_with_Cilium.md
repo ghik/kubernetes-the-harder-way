@@ -80,23 +80,22 @@ Let's install Cilium. Here's what it consists of:
   change.
 * `cilium-agent`
   This is a [`DaemonSet`](https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/), i.e. a special type
-  of Kubernetes workload that runs a replica on every node. Daemon sets are often used by "infrastructural" services
-  to configure and/or monitor nodes. In case of cilium, `agent` pods are a very special ones - they run in host
-  network and gain direct access to nodes' filesystems. This way they can directly configure worker nodes
+  of Kubernetes workload that runs a pod on every node. Daemon sets are often used by "infrastructural" services
+  to configure and/or monitor nodes. In case of cilium, `agent` pods are a very privileged ones - they run directly in
+  host network and have access to nodes' filesystems. This way they can configure worker nodes
   (i.e. set up Cilium's CNI plugin, inject eBPF programs). Apart from running as almost un-containerized processes,
-  `agent` pods also have tolerations, so that they are unconditionally scheduled on *all* nodes, including the ones
+  `agent` pods also have tolerations, which make them run unconditionally on *all* nodes, including the ones
   tainted as `not-ready` and `control-plane`.
-  As you can see, this is a rather "hacky" thing to do, as Kubernetes is supposed to run _containerized workloads_, and
-  `cilium-agent` is nothing but that. Creating a `DaemonSet` like that is just a convenient method of automating
-  low-level configuration of Kubernetes nodes.
+  This stripping of isolation seems quite "hacky", as Kubernetes is designed to run properly _containerized_
+  (i.e. isolated) workloads, and `cilium-agent` is anything but that. Creating a `DaemonSet` like this one is just 
+  a convenient way of automating low-level configuration of Kubernetes nodes.
 * eBPF programs - they effectively implement the CNI as well as replace `kube-proxy`.
   They are installed by `cilium-agent` pods.
 * CNI plugin - a CNI plugin for `kubelet` to interact with. This is likely just a thin layer over eBPF programs, which
   do all the heavy lifting. It is installed and configured by `cilium-agent` pods.
 
-Usage of `cilium-agent` to configure all the networking on nodes makes the installation of Cilium simpler -
-instead of SSHin into nodes and configuring CNI plugins etc, we can just install Cilium using Helm or Cilium CLI and
-let it do all the work.
+Usage of `cilium-agent` for configuring node networking simplifies Cilium installation, as it obviates the necessity
+of SSHing into nodes and configuring the CNI manually.
 
 ```bash
 helm repo add cilium https://helm.cilium.io/
