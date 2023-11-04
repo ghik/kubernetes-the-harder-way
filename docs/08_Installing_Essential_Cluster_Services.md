@@ -242,7 +242,7 @@ Let's install `metallb`:
 
 ```bash
 helm repo add metallb https://metallb.github.io/metallb
-helm install -n kube-system metallb metallb/metallb
+helm install -n kube-system metallb metallb/metallb --wait --timeout 5m
 ```
 
 Now we need to configure it with some additional Kubernetes resources:
