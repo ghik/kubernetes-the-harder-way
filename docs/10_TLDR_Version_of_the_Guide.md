@@ -31,6 +31,33 @@ git clone https://github.com/ghik/kubenet
 cd kubenet
 ```
 
+## Bootstrap security
+
+Go to `auth` directory:
+
+```bash
+cd auth
+```
+
+Generate certificates, kubeconfigs, and an encryption key:
+
+```bash
+./genauth.sh
+./genenckey.sh
+```
+
+Configure `kubeconfig` on the host machine:
+
+```bash
+./setuplocalkubeconfig.sh
+```
+
+Go back to `kubenet` directory:
+
+```bash
+cd ..
+```
+
 ## Prepare VM environment
 
 Download the base image:
@@ -77,37 +104,10 @@ Upload VM setup scripts:
 ./deploysetup.sh
 ```
 
-## Bootstrap security
-
-Go to `auth` directory:
-
-```bash
-cd auth
-```
-
-Generate certificates, kubeconfigs, and an encryption key:
-
-```bash
-./genauth.sh
-./genenckey.sh
-```
-
 Upload security files to VMs:
 
 ```bash
 ./deployauth.sh
-```
-
-Configure `kubeconfig` on the host machine:
-
-```bash
-./setuplocalkubeconfig.sh
-```
-
-Go back to `kubenet` directory:
-
-```bash
-cd ..
 ```
 
 ## Install the control plane
