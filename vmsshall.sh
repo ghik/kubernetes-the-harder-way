@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+
+# This script launches a multi-window, multi-pane tmux session and connects to all the VMs with SSH.
+
 set -xe
 dir=$(dirname "$0")
 
@@ -30,7 +33,7 @@ tmux new-session -s "$sname" -n ssh-gateway -d
 # Connect to `gateway` VM
 vm_ssh 0
 
-# Create a window for SSH connections to `control` VMs and connects to them
+# Create a window with SSH connections to `control` VMs
 tmux new-window -t "$sname" -n ssh-controls
 for vmid in $(seq 1 3); do
   vm_ssh "$vmid"
@@ -40,7 +43,7 @@ for vmid in $(seq 1 3); do
   tmux select-layout -t "$sname" even-vertical
 done
 
-# Create a window for SSH connections to `worker` VMs and connects to them
+# Create a window with SSH connections to `worker` VMs
 tmux new-window -t "$sname" -n ssh-workers
 for vmid in $(seq 4 6); do
   vm_ssh "$vmid"
@@ -50,6 +53,7 @@ for vmid in $(seq 4 6); do
   tmux select-layout -t "$sname" even-vertical
 done
 
+# Create a window with SSH connections to both `control` and `worker` VMs
 tmux new-window -t "$sname" -n ssh-nodes
 for vmid in $(seq 1 6); do
   vm_ssh "$vmid"

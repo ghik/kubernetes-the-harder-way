@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+
+# This script calls `vmsetup.sh` for all VMs
+
 set -xe
 dir=$(dirname "$0")
 

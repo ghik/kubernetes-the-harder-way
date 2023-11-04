@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+
+# This script formats VM images (main disk drive and CIDATA drive).
+
 set -xe
 dir="$(dirname $0)"
 

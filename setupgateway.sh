@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# This script sets up Kubernetes API load balancer on a gateway VM.
+
 set -xe
 
 if [[ "$EUID" -ne 0 ]]; then

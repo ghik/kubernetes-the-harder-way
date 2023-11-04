@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+
+# This script launches a single VM, identified by its numeric ID.
+
 set -xe
 dir=$(dirname "$0")
 

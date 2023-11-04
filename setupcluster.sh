@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+# This script installs all the essential services on an already working Kubernetes cluster
+# (i.e. VMs running with all the necessary Kubernetes components on them).
+# This script is run on the host machine.
+
 set -xe
 dir=$(dirname "$0")
 

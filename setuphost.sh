@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+# This script configures various things on the host machine, necessary before VMs
+# can be run (DNS, DHCP, NFS).
+
 set -xe
 dir=$(dirname "$0")
 

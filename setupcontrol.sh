@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 
+# This script installs Kubernetes control plane components on a node.
+
 set -xe
+dir=$(dirname "$0")
+source "$dir/variables.sh"
 
 if [[ "$EUID" -ne 0 ]]; then
   echo "this script must be run as root" >&2
   exit 1
 fi
-
-arch=arm64
-etcd_version=3.5.9
-k8s_version=1.28.3
 
 vmaddr=$(ip addr show enp0s1 | grep -Po 'inet \K192\.168\.1\.\d+')
 vmname=$(hostname -s)

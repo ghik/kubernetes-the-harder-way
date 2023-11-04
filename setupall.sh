@@ -1,12 +1,16 @@
 #!/usr/bin/env bash
 
+# The master script that performs full setup of the entire cluster, starting from absolute zero.
+# It is run on the host machine and aggregates all other scripts.
+
 set -xe
 dir=$(dirname "$0")
+source "$dir/variables.sh"
 sudo -v
 
 export USE_CILIUM
 
-brew install qemu wget curl cdrtools dnsmasq tmux cfssl kubernetes-cli jq helm
+brew install qemu wget curl cdrtools dnsmasq tmux cfssl kubernetes-cli helm
 
 cd "$dir/auth"
 ./genauth.sh
@@ -15,7 +19,7 @@ cd "$dir/auth"
 cd ..
 
 wget -P "$dir" -q --show-progress --https-only --timestamping \
-  https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-arm64.img
+  https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-${arch}.img
 
 "$dir/vmsetupall.sh"
 sudo -E "$dir/setuphost.sh"

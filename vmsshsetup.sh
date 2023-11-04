@@ -1,4 +1,8 @@
 ##!/usr/bin/env bash
+
+# This script ensures that we can connect to a VM (identified by ID) with SSH.
+# This includes waiting for the VM to be ready, and ensuring that VM's keys are saved into known_hosts.
+
 set -xe
 dir=$(dirname "$0")
 

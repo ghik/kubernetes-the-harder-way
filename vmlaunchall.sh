@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+
+# This script launches all the VMs, in a tmux session.
+
 set -xe
 dir=$(dirname "$0")
 

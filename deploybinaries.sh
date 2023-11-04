@@ -3,13 +3,7 @@
 set -xe
 dir=$(dirname "$0")
 
-arch=arm64
-etcd_version=3.5.9
-k8s_version=1.28.3
-cri_version=1.28.0
-runc_version=1.1.9
-containerd_version=1.7.7
-cni_plugins_version=1.3.0
+source "$dir/variables.sh"
 
 etcd_archive=etcd-v${etcd_version}-linux-${arch}.tar.gz
 crictl_archive=crictl-v${cri_version}-linux-${arch}.tar.gz
