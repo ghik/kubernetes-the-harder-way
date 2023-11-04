@@ -33,8 +33,9 @@ Installing Cilium will result in the following changes in our Kubernetes deploym
 
 ## Removing stuff to be replaced with Cilium
 
-We'll set up networking in our deployment from scratch, so it would be best to uninstall everything from the cluster,
-so that there are no pods left. Alternatively, you can let them run and restart them after Cilium is fully set up.
+Since we are going to reconfigure networking in our deployment from scratch, it would be best to uninstall everything 
+from the cluster, so that there are no pods left. Alternatively, you can let them run and restart them after Cilium is 
+fully set up.
 
 First, let's get rid of `kube-proxy`. At minimum, run this on all control and worker nodes:
 
@@ -126,9 +127,9 @@ As you can see, IPs of these pods are equal to their nodes' IPs,
 which indicates that they are running with `hostNetwork: true` setting.
 
 After Cilium is installed, we must restart all the pods in the cluster that were started with the previous CNI setup.
-The easiest way to do it is simply by deleting them, and letting them be respawned by their corresponding controller
-(e.g. a `Deployment` or `StatefulSet`). Restarted nodes should get new IP addresses that do not follow the CIDR
-scheme that we have chosen [previously](07_Spinning_up_Worker_Nodes.md#splitting-pod-ip-range-between-nodes).
+The easiest way to do it is simply by deleting them, and letting them be respawned by their corresponding controllers
+(e.g. a `Deployment` or `StatefulSet`). Restarted pods should get new IP addresses that follow a new CIDR scheme,
+managed by Cilium.
 
 ## Cleaning up
 
