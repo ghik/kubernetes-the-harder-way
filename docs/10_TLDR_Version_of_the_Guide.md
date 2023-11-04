@@ -10,11 +10,12 @@ scripts shipped with this repository.
 
 - [Install necessary software](#install-necessary-software)
 - [Clone the repository](#clone-the-repository)
+- [Bootstrap security](#bootstrap-security)
 - [Prepare VM environment](#prepare-vm-environment)
 - [Launch and connect the VMs](#launch-and-connect-the-vms)
-- [Bootstrap security](#bootstrap-security)
 - [Install the control plane](#install-the-control-plane)
-- [Register Kubernetes nodes](#register-kubernetes-nodes)
+- [Set up Kubernetes nodes](#set-up-kubernetes-nodes)
+- [Install essential cluster services](#install-essential-cluster-services)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -127,7 +128,7 @@ Go to `ssh-gateway` TMUX window and run:
 sudo ./setupgateway.sh
 ```
 
-## Register Kubernetes nodes
+## Set up Kubernetes nodes
 
 Go to `ssh-nodes` window of the `kubenet-ssh` TMUX session and enable pane synchronization.
 

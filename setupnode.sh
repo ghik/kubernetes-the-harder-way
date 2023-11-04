@@ -36,13 +36,13 @@ cni_plugins_archive=cni-plugins-linux-${arch}-v${cni_plugins_version}.tgz
 wget -q --show-progress --https-only --timestamping \
   https://github.com/kubernetes-sigs/cri-tools/releases/download/v${cri_version}/${crictl_archive} \
   https://github.com/opencontainers/runc/releases/download/v${runc_version}/runc.${arch} \
-  https://github.com/containerd/containerd/releases/download/v${containerd_version}/${containerd_archive}
+  https://github.com/containerd/containerd/releases/download/v${containerd_version}/${containerd_archive} \
+  https://storage.googleapis.com/kubernetes-release/release/v${k8s_version}/bin/linux/${arch}/kubelet
 
 mkdir -p \
   /opt/cni/bin \
   /etc/cni/net.d \
   /var/lib/kubelet \
-  /var/lib/kube-proxy \
   /var/lib/kubernetes \
   /var/run/kubernetes
 
@@ -58,7 +58,8 @@ if [[ -z $USE_CILIUM ]]; then
   wget -q --show-progress --https-only --timestamping \
     https://github.com/containernetworking/plugins/releases/download/v${cni_plugins_version}/${cni_plugins_archive} \
     https://storage.googleapis.com/kubernetes-release/release/v${k8s_version}/bin/linux/${arch}/kube-proxy
-    
+
+  mkdir -p /var/lib/kube-proxy
   chmod +x kube-proxy
   cp kube-proxy /usr/local/bin/
   tar -xvf $cni_plugins_archive -C /opt/cni/bin/

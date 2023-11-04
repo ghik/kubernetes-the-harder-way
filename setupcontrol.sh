@@ -17,7 +17,8 @@ vmname=$(hostname -s)
 # etcd
 
 etcd_archive=etcd-v${etcd_version}-linux-${arch}.tar.gz
-wget -q --show-progress --https-only --timestamping https://github.com/etcd-io/etcd/releases/download/v${etcd_version}/$etcd_archive
+wget -q --show-progress --https-only --timestamping \
+  https://github.com/etcd-io/etcd/releases/download/v${etcd_version}/$etcd_archive
 
 tar -xvf $etcd_archive
 cp etcd-v${etcd_version}-linux-${arch}/etcd* /usr/local/bin
@@ -67,9 +68,9 @@ systemctl start etcd
 mkdir -p /etc/kubernetes/config
 
 wget -q --show-progress --https-only --timestamping \
-  "https://storage.googleapis.com/kubernetes-release/release/v${k8s_version}/bin/linux/${arch}/kube-apiserver" \
-  "https://storage.googleapis.com/kubernetes-release/release/v${k8s_version}/bin/linux/${arch}/kube-controller-manager" \
-  "https://storage.googleapis.com/kubernetes-release/release/v${k8s_version}/bin/linux/${arch}/kube-scheduler" \
+  https://storage.googleapis.com/kubernetes-release/release/v${k8s_version}/bin/linux/${arch}/kube-apiserver \
+  https://storage.googleapis.com/kubernetes-release/release/v${k8s_version}/bin/linux/${arch}/kube-controller-manager \
+  https://storage.googleapis.com/kubernetes-release/release/v${k8s_version}/bin/linux/${arch}/kube-scheduler \
 
 chmod +x kube-apiserver kube-controller-manager kube-scheduler
 cp kube-apiserver kube-controller-manager kube-scheduler /usr/local/bin/
