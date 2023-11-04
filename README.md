@@ -1,6 +1,6 @@
 # Kubernetes the Harder Way
 
-A guide to setting up a production-like Kubernetes cluster on a local machine (a Mac, to be specific).
+A guide to setting up a production-like Kubernetes cluster on a local machine.
 
 [**THE GUIDE**](docs/00_Introduction.md)
 
