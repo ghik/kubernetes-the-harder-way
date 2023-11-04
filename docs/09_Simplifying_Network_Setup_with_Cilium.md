@@ -99,6 +99,7 @@ instead of SSHin into nodes and configuring CNI plugins etc, we can just install
 let it do all the work.
 
 ```bash
+helm repo add cilium https://helm.cilium.io/
 helm install -n kube-system cilium cilium/cilium \
   --set kubeProxyReplacement=true \
   --set k8sServiceHost=kubernetes \

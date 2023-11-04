@@ -143,3 +143,28 @@ Or, if you want to use Cilium:
 sudo USE_CILIUM=true ./setupnode.sh
 ```
 
+Give `kube-apiserver` permissions to call `kubelet`. On the host machine, invoke:
+
+```bash
+./setupkubeletaccess.sh
+```
+
+## Install essential cluster services
+
+On the host machine, add necessary helm repositories:
+
+```bash
+./addhelmrepos.sh
+```
+
+Then, to install all essential services:
+
+```bash
+./setupcluster.sh
+```
+
+Or, if you want to use Cilium:
+
+```bash
+USE_CILIUM=true ./setupcluster.sh
+```
