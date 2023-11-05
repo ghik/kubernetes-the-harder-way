@@ -25,10 +25,11 @@ This way we can easily do iterative improvements and experiments to our VM setup
     - [Running](#running)
   - [Testing the VM](#testing-the-vm)
 - [Shared network setup](#shared-network-setup)
-  - [`dnsmasq`](#dnsmasq)
   - [Choosing an IP range](#choosing-an-ip-range)
+  - [`dnsmasq`](#dnsmasq)
   - [DHCP server configuration](#dhcp-server-configuration)
   - [DNS server configuration](#dns-server-configuration)
+  - [Restarting `dnsmasq`](#restarting-dnsmasq)
   - [Testing the network setup](#testing-the-network-setup)
 - [Remote SSH access](#remote-ssh-access)
   - [Automating establishment of VM's authenticity](#automating-establishment-of-vms-authenticity)
@@ -40,20 +41,18 @@ This way we can easily do iterative improvements and experiments to our VM setup
 
 ## Prerequisites
 
-Make sure you have the following packages installed:
-
-```bash
-brew install wget qemu cdrtools dnsmasq
-```
+Make sure you have all the necessary [packages](00_Introduction.md#software) installed.
+Since the [previous chapter](01_Learning_How_to_Run_VMs_with_QEMU.md) is purely educational,
+completing it is not a strict prerequisite for this chapter.
 
 ## Topology overview
 
 Let's remind us how we want our cluster to look like. As already laid out in the [introduction](00_Introduction.md#deployment-overview),
 we want 7 machines in total:
 
-* load balancer VM for the Kubernetes API, let's call it `gateway`
-* three control plane VMs, let's call them `control0`, `control1`, and `control2`
-* three worker nodes, let's call them `worker0`, `worker1`, and `worker2`
+* load balancer VM for the Kubernetes API - let's call it `gateway`
+* three control plane VMs - let's call them `control0`, `control1`, and `control2`
+* three worker nodes - let's call them `worker0`, `worker1`, and `worker2`
 
 These names will be primarily used as VM hostnames.
 
@@ -72,8 +71,8 @@ Before we start doing anything, let's have a clean directory for all of our work
 mkdir kubenet && cd kubenet
 ```
 
-Now let's create a helper function to convert a VM ID into VM name. Let's put it into
-a helpers file `helpers.sh` that can be later included into each script:
+Now let's create a helper function to convert a VM ID into VM name, and put it into
+the `helpers.sh` file that can be later included into other scripts:
 
 ```bash
 id_to_name() {
@@ -89,9 +88,10 @@ id_to_name() {
 
 ### VM setup script
 
-Let's make a `vmsetup.sh` script that will do everything necessary to launch a single VM. The initial version of this script
-will create a directory for a VM, create a QCOW2 image backed by Ubuntu cloud image, write `cloud-init` config files
-and format the `cidata.iso` image. The script will take machine ID as an argument.
+Let's make a `vmsetup.sh` script that will do everything necessary to launch a single VM.
+It will be responsible for creating a directory for a VM, creating a QCOW2 image backed by Ubuntu cloud image, 
+writing out `cloud-init` config files, and putting them into a `cidata.iso` image. 
+The script will take machine ID as an argument.
 
 First, let's make sure we have the cloud image file in working directory. If you downloaded during the 
 [previous part](01_Learning_How_to_Run_VMs_with_QEMU.md) of this tutorial, move or copy it into current directory. 
@@ -184,8 +184,8 @@ EOF
 done
 ```
 
-In a similar manner, we also set up template files for `network-config`. We will use them later and leave them empty
-for now:
+In a similar manner, we also set up template files for `network-config`. We will use them later, while leaving them
+empty for now:
 
 ```bash
 touch cloud-init/network-config.{gateway,control,worker}
@@ -196,7 +196,7 @@ throughout this guide.
 
 #### Running
 
-Let's give the script proper permissions and run it for the `gateway` VM:
+Let's give the script proper permissions, and let's run it (for the `gateway` VM):
 
 ```bash
 chmod u+x vmsetup.sh
@@ -205,6 +205,7 @@ chmod u+x vmsetup.sh
 
 > [!NOTE]
 > Throughout this chapter, we'll be testing our setup using only the `gateway` VM.
+> We'll launch the entire VM cluster in the next chapter.
 
 ### Testing the VM
 
@@ -244,34 +245,6 @@ Let's lay out some requirements regarding the network for our VMs. We want all o
 * be directly accessible from the host machine (but not necessarily from outside world)
 * require as little direct network configuration as possible
 
-### `dnsmasq`
-
-A running VM needs a DHCP server and a DNS server in its network. Fortunately, macOS takes care of that:
-when running a VM with `vmnet` based network, it automatically starts its own, built-in implementations
-of DHCP & DNS servers. But unfortunately, these servers are not very customizable. While they allow some
-rudimentary configuration, they lack many features that we are going to need, like DHCP options.
-
-That's why we'll use [`dnsmasq`](https://en.wikipedia.org/wiki/Dnsmasq) instead. If you followed
-[prerequisites](#prerequisites), you should have it installed already. It will serve us both as a DHCP and
-as a DNS server.
-
-Unfortunately, this won't be completely painless. We have to make sure `dnsmasq` does not interfere with
-built-in DHCP & DNS servers. Since there is no reliable way to permanently disable them (or I haven't found
-one), we're going to resort to a trick. We'll take advantage of the fact that macOS starts its built-in servers
-**only when a VM is running** and shuts them down when they're no longer needed.
-
-The trick is to start `dnsmasq` when the built-in servers aren't running. This way `dnsmasq` will bind on
-ports 53 (DNS) and 67 (DHCP) and prevent built-in servers from starting, effectively overriding them.
-
-Unfortunately, this solution is fragile because you need to be very careful about when you start/restart `dnsmasq`
-and start virtual machines.
-
-> [!WARNING]
-> **Make sure `dnsmasq` is running and bound on DNS & DHCP ports when starting a VM**
-
-Also, remember that in the default configuration, `dnsmasq` does not have DHCP server enabled, so it won't prevent
-the built-in one from starting (we're going to configure it in just a moment).
-
 ### Choosing an IP range
 
 So far, the entire network setup for our VMs consisted of this QEMU option:
@@ -292,14 +265,25 @@ We can do this by adding the following properties to `-nic` option:
 The host machine will always get the first address from the pool while the rest will get assigned to our VMs.
 However, we would like IPs of the VMs to be more predictable, preferably statically
 assigned. That's why we configured a very small address range (20 IPs). We can achieve fixed IPs in two ways:
-* turning off DHCP client on VMs and configuring them with static IP (via `cloud-init` configs)
-* giving VMs static MAC addresses and configuring fixed MAC->IP mapping on the DHCP server.
+* turning off DHCP client on VMs and configuring them with static IPs (via `cloud-init` configs)
+* giving VMs predefined MAC addresses and configuring a fixed MAC->IP mapping in the DHCP server.
 
 We'll choose the second option, as it avoids configuring anything directly on VMs.
 
+### `dnsmasq`
+
+A running VM needs a DHCP server and a DNS server in its LAN. MacOS takes care of that:
+when running a VM with `vmnet` based network, it automatically starts its own, built-in implementations
+of DHCP & DNS servers. Unfortunately, these servers are not very customizable. While they allow some
+rudimentary configuration, they lack many features that we are going to need, like DHCP options.
+
+That's why we'll use [`dnsmasq`](https://en.wikipedia.org/wiki/Dnsmasq) instead. If you followed
+[prerequisites](#prerequisites), you should have it installed already. It will serve us both as a DHCP and
+as a DNS server.
+
 ### DHCP server configuration
 
-First, let's assign predictable MAC addresses to our VMs. This is as simple as adding another property
+Let's assign predictable MAC addresses to our VMs. This is as simple as adding another property
 to the `-nic` QEMU option. Assuming that `vmid` shell variable contains VM ID, it would look like this:
 
 ```
@@ -309,13 +293,12 @@ to the `-nic` QEMU option. Assuming that `vmid` shell variable contains VM ID, i
 In other words, our machines will get MACs in the range `52:52:52:00:00:00` to `52:52:52:00:00:06`.
 
 > [!NOTE]
-> This is OK as long as `$vmid` is always a single-digit ID. If you want this to be more bulletproof
-> (prepared for more than 10 VMs), you can use something like `$(printf "%02x\n" $vmid)` as the last
-> byte of the MAC address.
+> If you want this to be more bulletproof (prepared for more than 10 VMs), you can use something like 
+> `$(printf "%02x\n" $vmid)` as the last byte of the MAC address.
 
 Now it's time to configure `dnsmasq`'s DHCP server:
-* configure a DHCP address range (the same as in QEMU option)
-* assign fixed IPs to VM MAC addresses - in order for them to look nice, we choose the range
+* configure a DHCP address range (the same as in the QEMU option)
+* associate fixed IPs with VM MACs - in order for them to look nice, we choose the range
   from `192.168.1.10` to `192.168.1.16` (i.e. `192.168.1.$((10 + $vmid))` in shell script syntax)
 * make the server _authoritative_
 
@@ -333,18 +316,14 @@ dhcp-host=52:52:52:00:00:06,192.168.1.16
 dhcp-authoritative
 ```
 
-You need to add it into `dnsmasq` configuration file which sits at `/opt/homebrew/etc/dnsmasq.conf`.
-Restart it afterwards using:
-
-```
-sudo brew services restart dnsmasq
-```
+Add this to the contents of `dnsmasq` configuration file,
+which sits at `/opt/homebrew/etc/dnsmasq.conf`. Don't restart `dnsmasq` yet.
 
 ### DNS server configuration
 
-Let's give hostnames to our VMs. The `vmsetup.sh` script already makes sure that VMs know their hostnames
+Let's give some hostnames to our VMs. The `vmsetup.sh` script already makes sure that VMs know their hostnames
 via `meta-data`. Now we need to make sure that the host machine and VMs can refer to each other using these hostnames. 
-In other words, we need to configure the DNS server.
+In other words, we need to configure a DNS server.
 
 To assign domain names to IPs, we can simply use `/etc/hosts` on the host machine. `dnsmasq` DNS server
 will pick it up:
@@ -382,15 +361,58 @@ DNS queries for unqualified hosts (e.g. `nslookup worker0`) performed by VMs wou
 Additionally, `expand-hosts` option allows the DNS server to append domain name to simple names
 listed in `/etc/hosts`.
 
-Don't forget to restart `dnsmasq` after modifying its configuration:
+### Restarting `dnsmasq`
 
+Unfortunately, there are some annoying technical obstacles associated with running `dnsmasq` on macOS along
+`vmnet`. They stem from the fact that macOS only creates a bridge interface for VMs when at least one VM
+is running. In the same way it starts its built-in DHCP & DNS server. There are two problems associated with that:
+* If we start the VMs first, and then start `dnsmasq`, it won't properly bind to DHCP & DNS ports because of
+  interference with the already running, built-in macOS DHCP & DNS servers
+* If we start `dnsmasq` first, and then launch the VMs, `dnsmasq` won't properly bind the DNS port, because the
+  bridge interface does not yet exist.
+
+The only reliable, but ugly solution to this problem that I was able to find is to:
+* start `dnsmasq` first
+* launch at least one VM, with target network configuration
+* restart `dnsmasq` while at least one VM is running
+
+Using this method, `dnsmasq` will remain properly bound even in VMs are stopped or restarted.
+We only need to make sure to restart `dnsmasq` only when at least one VM is running.
+
+Here's a script that does this. Save it as `restartdnsmasq.sh`.
+
+```bash
+#!/usr/bin/env bash
+set -xe
+
+brew services restart dnsmasq
+if ! lsof -ni4TCP:53 | grep -q '192\.168\.1\.1'; then
+  qemu-system-aarch64 \
+      -nographic \
+      -machine virt \
+      -nic vmnet-shared,start-address=192.168.1.1,end-address=192.168.1.20,subnet-mask=255.255.255.0 \
+      </dev/null >/dev/null 2>&1 &
+  qemu_pid=$!
+  sleep 1
+  brew services restart dnsmasq
+  until lsof -i4TCP:53 | grep -q vmhost; do sleep 1; done
+  kill $qemu_pid
+  wait $qemu_pid
+fi
 ```
-sudo brew services restart dnsmasq
+
+Run it in order for the DHCP & DNS settings from previous sections to take effect:
+
+```bash
+sudo ./restartdnsmasq.sh
 ```
+
+> [!NOTE]
+> This script won't work without the DNS server configured.
 
 ### Testing the network setup
 
-Let's run the VM to see if all that network setup works:
+Let's run the `gateway` VM to test what we just configured:
 
 ```
 sudo qemu-system-aarch64 \
@@ -455,10 +477,10 @@ worker0: 192.168.1.14                          -- link: enp0s1
 ## Remote SSH access
 
 The network is set up, VMs have nice, stable IP addresses and domain names.
-Now we would like to be able to log into them remotely via SSH.
+Now we would like to be able to log into them from the host machine with SSH.
 
-A VM running from cloud image already has an SSH server up and running.
-However, it is configured to reject login-based attempts. We must authenticate using a public key,
+A VM set up from a cloud image already has an SSH server up and running.
+However, by default it is configured to reject login-based attempts. We must authenticate using a public key,
 which must be preconfigured on the VM.
 
 On your host machine, if you don't already have an SSH key (see if you have an `~/.ssh/id_rsa.pub`
@@ -506,7 +528,7 @@ Are you sure you want to continue connecting (yes/no/[fingerprint])?
 
 You can say `yes` and VM's key will be added to `.ssh/known_hosts` on the host machine, and from on now
 you'll be able to log in without any hassle. Unfortunately, if you reset your VM and run it again, you'll
-see something less pleasant upon SSH connection attempt:
+see something less pleasant upon an SSH connection attempt:
 
 ```
 $ ssh ubuntu@gateway
@@ -554,7 +576,6 @@ ssh-keyscan "$vmname" 2> /dev/null >> ~/.ssh/known_hosts
 
 # Wait until the system boots up and starts accepting unprivileged SSH connections
 until ssh "ubuntu@$vmname" exit; do sleep 1; done
-
 ```
 
 > [!WARNING]
@@ -566,20 +587,21 @@ Let's break it down:
 
 1. Just like `vmsetup.sh`, `vmsshsetup.sh` takes VM ID as an argument.
 2. The script waits until the VM is able to accept SSH connections.
-   This is useful if you want to run this script immediately before of after launching the VM.
-3. The script removes entries from any previous runs of this VM from the `known_hosts` file.
+   This is useful when running `vmsshsetup.sh` immediately after launching the VM.
+3. The script removes stale entries for this VM from the `known_hosts` file.
 4. Using `ssh-keyscan`, the script grabs VM's SSH keys and makes them trusted by adding them
    to the `known_hosts` file
 5. Even though the VM is already listening on SSH port, unprivileged SSH connections may be rejected until the VM
-   boot process is finished. We run a probing SSH connection in a loop to make sure the VM is truly ready.
+   boot process is finished. We run a probing SSH connection in a loop to make sure that the VM is _actually_ ready.
 
-Don't forget to give the script executable permissions and run it with `./vmsshsetup 0` (make sure the VM is running).
+Don't forget to give the script executable permissions and run it for the `gateway` VM 
+with `./vmsshsetup 0` (make sure the VM is running).
 
 Et voilà! You can now SSH into your VM without any trouble.
 
 ## Installing APT packages
 
-Throughout this guide, we will need to install several APT packages on the VMs 
+Throughout this guide, we will need to install a few APT packages on the VMs 
 (although not for the Kubernetes itself). We would like these packages to be installed automatically upon VM's first
 boot so that we don't have to do it manually after each VM reset.
 

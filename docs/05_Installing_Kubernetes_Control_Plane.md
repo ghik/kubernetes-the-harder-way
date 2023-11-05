@@ -31,8 +31,8 @@ On the way, we'll also learn/remind some basic Linux tools and concepts, e.g. `s
     - [Playing with `ipvsadm`](#playing-with-ipvsadm)
     - [Setting IPVS properly with `ldirectord`](#setting-ipvs-properly-with-ldirectord)
 - [Installing the remaining control plane components](#installing-the-remaining-control-plane-components)
-  - [Installing `kube-scheduler`](#installing-kube-scheduler)
   - [Installing `kube-controller-manager`](#installing-kube-controller-manager)
+  - [Installing `kube-scheduler`](#installing-kube-scheduler)
 - [Summary](#summary)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -54,12 +54,12 @@ theoretical introduction into `systemd` in order to make things less magic.
 In order to register a new service in the system and make it run on system boot, a _unit_ file needs to be created,
 usually in the `/etc/systemd/system` directory.
 Typically, unit files are managed by a package manager like [APT](https://en.wikipedia.org/wiki/APT_(software)). 
-However, since we are doing things _the hard way_ in this guide, we will create them by hand.
+However, since we are doing things _the hard way_, we will be writing them by hand.
 
-A unit file has a _type_, corresponding to its extension, that determines the type of entity defined by a unit file.
-In this guide, we are only interested in `.service` type, which indicates a runnable service definition.
+A unit file has a _type_ (corresponding to its file extension), that determines the type of entity it defines.
+In this guide, we are only interested in the `.service` type, which indicates a runnable service definition.
 
-`systemd` also talks about _targets_ - synchronization points, effectively used to define dependencies between
+`systemd` also talks about _targets_, which are synchronization points, effectively used to define dependencies between
 units and force their initialization order.
 
 A minimal service-type unit file could look like this:
@@ -86,9 +86,9 @@ start, stop, restart, inspect services, etc.
 ## Installing core components
 
 Let's start installing control plane components. In order to do this simultaneously on all control nodes, you can use 
-`tmux` with pane synchronization, as [described](03_Launching_the_VM_Cluster.md#tmux-crash-course) in one of the 
-previous chapters. Note that the way we have [set up](03_Launching_the_VM_Cluster.md#connecting-with-ssh) a `tmux` 
-session with SSH connections to all VMs was designed specifically for that purpose.
+`tmux` with pane synchronization, as [described](03_Launching_the_VM_Cluster.md#synchronizing-panes) elsewhere. 
+Note that the way we have [set up](03_Launching_the_VM_Cluster.md#connecting-with-ssh) a `tmux`session with SSH connections to all VMs was designed specifically 
+for that purpose.
 
 > [!NOTE]
 > This guide suggests running all commands by hand (via `tmux`) so that you can see and verify every step.
@@ -100,7 +100,7 @@ session with SSH connections to all VMs was designed specifically for that purpo
 
 ### Common variables
 
-Let's define some reusable shell variables which will be used throughout this chapter:
+Let's define some reusable shell variables to use throughout this chapter:
 
 ```bash
 arch=arm64
@@ -169,9 +169,10 @@ WantedBy=multi-user.target
 EOF
 ```
 
-All the above options are not really worth describing in detail. The security related ones are a direct consequence
+It's not worth explaining in detail *all* the options from the above file. The security related ones are a direct consequence
 of the security assumptions from the [previous chapter](04_Bootstrapping_Kubernetes_Security.md). The other ones simply
-tell the `etcd` cluster how it should initialize itself.
+tell the `etcd` cluster how it should initialize itself. Exhaustive reference can be found
+[here](https://etcd.io/docs/v3.5/op-guide/configuration/).
 
 Reload `systemd` unit definitions and start `etcd` service:
 
@@ -278,7 +279,7 @@ WantedBy=multi-user.target
 EOF
 ```
 
-Configuration options are not worth discussing in detail in this guide, but there are some interesting things to note:
+Again, configuration options are not worth discussing in detail, but there are some interesting things to note:
 * the security related options (certs, etc.) simply reflect the assumptions made in the
   [previous chapter](04_Bootstrapping_Kubernetes_Security.md).
 * the `--service-cluster-ip-range` specifies the range of IPs assigned to
@@ -286,6 +287,8 @@ Configuration options are not worth discussing in detail in this guide, but ther
   be visible from within the cluster (i.e. pods).
 * the `--service-node-port-range` specifies the range of ports used for 
   [`NodePort` Services](https://kubernetes.io/docs/concepts/services-networking/service/#type-nodeport)
+
+Exhaustive option reference can be found [here](https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/).
 
 Enable and run it:
 
@@ -339,8 +342,8 @@ For example, we could do something like this:
 sudo ip addr add 192.168.1.21/32 dev enp0s1
 ```
 
-However, we have a problem: an IP address conflict in the network. If anyone on the local network asks (via ARP) who has the
-virtual address, all the control nodes will respond. This is bad. We actually want only the load balancer machine
+However, we have a problem: an IP address conflict in the network. If anyone on the local network asks (via ARP) who has
+this address, all control nodes will respond. This is bad. We actually want only the load balancer machine
 to publicly admit the possession of this virtual IP. In order to make sure that control nodes never announce this
 IP as their own, we need to use some tricks:
 
@@ -360,7 +363,7 @@ sudo sysctl net.ipv4.conf.all.arp_announce=2
 
 Without going into too many details, the first option (`arp_ignore`) makes sure that the virtual IP never appears
 in ARP _responses_ sent from control nodes, while the second option (`arp_announce`) ensures that it does not appear 
-in ARP _requests_.
+in ARP _requests_. For more details, see the [Linux kernel documentation](https://www.kernel.org/doc/Documentation/networking/ip-sysctl.txt).
 
 Note how these options are global - they are not bound to any specific IP or interface. They work for the virtual IP
 specifically because it is configured on a different interface (loopback) than the interface where all the ARP traffic
@@ -402,11 +405,11 @@ network:
 ```
 
 > [!NOTE]
-> This is the same YAML format as the one used by Ubuntu's [netplan](https://netplan.io/) utility.
-
-> [!NOTE]
 > Even though we only want to modify the loopback interface, we must include a default entry for the virtual
 > ethernet with DHCP enabled. Otherwise, it will not be configured.
+
+> [!NOTE]
+> This is the same YAML format as the one used by Ubuntu's [netplan](https://netplan.io/) utility.
 
 In order to persist the ARP-related kernel options, add this to `cloud-init/user-data.control`:
 
@@ -625,8 +628,72 @@ Great! This concludes the setup of the Kubernetes API server.
 ## Installing the remaining control plane components
 
 Let's go back to control nodes. We have two more things to install on them:
-* `kube-scheduler`
 * `kube-controller-manager`
+* `kube-scheduler`
+
+### Installing `kube-controller-manager`
+
+Download the binary and install it in appropriate system dir:
+
+```bash
+wget -q --show-progress --https-only --timestamping \
+  "https://storage.googleapis.com/kubernetes-release/release/v${k8s_version}/bin/linux/${arch}/kube-controller-manager"
+chmod +x kube-controller-manager
+sudo cp kube-controller-manager /usr/local/bin
+```
+
+Set up `kube-controller-manager`'s kubeconfig:
+
+```bash
+sudo cp kube-controller-manager.kubeconfig /var/lib/kubernetes/
+```
+
+Create a `systemd` unit file:
+
+```bash
+cat <<EOF | sudo tee /etc/systemd/system/kube-controller-manager.service
+[Unit]
+Description=Kubernetes Controller Manager
+Documentation=https://github.com/kubernetes/kubernetes
+
+[Service]
+ExecStart=/usr/local/bin/kube-controller-manager \\
+  --bind-address=0.0.0.0 \\
+  --cluster-cidr=10.0.0.0/12 \\
+  --cluster-name=kubernetes \\
+  --cluster-signing-cert-file=/var/lib/kubernetes/ca.pem \\
+  --cluster-signing-key-file=/var/lib/kubernetes/ca-key.pem \\
+  --kubeconfig=/var/lib/kubernetes/kube-controller-manager.kubeconfig \\
+  --leader-elect=true \\
+  --root-ca-file=/var/lib/kubernetes/ca.pem \\
+  --service-account-private-key-file=/var/lib/kubernetes/service-account-key.pem \\
+  --service-cluster-ip-range=10.32.0.0/16 \\
+  --use-service-account-credentials=true \\
+  --v=2
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+EOF
+```
+
+Some things to note from the options:
+* As with all other components, security-related options reflect the assumptions made in the
+  [previous chapter](04_Bootstrapping_Kubernetes_Security.md)
+* The `--cluster-signing-cert-file` and `--cluster-signing-key-file` are related to a feature that was not yet
+  mentioned - an [API to dynamically sign certificates](https://kubernetes.io/docs/reference/access-authn-authz/certificate-signing-requests/)
+* The `--service-cluster-ip-range` must be the same as in `kube-apiserver`
+* The `--cluster-cidr` specifies IP range for pods in the cluster. We will discuss this in more detail in
+  the [next chapter](06_Spinning_up_Worker_Nodes.md#splitting-pod-ip-range-between-nodes)
+
+Launch it:
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable kube-controller-manager
+sudo systemctl start kube-controller-manager
+```
 
 ### Installing `kube-scheduler`
 
@@ -681,70 +748,6 @@ Launch it:
 sudo systemctl daemon-reload
 sudo systemctl enable kube-scheduler
 sudo systemctl start kube-scheduler
-```
-
-### Installing `kube-controller-manager`
-
-Download the binary and install it in appropriate system dir:
-
-```bash
-wget -q --show-progress --https-only --timestamping \
-  "https://storage.googleapis.com/kubernetes-release/release/v${k8s_version}/bin/linux/${arch}/kube-controller-manager"
-chmod +x kube-controller-manager
-sudo cp kube-controller-manager /usr/local/bin
-```
-
-Set up `kube-controller-manager`'s kubeconfig:
-
-```bash
-sudo cp kube-controller-manager.kubeconfig /var/lib/kubernetes/
-```
-
-Create a `systemd` unit file:
-
-```bash
-cat <<EOF | sudo tee /etc/systemd/system/kube-controller-manager.service
-[Unit]
-Description=Kubernetes Controller Manager
-Documentation=https://github.com/kubernetes/kubernetes
-
-[Service]
-ExecStart=/usr/local/bin/kube-controller-manager \\
-  --bind-address=0.0.0.0 \\
-  --cluster-cidr=10.0.0.0/12 \\
-  --cluster-name=kubernetes \\
-  --cluster-signing-cert-file=/var/lib/kubernetes/ca.pem \\
-  --cluster-signing-key-file=/var/lib/kubernetes/ca-key.pem \\
-  --kubeconfig=/var/lib/kubernetes/kube-controller-manager.kubeconfig \\
-  --leader-elect=true \\
-  --root-ca-file=/var/lib/kubernetes/ca.pem \\
-  --service-account-private-key-file=/var/lib/kubernetes/service-account-key.pem \\
-  --service-cluster-ip-range=10.32.0.0/16 \\
-  --use-service-account-credentials=true \\
-  --v=2
-Restart=on-failure
-RestartSec=5
-
-[Install]
-WantedBy=multi-user.target
-EOF
-```
-
-Some things to note from the options:
-* As with all other components, security-related options reflect the assumptions made in the 
-  [previous chapter](04_Bootstrapping_Kubernetes_Security.md)
-* The `--cluster-signing-cert-file` and `--cluster-signing-key-file` are related to a feature that was not yet
-  mentioned - an [API to dynamically sign certificates](https://kubernetes.io/docs/reference/access-authn-authz/certificate-signing-requests/)
-* The `--service-cluster-ip-range` must be the same as in `kube-apiserver`
-* The `--cluster-cidr` specifies IP range for pods in the cluster. We will discuss this in more detail in
-  the [next chapter](06_Spinning_up_Worker_Nodes.md#splitting-pod-ip-range-between-nodes)
-
-Launch it:
-
-```bash
-sudo systemctl daemon-reload
-sudo systemctl enable kube-controller-manager
-sudo systemctl start kube-controller-manager
 ```
 
 ## Summary

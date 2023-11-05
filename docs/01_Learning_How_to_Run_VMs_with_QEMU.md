@@ -39,20 +39,16 @@ for learning. You may jump straight into the [next chapter](02_Preparing_Environ
 
 ### Prerequisites
 
-In order to complete this tutorial chapter, install the following packages:
-
-```
-brew install qemu wget cdrtools
-```
+Make sure you have all the necessary [packages](00_Introduction.md#software) installed.
 
 ## Introduction to QEMU and virtualization
 
 QEMU stands for _Quick Emulator_. It's an open source, command-line tool originally written by Fabrice Bellard in 2003. 
 As its name suggests, it is primarily an _emulator_.
 It can emulate a physical computer with wide variety of physical devices, including CPUs of many architectures, network cards from many
-vendors, disks, flash drives, etc. Crafing a QEMU command is like building an actual computer from real hardware components.
+vendors, disks, flash drives, etc. Crafting a QEMU command is like building an actual computer from real hardware components.
 
-This is very powerful - it allows you to test software written for all sorts of CPU architectures and devices without actual physical access to these devices.
+This is very powerful - it allows us to test software written for all sorts of CPU architectures and devices without actual physical access to these devices.
 However, _emulation_ means "translation on the fly" and is done in userspace, which makes it slow. Besides, testing device drivers is not our use case anyway. 
 We don't care about simulating some specific vendor's hardware or CPU architecture, we only want to run a bunch of Linux VMs, with lowest possible overhead.
 In other words, we want _virtualization_ rather than _emulation_.
@@ -76,8 +72,7 @@ translates between VM's virtual memory and host's virtual memory. Without it, th
 
 As a result of this hardware-level support, most of the VM code can run directly on the underlying CPU, without the need for intermediate translation or inspection
 of every instruction by the hypervisor.
-Naturally, this requires that the guest system uses the same CPU architecture as the host CPU. For this reason, all the VMs used in this guide and all 
-the software they run are bound to the AArch64 architecture (the CPU architecture of my laptop).
+Naturally, this requires that the guest system uses the same CPU architecture as the host CPU.
 
 ### QEMU, virtualization and paravirtualization
 
@@ -104,15 +99,15 @@ qemu-system-aarch64 \
 * the `accel=hvf` part is the important one: it enables hardware acceleration using macOS Hypervisor Framework
 * `-cpu host` specifies that the guest machine will see exactly the same CPU model as the host machine (required for acceleration)
 
-Note that we haven't specified any drives yet and as a result, there's no operating system to boot.
+Note that we haven't specified any drives yet, and as a result, there's no operating system to boot.
 What we're currently simulating is like a bare-bones computer without any hard drive or CDROM plugged in.
 
 You should see a window with the QEMU monitor console:
 
 <img width="656" alt="image" src="https://github.com/ghik/kubenet/assets/1022675/82c69325-61b4-4371-9ede-db362af7e7bc">
 
-There's not much interesting about it but it's a good opportunity to learn some basic QEMU controls. The console itself gives
-a bunch of [commands](https://en.wikibooks.org/wiki/QEMU/Monitor) for things like stopping or resuming a running VM.
+There isn't anything particularly interesting about it, but it's a good opportunity to learn some basic QEMU controls. 
+The console itself gives a bunch of [commands](https://en.wikibooks.org/wiki/QEMU/Monitor) for things like stopping or resuming a running VM.
 
 What might not be apparent though is that this window has other "tabs" (terminals). Try hitting `Ctrl`+`Opt`+`2` or `Ctrl`+`Opt`+`3` and you should
 see the output of serial and parallel ports. This is where we're going to see our operating system running. You can always go back to
@@ -186,7 +181,7 @@ However, we can be a little more explicit:
 
 This is a common situation in QEMU - we can use very raw and detailed options and wire every device manually,
 or we can use some convenient shorthands. Since we're doing things _the hard way_, I try to show the most low-level
-version possible, but as our command grows new options, we don't want it to become to bloated so let's go back and use
+version possible, but as our command grows new options, we don't want it to become too bloated, so let's go back and use
 the shorthand:
 
 ```
@@ -304,34 +299,34 @@ The machine we have built has no network access. Let's change that.
 
 There are several ways QEMU can emulate a network interface. They can roughly be split into two categories:
 * userspace backends - usually slow and limited but available on all host OSes
-* native backends - implemented by host OSes and their hypervisors, usually fast but OS-dependent and require escalated privileges
+* native backends - implemented by host OSes and their hypervisors, usually fast but OS-dependent and may require escalated privileges
 
 Some of the most commonly used network backends are:
 
 * `user` is an userspace implemented network ([SLIRP](https://en.wikipedia.org/wiki/Slirp)) between the host and guest OS.
-  Allows the guest to access the guest machine to communicate with the host and provides internet access to the guest.
+  Allows the guest to access the guest machine to communicate with the host, and provides internet access to the guest.
   Unfortunately, guest machine is not addressable from the host machine in this mode. It also has poor performance, being implemented
   in userspace. For these reasons we will not be using it. It is however worth mentioning because it is the default network
   backend that QEMU sets up if we don't configure one (and provided that we don't use `-nodefaults`).
 
 * `tap` creates a virtual layer 2 network interface on the host machine connected to the guest machine. This is versatile and
-   has good performance, but generally requires root privileges. Unfortunately, Mac OS does not currently support it so we won't be able
+   has good performance, but generally requires root privileges. Unfortunately, macOS does not currently support it so we won't be able
    to use it in this tutorial.
 
 * `bridge` connects the VM to a network bridge that needs to be previously set up on the host machine and connected to one
   of host's native interfaces. This effectively makes the VM appear in the same network that the host machine lives in, making it
   visible to the external world. The VM will then typically get configured by the same DHCP server as the host machine
-  (e.g. your home router). Unfortunately, this exact mode is not available on Mac OS either, but it has a Mac OS specific equivalent
+  (e.g. your home router). Unfortunately, this exact mode is not available on macOS either, but it has a macOS specific equivalent
   called `vmnet-bridged`.
 
-There are many more modes which we will not cover here. We are on Mac OS, which provides three additional modes implemented
+There are many more modes which we will not cover here. We are on macOS, which provides three additional modes implemented
 by its `vmnet` framework:
 
 * `vmnet-host` - a host-only network that allows the guest to communicate with the host but without internet access
 * `vmnet-shared` - allows the guest to communicate with the host and provides it with internet access via NAT
 * `vmnet-bridged` - just like `bridge` mode, connects the VM to a layer 2 bridge, but the bridge itself is set up automatically
 
-When using these modes, Mac OS also automatically configures its built-in DHCP server and starts a DNS server so that the VM
+When using these modes, macOS also automatically configures its built-in DHCP server and starts a DNS server so that the VM
 can have a properly configured network.
   
 In this guide we'll always use the `vmnet-shared` network backend. Let's enable it with the following option:
@@ -351,7 +346,7 @@ These options can be refined with additional properties, e.g. we can choose the 
 decide to isolate it from other VMs. We can also manually assign a MAC address to the guest VM. We will use some of these
 options later, when setting up an actual Kubernetes machine.
 
-Unfortunately, usage of `vmnet` requires escalated privileges on Mac OS, so from now on we must run QEMU using `sudo`:
+Unfortunately, usage of `vmnet` requires escalated privileges on macOS, so from now on we must run QEMU using `sudo`:
 
 ```
 sudo qemu-system-aarch64 \
@@ -416,14 +411,15 @@ The final missing piece for our system to be fully functional is a disk drive. W
 distribution, just like on a physical machine.
 
 A disk drive will be backed by a file on a host machine. There are many formats for disk images. One of the most commonly used
-in QEMU is QCOW2, which stands for _QEMU Copy On Write version 2_. We'll dive into that later. For now let's just create an image
-file with maximum size of 128GB. This can be done with `qemu-img` utility:
+in QEMU is QCOW2, which stands for _QEMU Copy On Write version 2_. We'll explain what that means later. For now let's 
+just create an image file with maximum size of 128GB. This can be done with `qemu-img` utility:
 
 ```
 qemu-img create -f qcow2 ubuntu.img 128G
 ```
 
-Don't worry, it won't immediately take 128GB of your disk. It grows dynamically, as more space is requested by the VM.
+> [!NOTE] 
+> The image won't immediately take 128GB of your disk. It grows dynamically, as more space is requested by the VM.
 
 Now, mounting this file as a drive to a VM is as simple as:
 
@@ -504,15 +500,16 @@ which describes a key capability of this format. It allows us to create a QCOW2 
 This is what it means:
 
 * the new image effectively represents a _diff_ over the backing image
-* when some data contained in the backing image is written, it is copied into the new image and only modified there
+* when data present only in the backing image is modified by the VM, 
+  it is copied into the new image and modified there, while the backing image stays unchanged
 * reading data from the new image that was never written "falls through" to the backing image
-* the backing image stays unchanged
 
 This is very useful. Since the backing image never changes, it can be used as a backing image for multiple other images
 (e.g. for multiple VMs). This allows significant space savings on the host machine if it is running multiple similar
-machines. It also allows us to quickly reset any VM into its original state.
+machines. It also allows us to quickly reset a VM to its original state, with the backing image serving as a snapshot
+of VM's state from the past.
 
-Let's create an image backed by the Ubuntu cloud image that we just downloaded:
+Let's create an image backed by the Ubuntu cloud image that we have just downloaded:
 
 ```
 qemu-img create -F qcow2 -b jammy-server-cloudimg-arm64.img -f qcow2 ubuntu0.img 128G
@@ -562,9 +559,9 @@ A VM running a bare cloud image is inaccessible as it has no password or SSH key
 They need to be injected using more "low-level" means. This is done with the [`cloud-init`](https://canonical-cloud-init.readthedocs-hosted.com/en/latest/)
 project.
 
-`cloud-init` is built into the system preinstalled on the cloud image. It is able to detect various sources of configuration in its "environment"
-(usually the cloud platform it's running in) and let itself be provisioned with this configuration. This probably sounds very vague. The exact details of how this happens
-heavily depend on the cloud platform. Usually this involves communicating with some magic IP address, reading something from kernel boot parameters or
+`cloud-init` is a piece of software built into the system preinstalled on the cloud image. It is able to detect various sources of configuration in its "environment"
+(usually the cloud platform it's running in) and let itself be provisioned with this configuration. This sounds vague. The exact details of how this happens
+heavily depend on the cloud platform. Usually it involves consulting some magic IP address, reading something from kernel boot parameters or
 [SMBIOS](https://en.wikipedia.org/wiki/System_Management_BIOS), or reading the configuration from a special drive mounted to the VM.
 The `cloud-init` project refers to these methods as [datasources](https://canonical-cloud-init.readthedocs-hosted.com/en/latest/reference/datasources.html).
 
@@ -595,7 +592,7 @@ password: ubuntu
 > The `#cloud-config` is a magic comment that must be present at the beginning of `user-data` file to be picked up by `cloud-init`.
 
 Now we need to format a special ISO drive with these files. The drive must be labeled as `cidata` in order for `cloud-init` to recognize it.
-On Mac OS, the command to do this is `mkisofs` from `cdrtools` package. Let's build the ISO:
+On macOS, the command to do this is `mkisofs` from `cdrtools` package. Let's build the ISO:
 
 ```
 mkisofs -output cidata.iso -volid cidata -joliet -rock cloud-init/{user-data,meta-data}

@@ -3,7 +3,7 @@ Previous: [Preparing Environment for a VM Cluster](02_Preparing_Environment_for_
 # Launching the VM Cluster
 
 The network is configured, and we have all the VM images and configs prepared.
-It's time to automate the launch itself.
+It's time to automate launching the entire cluster of VMs.
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
@@ -15,8 +15,12 @@ It's time to automate the launch itself.
 - [`tmux` crash course](#tmux-crash-course)
   - [Basic `tmux` controls](#basic-tmux-controls)
   - [Commands and shortcuts](#commands-and-shortcuts)
-  - [Working with panes](#working-with-panes)
   - [Configuration and customization](#configuration-and-customization)
+  - [Working with panes](#working-with-panes)
+    - [Splitting panes](#splitting-panes)
+    - [Switching between panes](#switching-between-panes)
+    - [Zooming a pane](#zooming-a-pane)
+    - [Synchronizing panes](#synchronizing-panes)
   - [Detaching and attaching](#detaching-and-attaching)
   - [Scriptability](#scriptability)
 - [Using `tmux` to launch and connect to the cluster](#using-tmux-to-launch-and-connect-to-the-cluster)
@@ -29,11 +33,8 @@ It's time to automate the launch itself.
 
 ## Prerequisites
 
-Make sure you have the following packages installed:
-
-```bash
-brew install wget qemu cdrtools dnsmasq tmux
-```
+Make sure you have all the necessary [packages](00_Introduction.md#software) installed and you have completed
+the [previous chapter](02_Preparing_Environment_for_a_VM_Cluster.md).
 
 ## Granting resources
 
@@ -92,14 +93,18 @@ qemu-system-aarch64 \
     -drive file="$vmdir/cidata.iso",driver=raw,if=virtio
 ```
 
-Give it appropriate permissions and test it on the `gateway` VM. Don't forget the `sudo`:
+Give it executable permissions and test it on the `gateway` VM:
 
 ```
-chmod u+x vmlaunch.sh
 sudo ./vmlaunch.sh 0
 ```
 
 ## `tmux` crash course
+
+> [!NOTE]
+> This subchapter is intended for people that have never worked with `tmux` (or very little).
+> You can go straight to [using `tmux` to launch the cluster](#using-tmux-to-launch-and-connect-to-the-cluster) if
+> you don't need this introduction.
 
 We're about to launch multiple VMs at once, using pure command line tools. In order to make this more
 manageable, we'll use [`tmux`](https://github.com/tmux/tmux/wiki).
@@ -109,12 +114,9 @@ Quoting the `tmux` wiki:
 > detach them (they keep running in the background) and reattach them to a different terminal.
 
 More specifically, `tmux` will give us the fillowing powers:
-* to launch a bunch of shell processes inside a single terminal-based application (inside a _session_)
-* to detach a running session from current terminal (make it run fully in background) and reattach it later in any other terminal
-* to execute something simultaneously in multiple shells (i.e. on multiple VMs)
-
-This subchapter is intented for people that have never worked with `tmux` (or very little). If you're not one of these
-people, feel free to skip it and go straight to [using `tmux` to launch the cluster](#using-tmux-to-launch-and-connect-to-the-cluster).
+* to launch multiple shells inside a single terminal-based application (in a _session_)
+* to detach a running session from the current terminal (make it run fully in background) and reattach it later in any other terminal
+* to execute something simultaneously in multiple shells (i.e. on multiple VMs), using _pane synchronization_
 
 ### Basic `tmux` controls
 
@@ -157,37 +159,11 @@ have a built-in keyboard shortcut. For example, `:next-window` and `:previous-wi
 There are several online resources you can use to explore the vastness of `tmux` capabilities.
 For example, [here's a cheatsheet](https://tmuxcheatsheet.com/) with the most essential shortcuts.
 
-### Working with panes
-
-Let's also see some panes in action. Hit `Ctrl`+`b`,`%` to split the current pane vertically into two panes laid out
-side by side.
-
-<img width="532" alt="image" src="https://github.com/ghik/kubenet/assets/1022675/adc7ddd1-1012-4c38-a8e9-e38148138b7e">
-
-Do it multiple times to create more panes. You can then move and resize panes, using plethora of commands and
-shortcuts offered by `tmux`. However, chances are you'll be happy with of the built-in layouts.
-Hit `Ctrl`+`B`,`spacebar` multiple times to switch between them (e.g. all vertical, all horizontal, mixed, etc.).
-This is an easy way to evenly split available space between panes.
-
-Switching between panes can also be done in multiple ways. For example, if you hit `Ctrl`+`b`,`q`, pane numbers will 
-be temporarily highlighted. While they are highlighted, hit the desired pane number in order to switch to it.
-
-Here's a command that's very useful when you want to focus on a single pane: `Ctrl`+`b`,`z` (zoom). 
-It causes the current pane to temporarily enter "fullscreen". The same shortcut is used to toggle the zoom off.
-
-Finally, the command that makes `tmux` stand for its name is `:setw synchronize-panes`. It causes all keystrokes to
-be sent to **all panes** in the current window, simultaneously. The same command toggles the synchronization off. 
-When panes are synchronized, current panel highlight color changes from green to red:
-
-<img width="532" alt="image" src="https://github.com/ghik/kubenet/assets/1022675/380c3cd1-6f27-4244-81f4-b368c01f3379">
-
-This will be very useful for us - we will be able to configure multiple VMs at once using this feature.
-
 ### Configuration and customization
 
-Not surprisingly, `tmux` can be heavily customized. You can create new commands, change shortcuts, assign new shortcuts, etc.
-In order to do this for your current user, create the `~/.tmux.conf` file. It works in the same spirit as "rc" files used by many
-essential Unix tools (e.g. `.bashrc`, `.vimrc`, etc.).
+Not surprisingly, `tmux` can be heavily customized. You can create new commands, change shortcuts, assign new shortcuts,
+etc. In order to do this for your current user, create the `~/.tmux.conf` file. It works in the same spirit as "rc" 
+files used by many essential Unix tools (e.g. `.bashrc`, `.vimrc`, etc.).
 
 For this tutorial, I found it useful to have the following entries in my `~/.tmux.conf`:
 
@@ -196,10 +172,49 @@ set -g mouse on
 bind C-s setw synchronize-panes
 ```
 
-The first one enables mouse mode, which makes `tmux` behave much more like a normal graphical program. For example, it enables
-you to switch windows and panes with mouse clicks.
-The second one assigns a keyboard shortcut (`Ctrl`+`b`, `Ctrl`+`s`) to `:setw synchronize-panes` command, which - unfortunately -
-does not have a built-in one.
+* `set -g mouse on` makes `tmux` behave more like a typical graphical application; it allows us to perform several
+   actions with mouse clicks or drags (e.g. switching windows and panes)
+* `bind C-s setw synchronize-panes` assigns a keyboard shortcut to the `setw synchronize-panes`, which we'll explain
+  in a moment
+
+### Working with panes
+
+Let's see some panes in action.
+
+#### Splitting panes
+
+Hit `Ctrl`+`b`,`%` to split the current pane vertically into two panes laid out
+side by side.
+
+<img width="532" alt="image" src="https://github.com/ghik/kubenet/assets/1022675/adc7ddd1-1012-4c38-a8e9-e38148138b7e">
+
+Do it multiple times to create more panes. You can then move and resize panes, using plethora of commands and
+shortcuts offered by `tmux`. However, chances are you'll be happy with one of the built-in layouts.
+Hit `Ctrl`+`B`,`spacebar` multiple times to switch between them (e.g. all vertical, all horizontal, mixed, etc.).
+This is an easy way to evenly split available space between panes.
+
+#### Switching between panes
+
+Switching between panes can also be done in multiple ways. For example, if you hit `Ctrl`+`b`,`q`, pane numbers will 
+be temporarily highlighted. While they are highlighted, hit the desired pane number in order to switch to it.
+With the `set -g mouse on` option, we can also switch panes with simple mouse clicks.
+
+#### Zooming a pane
+
+Here's a command that's very useful when you want to focus on a single pane: `Ctrl`+`b`,`z` (zoom). 
+It causes the current pane to temporarily enter "fullscreen". The same shortcut is used to toggle the zoom off.
+
+#### Synchronizing panes
+
+Finally, the command that makes `tmux` stand for its name: `:setw synchronize-panes`. It causes all keystrokes to
+be sent to **all panes** in the current window, simultaneously. The same command toggles the synchronization off.
+In the previous section, we have also given it a keyboard shortcut: `Ctrl`+`b`,`Ctrl`+`s`.
+
+When panes are synchronized, current panel highlight color changes from green to red:
+
+<img width="532" alt="image" src="https://github.com/ghik/kubenet/assets/1022675/380c3cd1-6f27-4244-81f4-b368c01f3379">
+
+We'll use pane synchronization in practice to configure multiple VMs at once.
 
 ### Detaching and attaching
 
@@ -226,20 +241,20 @@ tmux split-window -v -t sesname
 
 ## Using `tmux` to launch and connect to the cluster
 
-We now know enough about `tmux` to use it for our goal: launch all the VMs and connect to them with SSH.
+We now know enough about `tmux` to use it for our purpose: to launch all the VMs and connect to them with SSH.
 
-We'll launch 2 tmux sessions:
+We will launch 2 tmux sessions:
 * One to run all the VMs, one machine per pane, in a single window. It will run detached and with elevated
   privileges.
-* One for SSH connections to all the VMs. It will have several windows:
+* One for SSH connections to all the VMs. This session will have several windows:
   * a window for an SSH connection to the `gateway` VM
   * a window for SSH connections to `control` VMs (3 panes)
   * a window for SSH connections to `worker` VMs (3 panes)
   * a window for SSH connections to both `control` and `worker` VMs (6 panes)
 
 The reason why we're splitting SSH connections into 4 separate windows is because we're going to do different
-things with these three types of VMs. For example, we'll need to do some things on all control nodes at the same time.
-Then, we'll need to do something on all worker nodes. Finally, we'll need to perform some actions on _both_ control
+things with every VM type. For example, we'll need to configure some things on all control nodes.
+Then, we'll need to do something else on all worker nodes. Finally, we'll need to perform some actions on _both_ control
 and worker nodes, simultaneously.
 
 > [!NOTE]
@@ -287,17 +302,19 @@ done
 Save it with executable permissions. Then make sure all the VMs are prepared for launch:
 
 ```bash
-for vmid in $(seq 0 6); do ./vmsetup.sh $vmid; done
+for vmid in $(seq 0 6); do 
+  ./vmsetup.sh $vmid
+done
 ```
 
-And the moment of truth has come 🚀:
+Finally, the moment of truth. Launch the cluster 🚀:
 
 ```bash
 sudo ./vmlaunchall.sh kubenet-qemu
 ```
 
-The script leaves the `tmux` session detached by default. If you would like to observe your VMs starting up,
-reattach with:
+The script leaves the `tmux` session detached. If you would like to watch your VMs starting up,
+reattach it with:
 
 ```bash
 sudo tmux attach -t kubenet-qemu
@@ -307,7 +324,7 @@ Ultimately, you should see something like this:
 
 <img width="1721" alt="image" src="https://github.com/ghik/kubenet/assets/1022675/9c8eeee3-2c3f-4386-b691-c5c2d48cb452">
 
-Detach with `Ctrl`+`b`,`d`.
+You can detach with `Ctrl`+`b`,`d`.
 
 You can also kill the session (along with all the VMs) using:
 
@@ -372,6 +389,7 @@ for vmid in $(seq 4 6); do
   tmux select-layout -t "$sname" even-vertical
 done
 
+# Create a window with SSH connections to both `control` and `worker` VMs
 tmux new-window -t "$sname" -n ssh-nodes
 for vmid in $(seq 1 6); do
   vm_ssh "$vmid"

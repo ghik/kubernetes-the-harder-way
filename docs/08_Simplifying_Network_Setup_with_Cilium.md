@@ -76,12 +76,12 @@ simply let them be replaced by Cilium (which will copy them into backup files).
 ## Installing Cilium
 
 Let's install Cilium. Here's what it consists of:
-* `cilium-operator`
+* `cilium-operator` \
   This is an _operator_, i.e. a service that watches various Kubernetes resources and reacts accordingly when they
   change.
-* `cilium-agent`
+* `cilium-agent` \
   This is a [`DaemonSet`](https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/), i.e. a special type
-  of Kubernetes workload that runs a pod on every node. Daemon sets are often used by "infrastructural" services
+  of Kubernetes workload that runs a single pod on every node. Daemon sets are often used by "infrastructural" services
   to configure and/or monitor nodes. In case of cilium, `agent` pods are a very privileged ones - they run directly in
   host network and have access to nodes' filesystems. This way they can configure worker nodes
   (i.e. set up Cilium's CNI plugin, inject eBPF programs). Apart from running as almost un-containerized processes,
@@ -134,7 +134,7 @@ managed by Cilium.
 ## Cleaning up
 
 Cilium implements Kubernetes overlay network with IP encapsulation between nodes, and with eBPF programs instead of
-`iptables`. This means that some previous tinkering is no longer necessary. Namely:
+`iptables`. This means that some previously used tricks are no longer necessary. Namely:
 
 * We can delete [routes](06_Spinning_up_Worker_Nodes.md#routing-pod-traffic-via-the-host-machine) 
   to pod subnets from the host machine

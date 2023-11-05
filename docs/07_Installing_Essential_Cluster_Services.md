@@ -9,18 +9,18 @@ do everything using `kubectl`, and other tools that use Kubernetes API under the
 However, in order to run typical workloads (i.e. a web server, a database, etc.), we need to install some
 essential services:
 
-* A cluster-internal DNS server
+* Cluster-internal DNS server \
   This DNS server will allow pods in the cluster to refer to services and other pods using their names 
   rather than IPs.
-* Persistent volume provisioner
+* Persistent volume dynamic provisioner \
   Workloads that use persistent storage (e.g. databases) typically store their data on volumes backed by
   some external storage (e.g. a disk array, cloud persistent disk etc.). Worker nodes' disk drives should
   generally not be used for that purpose, because pods can be moved between nodes. We need something to simulate
   external storage in our deployment.
-* Service load balancer
-  Kubernetes Services can be configured with an `ExternalIP`, making them available to the external world via
-  a load balancer (typically, a cloud load balancer). We need something to simulate this in our local deployment 
-  as well.
+* Service load balancer \
+  Kubernetes Services can be configured with type `LoadBalancer`, making them have an external IP and become available 
+  to the external world via a load balancer (typically, a cloud load balancer). We need something to simulate this
+  in our local deployment as well.
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
@@ -42,11 +42,8 @@ essential services:
 
 ## Prerequisites
 
-Make sure you have the following packages installed on your host machine:
-
-```bash
-brew install kubernetes-cli helm
-```
+Make sure you have completed the previous chapters and have all the necessary
+[packages](00_Introduction.md#software) installed.
 
 ## `helm`
 
@@ -93,6 +90,8 @@ NAME              TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)         AGE    
 coredns-coredns   ClusterIP   10.32.0.10   <none>        53/UDP,53/TCP   4m38s   app.kubernetes.io/instance=coredns,app.kubernetes.io/name=coredns,k8s-app=coredns
 ```
 
+You can also run `helm install` with the `--wait` option.
+
 ## NFS dynamic provisioner
 
 The next thing we need is something to simulate external storage.
@@ -104,11 +103,11 @@ creates a `PersistentVolume` for it. The way it happens and the way this volume 
 a pure implementation detail. Kubernetes hides this under an abstraction called 
 [Container Storage Interface](https://github.com/container-storage-interface/spec/blob/master/spec.md) (CSI).
 
-Our implementation of persistent storage will be a project called
+Our implementation of persistent storage will be provided by
 [`nfs-subdir-external-provisioner`](https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner).
 
 Using it, we'll expose a single directory on the host machine via NFS. The dynamic provisioner will then create
-a subdirectory for every `PersistentVolume` it creates and mounts.
+a subdirectory for every `PersistentVolume`.
 
 ### Setting up NFS on the host machine
 
@@ -141,8 +140,8 @@ sudo nfsd enable
 
 ### Installing NFS client on worker nodes
 
-In the beginning of this chapter, I claimed that we won't need to configure VMs directly anymore.
-I lied a little. Even though we're going to install the dynamic provisioner using `helm`, it won't work if
+In the beginning of this chapter, it was claimed that we won't need to configure VMs directly anymore.
+It was a bit of a lie. Even though we're going to install the dynamic provisioner using `helm`, it won't work if
 worker machines don't have an NFS client installed. So, go back to SSH for worker nodes and invoke:
 
 ```bash
@@ -158,7 +157,7 @@ packages:
 
 ### Installing the dynamic provisioner
 
-We'll install the dynamic provisioner using `helm`:
+Install the dynamic provisioner using `helm`:
 
 ```bash
 helm repo add nfs-provisioner https://kubernetes-sigs.github.io/nfs-subdir-external-provisioner/
@@ -343,3 +342,4 @@ In this chapter we, have installed essential services necessary to run typical w
 * a dynamic storage provisioner
 * a load balancer for Kubernetes services
 
+Next: [Siplifying Network Setup with Cilium](08_Simplifying_Network_Setup_with_Cilium.md) (optional)

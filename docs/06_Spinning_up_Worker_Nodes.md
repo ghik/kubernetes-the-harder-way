@@ -31,7 +31,7 @@ and what are the underlying mechanisms responsible for Kubernetes networking.
 - [`kube-proxy`](#kube-proxy)
   - [Forcing `iptables` for bridge traffic](#forcing-iptables-for-bridge-traffic)
   - [Testing out service traffic](#testing-out-service-traffic)
-  - [Digging deeper into](#digging-deeper-into)
+  - [Digging deeper into service load balancing](#digging-deeper-into-service-load-balancing)
 - [Summary](#summary)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -40,7 +40,7 @@ and what are the underlying mechanisms responsible for Kubernetes networking.
 
 Just like in the [previous chapter](05_Installing_Kubernetes_Control_Plane.md), we'll be installing stuff
 on multiple nodes at once (both control and worker VMs). It is recommended to do this with `tmux` pane synchronization,
-as [described before](03_Launching_the_VM_Cluster.md#tmux-crash-course).
+as [described before](03_Launching_the_VM_Cluster.md#synchronizing-panes).
 
 ## Overview
 
@@ -92,21 +92,22 @@ cni_plugins_version=1.3.0
 cni_spec_version=1.0.0
 ```
 
-All further instructions assume availability of these variables (i.e. run everything in the same shell).
+All further instructions assume availability of these variables (make sure to run everything in the same shell).
 
 ## The Container Runtime
 
 Let's start worker setup with installation of the container runtime. We'll take this step as an opportunity to
 do a little introduction (or refresh) on what containerization fundamentally is and how it is realized in
-Linux. If you're not interested in this theoretical introduction, you can safely skip it.
+Linux. If you're not interested in this theoretical introduction, you can 
+[skip it](#installing-container-runtime-binaries).
 
 ### What are containers?
 
-A _container_, in practice, is a regular Linux process, but one that is run in a special way, so that it has a
-different (i.e. limited) view of its environment, in comparison to a plain non-containerized process. The goal
+A _container_, in practice, is a regular Linux process, but run in a special way, so that it has a
+different (i.e. limited) view of its environment, in comparison to a plain, non-containerized process. The goal
 of containerization is to provide sufficient level of isolation between containerized processes, so that they cannot
-see or affect each other, or the host operating system. Despite their isolation, containerized processes run in the
-same OS (kernel), which makes it a more lightweight alternative to full virtualization.
+see or affect each other, or the host operating system. Despite their isolation, containerized processes still run 
+in the same OS (kernel), which makes it a more lightweight alternative to full virtualization.
 
 The Linux kernel implements two core features that make this isolation possible: the 
 [namespaces](https://en.wikipedia.org/wiki/Linux_namespaces) and the [cgroups](https://en.wikipedia.org/wiki/Cgroups).
@@ -114,23 +115,26 @@ The Linux kernel implements two core features that make this isolation possible:
 Namespaces put containerized processes into "sandboxes" where a process cannot "see" the outside of its sandbox. 
 There are multiple namespace types, each one controlling a different aspect of what a process can see. 
 The most important ones include:
-* The _mount_ namespace
+* The _mount_ namespace \
   Makes the containerized process see a completely different set of mount points than on the
   host operating system, effectively making it have its own, isolated filesystem tree.
-* The _PID_ namespace
+* The _PID_ namespace \
   Assigns a new, virtual PID to the containerized process (usually equal to 1) and hides all
   other processes from it, unless they are running in the same namespace.
-* The _user_ namespace
+* The _user_ namespace \
   Creates an illusion for the containerized process of running as a different user
   (often the `root` user) than it is actually being run as. True system users are invisible for the containerized 
   process.
-* The _network_ namespace
+* The _network_ namespace \
   Makes the containerized process see a completely different set of network interfaces than
   on the host operating system. Usually this involves creating some kind of virtual ethernet interface visible within
   the container. This virtual interface is then connected in some way (e.g. bridged) to host OS interfaces (invisibly
   to the container).
 
 Cgroups are a mechanism for putting resource limits (CPU, memory, IO, etc.) on containerized processes.
+A Linux system has a global cgroup _hierarchy_, represented by a special filesystem. In case of Ubuntu, the cgroup
+hierarchy is already managed by `systemd`. The container runtime must be aware of that in order to cooperate with
+`systemd`. You will see that reflected in various configuration options throughout this chapter.
 
 So, if you're looking for a short, technical (Linux-specific) and concrete answer to the question "what is a container?",
 the answer would be:
@@ -138,14 +142,13 @@ the answer would be:
 > A *container* is a process isolated from its host operating system and other processes 
 > using Linux namespaces and cgroups.
 
-It's important to stress the flexibility of isolation via namespaces and cgroups. In particular, not all aspects of
-the host operating system must be isolated from the container. For example, a containerized process may run in its
-own PID/user/mount namespace but have no network namespace, thus running directly in host's network. It's also possible
-for multiple containers to share one type of namespace while having completely separate namespaces of another type.
-This is used in practice in Kubernetes:
-* containers in a pod have their own PID/mount namespaces but share the same network namespace
-* given sufficient permissions, a Kubernetes pod may be configured to run directly in host network
-  (i.e. no network namespace)
+It is important to stress the flexibility of isolation provided by namespaces and cgroups. In particular, it is possible
+to run a process with partial isolation, e.g. using only a separate network namespace, while letting all other
+aspects of the system to be non-isolated. This is used in practice by Kubernetes to run pods with special "privileges".
+These pods can be used for direct configuration or monitoring of the nodes they run on.
+
+Namespaces are also designed to be shared by multiple processes. This is also a standard thing in Kubernetes, e.g.
+all containers in a pod share the same network namespace.
 
 ### Installing container runtime binaries
 
@@ -159,12 +162,12 @@ The container runtime for our deployment consists of three elements:
 
 > [!NOTE]
 > Note how Docker is not involved in the container runtime, even though we are going to be running
-> Docker images. The relationship between Docker, `containerd`, CRI, OCI, etc. is complex, and has changed multiple
-> times since Kubernetes was created. Long story short, using `containerd` and `runc` is - for our purposes -
-> equivalent to using Docker, because nowadays Docker is built on top of these lower-level utilities. We are only
-> getting rid of Docker's "frontend" - which is nice if you want to use it directly but not essential for Kubernetes.
+> Docker images. The relationship between Docker, `containerd`, CRI, OCI, etc. is complex, and has evolved repeatedly 
+> over time. Long story short, using `containerd` and `runc` is - for our purposes -
+> equivalent to using Docker, because nowadays Docker is built on top of these lower-level utilities, anyway.
+> We are only getting rid of Docker's "frontend" - which is nice if you want to use it directly but not essential for Kubernetes.
 
-Download and install the container runtime binaries on control & worker nodes:
+Download and install the container runtime binaries on all control & worker nodes:
 
 ```bash
 crictl_archive=crictl-v${cri_version}-linux-${arch}.tar.gz
@@ -249,7 +252,7 @@ The primary goal is to satisfy the fundamental assumption of
 [Kubernetes networking](https://kubernetes.io/docs/concepts/services-networking/): all pods in the cluster
 (across all nodes) must be able to communicate with each other without any network address translation.
 Pods use a dedicated, cluster-internal IP range. When pod-to-pod traffic needs to be forwarded between worker nodes,
-it is the responsibility of CNI to set up some form of forwarding, tunnelling, etc. that is invisible to individual
+it is the responsibility of the CNI layer to set up some form of forwarding, tunnelling, etc. that is invisible to individual
 pods.
 
 ### Splitting pod IP range between nodes
@@ -385,13 +388,15 @@ registerWithTaints:
 EOF
 ```
 
-The `registerWithTaints` configuration option is appended only for control plane nodes, and it ensures that
-they are excluded from regular pod scheduling (unless very explicitly requested).
+> [!IMPORTANT]
+> The `registerWithTaints` configuration option is appended only on control plane nodes, and it ensures that
+> they are excluded from regular pod scheduling (unless very explicitly requested).
 
 > [!NOTE]
 > 10.32.0.10 is the (arbitrarily chosen) address of a cluster-internal DNS server.
-> We will install it in the next chapter. `kubelet` must be explicitly aware of this address because it needs
-> to be configured as the DNS server address on every pod's virtual network interface.
+> We will install it in the [next chapter](07_Installing_Essential_Cluster_Services.md#coredns). 
+> `kubelet` must be explicitly aware of this address because it needs to be configured as the DNS server address 
+> on every pod's virtual network interface.
 
 Create a `systemd` unit file:
 
@@ -449,7 +454,7 @@ worker2   Ready    <none>   59s   v1.28.3   192.168.1.16   <none>        Ubuntu 
 ```
 
 At this point our Kubernetes deployment is starting to become functional.
-We should already be able to schedule some pods. Let's try this out:
+We should already be able to schedule some pods. Let's try it out:
 
 ```bash
 kubectl run busybox --image=busybox --command -- sleep 3600
@@ -464,7 +469,7 @@ busybox   1/1     Running   0          6m4s   10.5.0.2   worker1   <none>       
 
 ### Peeking into pod networking
 
-Just out of curiosity, let's see what the CNI plugins actually did. Go to the SSH shell of the worker node
+Just out of curiosity, let's see what the CNI layer actually does. Go to the SSH shell of the worker node
 running the pod (use `Ctrl`+`b`,`z` in `tmux` to zoom a single pane) and list network interfaces with
 `sudo ip addr`. Among the standard VM network interfaces, you should also see two new interfaces:
 
@@ -482,7 +487,8 @@ running the pod (use `Ctrl`+`b`,`z` in `tmux` to zoom a single pane) and list ne
 ```
 
 `cnio0` is the bridge created by the `bridge` CNI plugin. We can see that it got an IP address from the pod IP range
-for this worker node. This way pods can communicate directly with the worker node.
+for this worker node. This way pods can communicate directly with the worker node, and it can serve as a default
+routing gateway for pods.
 
 `veth609000bb` is a virtual ethernet interface. An interface like this is created for every pod.
 There are some interesting details to note about it:
@@ -541,23 +547,12 @@ scheduled on another node.
 
 ## Routing pod traffic via the host machine
 
-Imagine a scenario like this:
-1. Pod A is running on `worker0`, with address 10.4.0.2 
-2. Pod B is running on `worker1`, with address 10.5.0.2
-3. Pod A sends a packet to pod B (i.e. source: 10.4.0.2, destination: 10.5.0.2)
-4. `worker0` does a routing decision, it does not know about the network 10.5.0.0/16,
-   so the packet is destined to be sent via the default route, i.e. to the host machine
-5. The host machine has no idea what to do with a packet destined to 10.5.0.2 as it is not aware of Kubernetes
-   cluster-internal IP ranges
-6. The packet gets lost
-
-> [!NOTE]
-> The NAT performed by `iptables` only translates the source address of outgoing packet.
+The CNI configures a source NAT for communication between pods, but the destination address is not changed.
+This means that pod IP addresses must be routable within the local network where VMs live.
 
 Unfortunately, this is a result of the fact that our network setup in this chapter is very rudimentary.
 It is regrettable that cluster-internal IP addresses show up outside the cluster, even on the host machine itself.
-We are going to solve this problem properly in the future, by replacing default CNI plugins with 
-[Cilium](https://cilium.io) CNI. For now, we'll just patch it up by adding appropriate routes on the host machine:
+We need to remedy this by adding appropriate routes on the host machine:
 
 ```bash
 for vmid in $(seq 1 6); do
@@ -566,7 +561,16 @@ done
 ```
 
 > [!NOTE]
-> This is a macOS specific command
+> This is a macOS specific command.
+
+> [!IMPORTANT]
+> Make sure routes are added while at least one VM is running, so that the bridge interface exists.
+> Unfortunately, if you stop all the VMs, the routes will be deleted.
+
+A better solution to this problem would be to use a CNI implementation that does not expose
+cluster-internal IP addresses to the nodes' network. We'll do that in an 
+[extra chapter](08_Simplifying_Network_Setup_with_Cilium.md) where we'll replace the default CNI
+plugins with [Cilium](https://cilium.io).
 
 ## Authorizing `kube-apiserver` to `kubelet` traffic
 
@@ -633,7 +637,8 @@ handling and load balancing traffic destined for Kubernetes
 [Services](https://kubernetes.io/docs/concepts/services-networking/service/).
 
 > [!NOTE]
-> Later in this guide, we'll replace `kube-proxy` with a [Cilium](https://cilium.io) based solution.
+> In an [extra chapter](08_Simplifying_Network_Setup_with_Cilium.md),
+> we'll replace `kube-proxy` with [Cilium](https://cilium.io).
 
 Download and install the binary:
 
@@ -699,9 +704,9 @@ Here's a problematic scenario:
 * `kube-proxy` load balancing chooses Pod B (10.4.0.3), also running on `worker0`, as the endpoint for this connection
 * `iptables` rules translate the destination Service address (10.32.0.2) to Pod B address (10.4.0.3)
 * Pod B receives the connection and responds. The returning packet has source 10.4.0.3 and destination 10.4.0.2
-* At this point, `iptables` should translate the source address of returning packet back to the Service address,
+* At this point, `iptables` should translate the source address of the returning packet back to the Service address,
   10.32.0.2. Unfortunately, *this does not happen*. As a result, Pod A receives a packet whose source address does not
-  match the original destination address, and the packet is dropped.
+  match its original destination address, and the packet is dropped.
 
 Why don't `iptables` fire on the returning packet? The reason is that a packet from 10.4.0.3 to 10.4.0.2 is a
 Layer 2 only traffic - it just needs to pass the bridge shared between pods. `iptables`, on the other hand, is a 
@@ -714,8 +719,8 @@ about it. Luckily, there's a hack to force Linux to run `iptables` even for brid
 sudo modprobe br_netfilter
 ```
 
-Run this on all worker nodes. In order to make it persistent, add it to 
-`cloud-init/user-data.control` and `cloud-init/user-data.worker:
+Run this on all control and worker nodes. In order to make it persistent, add it to 
+`cloud-init/user-data.control` and `cloud-init/user-data.worker`:
 
 ```yaml
 write_files:
@@ -779,18 +784,19 @@ service (we don't have a cluster-internal DNS server installed yet). You can eas
 
 Now, let's try to contact this service from within a node. Invoke this on any control or worker node:
 
-```bash
-curl http://10.32.152.5:5678
+```
+$ curl http://10.32.152.5:5678
+hello-world
 ```
 
 You should see an output consisting of `hello world` - which indicates that the service works and has returned 
 an HTTP response.
 
-### Digging deeper into 
+### Digging deeper into service load balancing
 
 Now, let's take a peek in what's really going on. The service IP is picked up by `iptables` rules and translated
-into the IP of one of the pods implementing the service (randomly). When we go through the output of `iptables-save`
-on any of the nodes, we can pick up the relevant parts. For example:
+into the IP of one of the pods implementing the service (randomly). If we go through the output of `iptables-save`
+on any of the nodes, we can pick up the relevant parts:
 
 ```
 *nat
@@ -810,7 +816,7 @@ on any of the nodes, we can pick up the relevant parts. For example:
 ```
 
 The interesting rules are the ones in the `KUBE-SVC-HV6DMF63W6MGLRDE` chain, which are set up so that only one of
-them fires, at random, and with uniform probability. This is how `kube-proxy` leverages `iptables` to implement
+them fires, at random, with uniform probability. This is how `kube-proxy` leverages `iptables` to implement
 load balancing.
 
 ## Summary

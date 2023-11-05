@@ -12,22 +12,77 @@ as possible, this guide is probably not for you (although you can also take a lo
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
-- [Scope](#scope)
 - [Credits](#credits)
-- [Who is this guide intended for?](#who-is-this-guide-intended-for)
+- [Intended audience](#intended-audience)
+- [Prerequisites](#prerequisites)
+  - [Prior knowledge](#prior-knowledge)
+  - [Hardware and OS](#hardware-and-os)
+  - [Software](#software)
+- [Scope](#scope)
 - [Deployment overview](#deployment-overview)
-- [Hardware used](#hardware-used)
-- [Chapter list](#chapter-list)
+- [Chapters](#chapters)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
+## Credits
+
+This guide is a result of its author's learning process, which was largely facilitated by Kelsey Hightower's
+[Kubernetes the Hard Way](https://github.com/kelseyhightower/kubernetes-the-hard-way). This guide is written in a similar spirit, with some of its parts loosely reusing
+commands and configurations from the original.
+
+However, compared to the original _Kubernetes the Hard Way_, this guide:
+
+* uses a local environment, as opposed to Google Cloud Platform (which is used at least in the first version of KTHW)
+* is lengthier, and contains more "theoretical" knowledge and introductory material for various tools and subjects,
+  including outside of Kubernetes itself
+* describes a more complete deployment, including a storage provisioner and a service load balancer
+* ships with a set of scripts for the "impatient"
+
+## Intended audience
+
+This guide is intended for people which have used Kubernetes to some degree, but want to have a more in-depth
+knowledge of its inner workings. This may be beneficial in several ways:
+* being able to make better, more informed design decisions for systems running on Kubernetes
+* being able to troubleshoot problems with Kubernetes more effectively
+* being able to support your own Kubernetes deployment
+
+## Prerequisites
+
+### Prior knowledge
+
+* some working knowledge of Kubernetes, i.e. knowing what a Pod or Service is, having used `kubectl` to
+  deploy some simple workloads
+* familiarity with fundamental network protocols (IP, ARP, DNS, DHCP, etc.)
+* general familiarity with Linux and shell scripting
+
+### Hardware and OS
+
+The computer this guide was created and tested on was a MacBook Pro M2 Max running macOS Ventura.
+This means that some of the commands and tools used here are specific to macOS and the Apple Silicon CPU
+architecture (also known as AArch64 or ARM64).
+
+In principle however, everything should be portable to Linux & Intel/AMD with relatively
+small effort. Having it run on Windows would probably require more work, though.
+
+Since we'll run several VMs at once, a decent amount of RAM is recommended, preferably at
+least 32GB.
+
+### Software
+
+For completing this guide, you'll need the following packages:
+
+```bash
+brew install \
+  qemu wget curl cdrtools dnsmasq tmux cfssl kubernetes-cli helm
+```
 
 ## Scope
 
 In order to make this guide complete, we won't focus just on Kubernetes. We'll also look at some foundational stuff within
-Linux that makes containerization and Kubernetes possible. We'll also spend some time with some general-purpose system tools 
-that happen to be useful for installing and maintaining our deployment.
+Linux that makes containerization and Kubernetes possible. We'll also spend some time with general-purpose administrative
+tools useful for installing and maintaining our deployment.
 
-In particular, these are the tools and subjects, apart from Kubernetes itself, that we'll learn to some degree:
+These include:
 * [`qemu`](https://www.qemu.org/) and virtualization in general
 * [`cloud-init`](https://canonical-cloud-init.readthedocs-hosted.com/en/latest/)
 * [`dnsmasq`](https://en.wikipedia.org/wiki/Dnsmasq)
@@ -42,59 +97,18 @@ Apart from Kubernetes core, our deployment will also include the following third
 * [MetalLB](https://metallb.universe.tf/)
 * [Cilium](https://cilium.io)
 
-## Credits
-
-This guide is a result of its author's learning process, which was largely facilitated by Kelsey Hightower's 
-[Kubernetes the Hard Way](https://github.com/kelseyhightower/kubernetes-the-hard-way) tutorial. Some parts of this guide are based on it.
-
-However, compared to the original _Kubernetes the Hard Way_, this guide:
-
-* uses local environment (a laptop), as opposed to Google Cloud Platform (at least in the first version of KTHW)
-* describes in detail how to set up local environment and automate running VMs
-* describes a more complete deployment, including storage and load balancer
-* tries to explain in more detail what's going on
-
-I've also used other sources which I will properly link throughout this guide.
-
-## Who is this guide intended for?
-
-This guide was created by a software engineer, i.e. not a platform/DevOps engineer with extensive OS 
-administration skills. It provides a good amount of "under the hood" knowledge that goes beyond what a regular
-Kubernetes user would see. However, the prerequisites for completing this guide are not extensive:
-
-* Some working knowledge of Kubernetes, i.e. knowing what a Pod or Service is, having used `kubectl` to
-  deploy some simple workloads
-* General understanding of fundamental network protocols (IP, ARP, DNS, DHCP, etc.)
-* General familiarity with Linux and shell scripting
-
-As already hinted, this guide is meant for _learning by doing_, but the goal is learning and building understanding,
-rather than just having something that works.
-
 ## Deployment overview
 
-Kubernetes is a distributed system, so we'll need to simulate a multi-machine environment using a set of virtual machines.
-Since containerization and Kubernetes runs almost exclusively on Linux in the real world and is heavily optimized for 
-Linux environments, we will use Linux VMs.
-
-We will set up a total of seven virtual machines:
+We'll create a cluster out of seven Linux virtual machines:
 * three of them will serve as the Kubernetes [control plane](https://kubernetes.io/docs/concepts/overview/components/#control-plane-components)
-* one VM will be dedicated to simulate a cloud/hardware load balancer for the Kubernetes API
+* one VM will simulate a cloud/hardware load balancer for the Kubernetes API
 * the remaining three VMs will serve as [worker nodes](https://kubernetes.io/docs/concepts/overview/components/#node-components)
 
-The host (macOS) machine will also play some important roles:
+The host (macOS) machine will also require some setup:
 * it will run the virtual network between the VMs and provide internet access
 * it will simulate external mass storage (e.g. a disk array) for Kubernetes, using an NFS-exported directory
 
-## Hardware used
-
-The hardware that I use is a MacBook Pro M2 Max machine running macOS Ventura. This means that some of the commands 
-and tools used by me will be specific to the Apple Silicon CPU architecture (also known as AArch64 or ARM64). 
-In principle however, everything I do here should be portable to Intel/AMD.
-
-Since we'll run several VMs at once, a decent amount of RAM is recommended. My machine has 64GB but 32GB should 
-also be sufficient.
-
-## Chapter list
+## Chapters
 
 1. [Learning How to Run VMs with QEMU](01_Learning_How_to_Run_VMs_with_QEMU.md)
 1. [Preparing Environment for a VM Cluster](02_Preparing_Environment_for_a_VM_Cluster.md)
