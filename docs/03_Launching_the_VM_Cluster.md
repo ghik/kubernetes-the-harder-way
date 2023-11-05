@@ -131,7 +131,7 @@ tmux new -s sesname
 
 This creates a session named `sesname` and attaches it to current terminal. You should see something like this:
 
-<img width="532" alt="image" src="https://github.com/ghik/kubenet/assets/1022675/e5fd84cf-9f66-43dc-adbd-0e6c2949f2a7">
+<img width="532" alt="image" src="images/tmux_initial.png">
 
 A session initially has a single window with a single pane running a new shell.
 
@@ -144,7 +144,7 @@ In order to execute a command from within a session, hit `Ctrl`+`b`, then
 type a colon (`:`) followed by the command itself. For example, `Ctrl`+`b`, `:new-window` creates a new window.
 You can see the new window listed in the status bar:
 
-<img width="532" alt="image" src="https://github.com/ghik/kubenet/assets/1022675/e5e3582b-e6fa-4645-a39c-38dc08e14726">
+<img width="532" alt="image" src="images/tmux_new_window.png">
 
 The asterisk (`*`) indicates the active window (the newly created one). One of many ways to switch
 between windows is to use `:next-window` and `:previous-window` commands.
@@ -186,7 +186,7 @@ Let's see some panes in action.
 Hit `Ctrl`+`b`,`%` to split the current pane vertically into two panes laid out
 side by side.
 
-<img width="532" alt="image" src="https://github.com/ghik/kubenet/assets/1022675/adc7ddd1-1012-4c38-a8e9-e38148138b7e">
+<img width="532" alt="image" src="images/tmux_vertical_split.png">
 
 Do it multiple times to create more panes. You can then move and resize panes, using plethora of commands and
 shortcuts offered by `tmux`. However, chances are you'll be happy with one of the built-in layouts.
@@ -212,7 +212,7 @@ In the previous section, we have also given it a keyboard shortcut: `Ctrl`+`b`,`
 
 When panes are synchronized, current panel highlight color changes from green to red:
 
-<img width="532" alt="image" src="https://github.com/ghik/kubenet/assets/1022675/380c3cd1-6f27-4244-81f4-b368c01f3379">
+<img width="532" alt="image" src="images/tmux_synchronized.png">
 
 We'll use pane synchronization in practice to configure multiple VMs at once.
 
@@ -322,7 +322,7 @@ sudo tmux attach -t kubenet-qemu
 
 Ultimately, you should see something like this:
 
-<img width="1721" alt="image" src="https://github.com/ghik/kubenet/assets/1022675/9c8eeee3-2c3f-4386-b691-c5c2d48cb452">
+<img width="1721" alt="image" src="images/tmux_qemu.png">
 
 You can detach with `Ctrl`+`b`,`d`.
 
