@@ -3,7 +3,7 @@
 # This script formats VM images (main disk drive and CIDATA drive).
 
 set -xe
-dir="$(dirname $0)"
+dir=$(dirname "$0")
 
 # Grab our helpers
 source "$dir/helpers.sh"

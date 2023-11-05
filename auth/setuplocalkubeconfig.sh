@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 set -xe
-dir="$(dirname $0)"
+dir=$(dirname "$0")
 
 kubectl config set-cluster kubenet \
   --certificate-authority="$dir/ca.pem" \

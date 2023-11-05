@@ -3,7 +3,6 @@
 # Gives kube-apiserver access to kubelets
 
 set -xe
-dir="$(dirname $0)"
 
 cat <<EOF | kubectl apply -f -
 apiVersion: rbac.authorization.k8s.io/v1

@@ -107,7 +107,7 @@ Now for the actual script:
 #!/usr/bin/env bash
 
 set -xe
-dir="$(dirname $0)"
+dir=$(dirname "$0")
 
 # Grab the helpers
 source "$dir/helpers.sh"

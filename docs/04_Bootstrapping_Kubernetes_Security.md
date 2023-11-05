@@ -721,7 +721,7 @@ Then, upload the files with a script, `deployauth.sh`:
 #!/usr/bin/env bash
 
 set -xe
-dir="$(dirname $0)"
+dir=$(dirname "$0")
 
 for i in $(seq 0 2); do
   vmname=control$i
@@ -767,7 +767,7 @@ We can do this with the following script, `setuplocalkubeconfig.sh`:
 #!/usr/bin/env bash
 
 set -xe
-dir="$(dirname $0)"
+dir=$(dirname "$0")
 
 kubectl config set-cluster kubenet \
   --certificate-authority="$dir/ca.pem" \

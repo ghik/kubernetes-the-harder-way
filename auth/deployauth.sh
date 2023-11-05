@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 set -xe
-dir="$(dirname $0)"
+dir=$(dirname "$0")
 
 for i in $(seq 0 2); do
   vmname=control$i
