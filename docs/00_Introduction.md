@@ -13,6 +13,7 @@ as possible, this guide is probably not for you (although you can also take a lo
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
+- [Chapters](#chapters)
 - [Credits](#credits)
 - [Intended audience](#intended-audience)
 - [Prerequisites](#prerequisites)
@@ -21,10 +22,21 @@ as possible, this guide is probably not for you (although you can also take a lo
   - [Software](#software)
 - [Scope](#scope)
 - [Deployment overview](#deployment-overview)
-- [Chapters](#chapters)
 - [Guidelines on adapting the guide to Linux/x86_64](#guidelines-on-adapting-the-guide-to-linuxx86_64)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
+## Chapters
+
+1. [Learning How to Run VMs with QEMU](01_Learning_How_to_Run_VMs_with_QEMU.md)
+1. [Preparing Environment for a VM Cluster](02_Preparing_Environment_for_a_VM_Cluster.md)
+1. [Launching the VM Cluster](03_Launching_the_VM_Cluster.md)
+1. [Bootstrapping Kubernetes Security](04_Bootstrapping_Kubernetes_Security.md)
+1. [Installing Kubernetes Control Plane](05_Installing_Kubernetes_Control_Plane.md)
+1. [Spinning up Worker Nodes](06_Spinning_up_Worker_Nodes.md)
+1. [Installing Essential Cluster Services](07_Installing_Essential_Cluster_Services.md)
+1. [Simplifying Network Setup with Cilium](08_Simplifying_Network_Setup_with_Cilium.md) (optional)
+1. [TLDR Version of the Guide](09_TLDR_Version_of_the_Guide.md) (auxiliary)
 
 ## Credits
 
@@ -109,18 +121,6 @@ We'll create a cluster out of seven Linux virtual machines:
 The host (macOS) machine will also require some setup:
 * it will run the virtual network between the VMs and provide internet access
 * it will simulate external mass storage (e.g. a disk array) for Kubernetes, using an NFS-exported directory
-
-## Chapters
-
-1. [Learning How to Run VMs with QEMU](01_Learning_How_to_Run_VMs_with_QEMU.md)
-1. [Preparing Environment for a VM Cluster](02_Preparing_Environment_for_a_VM_Cluster.md)
-1. [Launching the VM Cluster](03_Launching_the_VM_Cluster.md)
-1. [Bootstrapping Kubernetes Security](04_Bootstrapping_Kubernetes_Security.md)
-1. [Installing Kubernetes Control Plane](05_Installing_Kubernetes_Control_Plane.md)
-1. [Spinning up Worker Nodes](06_Spinning_up_Worker_Nodes.md)
-1. [Installing Essential Cluster Services](07_Installing_Essential_Cluster_Services.md)
-1. [Simplifying Network Setup with Cilium](08_Simplifying_Network_Setup_with_Cilium.md) (optional)
-1. [TLDR Version of the Guide](09_TLDR_Version_of_the_Guide.md) (auxiliary)
 
 ## Guidelines on adapting the guide to Linux/x86_64
 
