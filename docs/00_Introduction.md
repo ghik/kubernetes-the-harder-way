@@ -19,6 +19,7 @@ as possible, this guide is probably not for you (although you can also take a lo
   - [Prior knowledge](#prior-knowledge)
   - [Hardware and OS](#hardware-and-os)
   - [Software](#software)
+  - [Guidelines on adapting the guide to Linux and x86_64 CPUs:](#guidelines-on-adapting-the-guide-to-linux-and-x86_64-cpus)
 - [Scope](#scope)
 - [Deployment overview](#deployment-overview)
 - [Chapters](#chapters)
