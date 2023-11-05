@@ -1,6 +1,7 @@
 # Introduction
 
-This guide describes how to set up a production-like Kubernetes cluster on a laptop.
+This guide describes how to set up a production-like Kubernetes cluster on a local machine
+(optimized for macOS and Apple Silicon).
 
 The purpose is primarily educational: to understand better how Kubernetes works under the hood, what it is made of and how its 
 components fit together. For this reason we'll be doing everything _from scratch_, and we'll avoid using any "convenience" 
