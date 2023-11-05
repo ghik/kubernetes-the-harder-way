@@ -76,7 +76,7 @@ This means that some of the commands and tools used here are specific to macOS a
 architecture (also known as AArch64 or ARM64).
 
 In principle however, everything should be portable to Linux & Intel/AMD with relatively
-small effort (see the [guidelines](#guidelines-for-porting-the-guide-to-linuxx8664)).
+small effort (see the [guidelines](#guidelines-for-porting-the-guide-to-linuxx86_64)).
 Having it run on Windows would probably require more work, though.
 
 Since we'll run several VMs at once, a decent amount of RAM is recommended, preferably at
