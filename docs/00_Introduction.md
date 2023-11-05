@@ -22,7 +22,7 @@ as possible, this guide is probably not for you (although you can also take a lo
 - [Scope](#scope)
 - [Deployment overview](#deployment-overview)
 - [Chapters](#chapters)
-- [Guidelines on adapting the guide to Linux and x86_64 CPUs:](#guidelines-on-adapting-the-guide-to-linux-and-x86_64-cpus)
+- [Guidelines on adapting the guide to Linux/x86_64](#guidelines-on-adapting-the-guide-to-linuxx86_64)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -122,7 +122,7 @@ The host (macOS) machine will also require some setup:
 1. [Simplifying Network Setup with Cilium](08_Simplifying_Network_Setup_with_Cilium.md) (optional)
 1. [TLDR Version of the Guide](09_TLDR_Version_of_the_Guide.md) (auxiliary)
 
-## Guidelines on adapting the guide to Linux and x86_64 CPUs:
+## Guidelines on adapting the guide to Linux/x86_64
 
 Adapting this guide to the x86_64 CPU architecture should be fairly easy and includes:
 * changing the QEMU command from `qemu-system-aarch64` to `qemu-system-x86_64`
