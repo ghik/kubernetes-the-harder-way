@@ -151,7 +151,7 @@ mkisofs -output "$vmdir/cidata.iso" -volid cidata -joliet -rock "$vmdir"/{user-d
 > [!NOTE]
 > * `set -e` makes sure that the script fails immediately if any command returns a non-zero exit status
 > * `set -x` causes every command to be logged on standard output, making it easier for us to see what's going on
-> * `dir="$(dirname $0)"` saves the script's parent directory to a variable - we use it to make the script
+> * `dir=$(dirname "$0")` saves the script's parent directory to a variable - we use it to make the script
 >    independent of working directory
 
 #### Impromptu bash "templating" for `cloud-init` files
@@ -531,26 +531,30 @@ your `~/.ssh/known_hosts` file.
 Let's automate all this with a script, `vmsshsetup.sh`:
 
 ```bash
-##!/usr/bin/env bash
+#!/usr/bin/env bash
+
 set -xe
-dir="$(dirname $0)"
+dir=$(dirname "$0")
 
 # Grab the helpers
 source "$dir/helpers.sh"
 
 # Parse the argument (VM ID)
 vmid=$1
-vmname=$(id_to_name $vmid)
+vmname=$(id_to_name "$vmid")
 
 # Wait until the VM is ready to accept SSH connections
-until nc -zG120 $vmname 22; do sleep 1; done
+until nc -zG120 "$vmname" 22; do sleep 1; done
 
 # Remove any stale entries for this VM from known_hosts
-sed -i.bak "/^$vmname/d" ~/.ssh/known_hosts
-rm -f ~/.ssh/known_hosts.bak
+sed -i '' "/^$vmname/d" ~/.ssh/known_hosts
 
 # Add new entries for this VM to known_hosts
-ssh-keyscan $vmname 2> /dev/null >> ~/.ssh/known_hosts
+ssh-keyscan "$vmname" 2> /dev/null >> ~/.ssh/known_hosts
+
+# Wait until the system boots up and starts accepting unprivileged SSH connections
+until ssh "ubuntu@$vmname" exit; do sleep 1; done
+
 ```
 
 > [!WARNING]
@@ -566,6 +570,8 @@ Let's break it down:
 3. The script removes entries from any previous runs of this VM from the `known_hosts` file.
 4. Using `ssh-keyscan`, the script grabs VM's SSH keys and makes them trusted by adding them
    to the `known_hosts` file
+5. Even though the VM is already listening on SSH port, unprivileged SSH connections may be rejected until the VM
+   boot process is finished. We run a probing SSH connection in a loop to make sure the VM is truly ready.
 
 Don't forget to give the script executable permissions and run it with `./vmsshsetup 0` (make sure the VM is running).
 

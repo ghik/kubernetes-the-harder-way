@@ -1,4 +1,4 @@
-##!/usr/bin/env bash
+#!/usr/bin/env bash
 
 # This script ensures that we can connect to a VM (identified by ID) with SSH.
 # This includes waiting for the VM to be ready, and ensuring that VM's keys are saved into known_hosts.
@@ -23,4 +23,4 @@ sed -i '' "/^$vmname/d" ~/.ssh/known_hosts
 ssh-keyscan "$vmname" 2> /dev/null >> ~/.ssh/known_hosts
 
 # Wait until the system boots up and starts accepting unprivileged SSH connections
-until ssh "ubuntu@$vmname" whoami; do sleep 1; done
+until ssh "ubuntu@$vmname" exit; do sleep 1; done
