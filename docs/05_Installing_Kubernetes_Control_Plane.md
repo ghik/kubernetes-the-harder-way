@@ -44,7 +44,7 @@ and have all the certificates, keys and kubeconfigs [deployed](04_Bootstrapping_
 
 ## Quick overview of `systemd`
 
-Ubuntu uses [`systemd`](https://en.wikipedia.org/wiki/Systemd) as the "init system", i.e. a piece of software that 
+Ubuntu uses [`systemd`](https://systemd.io/) as the "init system", i.e. a software suite that 
 manages services/daemons, starting them during system boot, making sure they run in the correct order, etc.
 We'll be using `systemd` throughout this chapter to run Kubernetes components. Because of that, let's have a quick
 theoretical introduction into `systemd` in order to make things less magic.

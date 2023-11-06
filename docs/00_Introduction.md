@@ -103,6 +103,7 @@ These include:
 * [`tmux`](https://github.com/tmux/tmux/wiki)
 * [`cfssl`](https://github.com/cloudflare/cfssl)
 * [IPVS](https://en.wikipedia.org/wiki/IP_Virtual_Server) (`ipvsadm` and `ldirectord`)
+* [`systemd`](https://systemd.io/)
 * basics of Linux containerization: namespaces and cgroups
 * a bit of `iptables`
 
