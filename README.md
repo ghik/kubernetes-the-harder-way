@@ -9,6 +9,12 @@ and can be treated as its lengthier, extended version, optimized for a local dep
 This repository contains the guide itself, as well as some auxiliary scripts and
 configuration files, referred throughout the guide's text.
 
+## License
+
+This guide follows the license of the original 
+[Kubernetes the Hard Way](https://github.com/kelseyhightower/kubernetes-the-hard-way):
+[Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License](http://creativecommons.org/licenses/by-nc-sa/4.0/)
+
 ## Chapters
 
 0. [Introduction](docs/00_Introduction.md)
