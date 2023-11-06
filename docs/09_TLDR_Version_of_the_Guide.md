@@ -112,6 +112,13 @@ Upload security files to VMs:
 ./auth/deployauth.sh
 ```
 
+Optionally, if you don't want to waste bandwidth by downloading the same binaries on every VM,
+download them once and upload to each VM:
+
+```bash
+./deploybinaries.sh
+```
+
 ## Install the control plane
 
 Go to `ssh-controls` window of the `kubenet-ssh` TMUX session.
