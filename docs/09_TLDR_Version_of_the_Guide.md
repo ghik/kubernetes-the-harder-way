@@ -88,7 +88,7 @@ sudo USE_CILIUM=true ./setuphost.sh
 
 ## Launch and connect the VMs
 
-Launch the VMs (in a separate terminal):
+Launch the VMs (in a detached `tmux` session):
 
 ```bash
 sudo ./vmlaunchall.sh kubenet-qemu
