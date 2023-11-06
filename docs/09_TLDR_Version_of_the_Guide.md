@@ -54,7 +54,7 @@ Configure `kubeconfig` on the host machine:
 ./setuplocalkubeconfig.sh
 ```
 
-Go back to `kubenet` directory:
+Go back to parent directory:
 
 ```bash
 cd ..
