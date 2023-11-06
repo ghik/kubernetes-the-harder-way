@@ -36,7 +36,7 @@ Porting the guide to Linux would require some more work:
 * running VMs (using QEMU) with `accel=kvm` instead of `accel=hvf`
 * different network interface for QEMU VMs, in place of `vmnet-shared` - this would likely require some
   manual network configuration on the host machine (e.g. setting up a bridge, a `tap` device and NAT),
-  but ultimately should be simpler (e.g. no problems with the [ephemeral nature](02_Preparing_Environment_for_a_VM_Cluster.md#restarting-dnsmasq) of bridge interfaces
+  but ultimately should be simpler (e.g. no problems with the [ephemeral nature](docs/02_Preparing_Environment_for_a_VM_Cluster.md#restarting-dnsmasq) of bridge interfaces
   created by `vmnet`)
 * different tool for formatting ISO images, in place of `mkisofs`
 * different location of `dnsmasq` configuration file
