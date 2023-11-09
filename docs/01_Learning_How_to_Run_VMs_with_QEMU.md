@@ -4,9 +4,9 @@ Previous: [Introduction](00_Introduction.md)
 
 Let's learn how to launch virtual machines.
 
-In a real-world scenario, you would use some high level virtual machine manager like [Vagrant](https://www.vagrantup.com/) to manage your VMs.
-However, we want to do things _the hard way_ in order to see the guts of all the layers involved in our endeavor.
-For this reason, we will use perhaps the most _raw_ tool possible for running VMs: [QEMU](https://www.qemu.org/).
+In a real-world scenario, virtual machines would be managed by a high-level tool like [Vagrant](https://www.vagrantup.com/).
+However, we want to do things _the hard way_ in this guide, in order to see the guts of all the layers 
+involved. Because of that, we will use perhaps the most _raw_ tool out there for running VMs: [QEMU](https://www.qemu.org/).
 
 This chapter is an introduction to virtualization in general, exploration of QEMU, plus an overview of the `cloud-init` 
 tool. None of the actions in this chapter are necessary to progress with the deployment, they are intended purely 
@@ -109,7 +109,7 @@ You should see a window with the QEMU monitor console:
 There isn't anything particularly interesting about it, but it's a good opportunity to learn some basic QEMU controls. 
 The console itself gives a bunch of [commands](https://en.wikibooks.org/wiki/QEMU/Monitor) for things like stopping or resuming a running VM.
 
-What might not be apparent though is that this window has other "tabs" (terminals). Try hitting `Ctrl`+`Opt`+`2` or `Ctrl`+`Opt`+`3` and you should
+What might not be apparent, though, is that this window has other "tabs" (terminals). Try hitting `Ctrl`+`Opt`+`2` or `Ctrl`+`Opt`+`3` and you should
 see the output of serial and parallel ports. This is where we're going to see our operating system running. You can always go back to
 the monitor console with `Ctrl`+`Opt`+`1`.
 
