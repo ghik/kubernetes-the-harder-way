@@ -37,16 +37,18 @@ Adapting this guide to the x86_64 CPU architecture should be fairly easy and inc
 * changing the architecture of Kubernetes, container runtime & CNI binaries from `arm64` to `amd64`
 
 Porting the guide to Linux would require some more work:
+* Different network interface for QEMU VMs, in place of `vmnet-shared` \
+  This would likely require some manual network configuration on the host machine (e.g. setting up a bridge, a `tap` 
+  device and NAT), but ultimately should result in a simpler and more robust configuration, as Linux is more flexible 
+  in this regard than macOS (e.g. no problems with the [ephemeral nature](docs/02_Preparing_Environment_for_a_VM_Cluster.md#restarting-dnsmasq) 
+  of bridge interfaces created by `vmnet`)
 * Linux-specific package manager (e.g. `apt`, `yum`) in place of `homebrew`
 * Linux-specific command (e.g. `systemctl`) for restarting services in place of `brew services` and `nfsd`
 * running VMs (using QEMU) with `accel=kvm` instead of `accel=hvf`
-* different network interface for QEMU VMs, in place of `vmnet-shared` - this would likely require some
-  manual network configuration on the host machine (e.g. setting up a bridge, a `tap` device and NAT),
-  but ultimately should be simpler (e.g. no problems with the [ephemeral nature](docs/02_Preparing_Environment_for_a_VM_Cluster.md#restarting-dnsmasq) of bridge interfaces
-  created by `vmnet`)
 * different tool for formatting ISO images, in place of `mkisofs`
 * different location of `dnsmasq` configuration file
 * different command for configuring routing on the host machine
 * minor differences in some commands, e.g. `sed`
 
-Out of these changes, only the VM network interface setup seems to be potentially not trivial to port.
+Out of these changes, only the setup of VM network interface seems to be potentially not trivial to port
+(but not necessarily hard).
