@@ -23,8 +23,8 @@ done
 # A function that prepares a pane for connecting to a VM with SSH, and connects to it.
 # Takes VM ID as an argument.
 vm_ssh() {
-  vmid=$1
-  vmname=$(id_to_name "$vmid")
+  local vmid=$1
+  local vmname=$(id_to_name "$vmid")
   tmux send-keys -t "$sname" "ssh ubuntu@$vmname" C-m
 }
 
@@ -34,10 +34,10 @@ tmux new-session -s "$sname" -n ssh-gateway -d
 vm_ssh 0
 
 ssh_window() {
-  window_name=$1
-  first_vmid=$2
-  last_vmid=$3
-  layout=$4
+  local window_name=$1
+  local first_vmid=$2
+  local last_vmid=$3
+  local layout=$4
 
   tmux new-window -t "$sname" -n "$window_name"
   for vmid in $(seq "$first_vmid" "$last_vmid"); do
