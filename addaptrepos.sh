@@ -15,9 +15,9 @@ if [[ ! -f /etc/apt/sources.list.d/kubernetes.list ]]; then
 fi
 
 if [[ ! -f /etc/apt/sources.list.d/helm-stable-debian.list ]]; then
-  curl https://baltocdn.com/helm/signing.asc | gpg --dearmor | NATtee /usr/share/keyrings/helm.gpg > /dev/null
+  curl https://baltocdn.com/helm/signing.asc | gpg --dearmor | tee /usr/share/keyrings/helm.gpg > /dev/null
   echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/helm.gpg] https://baltocdn.com/helm/stable/debian/ all main" \
-    | NATtee /etc/apt/sources.list.d/helm-stable-debian.list
+    | tee /etc/apt/sources.list.d/helm-stable-debian.list
 fi
 
 apt update
