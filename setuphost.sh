@@ -60,7 +60,7 @@ fi
 
 # DNS entries
 
-xsed '/#setuphost_generated_start/,/#setuphost_generated_end/d' /etc/hosts
+sedi '/#setuphost_generated_start/,/#setuphost_generated_end/d' /etc/hosts
 cat <<EOF | tee -a /etc/hosts
 #setuphost_generated_start
 192.168.1.1   vmhost
@@ -83,11 +83,11 @@ case $(uname -s) in
     ;;
   Linux)
     dnsmasq_config="/etc/dnsmasq.conf"
-    moreconfig="listen-address=192.168.1.1"
+    moreconfig=$'listen-address=192.168.1.1\ninterface=kubr0'
     ;;
 esac
 
-xsed '/#setuphost_generated_start/,/#setuphost_generated_end/d' "$dnsmasq_config"
+sedi '/#setuphost_generated_start/,/#setuphost_generated_end/d' "$dnsmasq_config"
 cat <<EOF | tee -a "$dnsmasq_config"
 #setuphost_generated_start
 dhcp-range=192.168.1.2,192.168.1.20,12h
@@ -127,7 +127,7 @@ esac
 mkdir -p "$dir/nfs-pvs"
 chown "$user:$group" "$dir/nfs-pvs"
 
-xsed '/#setuphost_generated_start/,/#setuphost_generated_end/d' /etc/exports
+sedi '/#setuphost_generated_start/,/#setuphost_generated_end/d' /etc/exports
 cat <<EOF | sudo tee -a /etc/exports
 #setuphost_generated_start
 $export

@@ -17,7 +17,7 @@ vmname=$(id_to_name "$vmid")
 until nc -zG120 "$vmname" 22; do sleep 1; done
 
 # Remove any stale entries for this VM from known_hosts
-xsed "/^$vmname/d" ~/.ssh/known_hosts
+sedi "/^$vmname/d" ~/.ssh/known_hosts
 
 # Add new entries for this VM to known_hosts
 ssh-keyscan "$vmname" 2> /dev/null >> ~/.ssh/known_hosts

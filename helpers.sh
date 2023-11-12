@@ -8,9 +8,9 @@ id_to_name() {
   fi
 }
 
-xsed() {
+sedi() {
   case $(uname -s) in
-    Linux) sed $*;;
+    Linux) sed -i $*;;
     Darwin) sed -i '' $*;;
   esac
 }
