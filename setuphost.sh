@@ -77,17 +77,14 @@ EOF
 
 # dnsmasq config (DHCP & DNS)
 
-case $(uname -s) in
-  Darwin)
-    dnsmasq_config="/opt/homebrew/etc/dnsmasq.conf"
-    ;;
-  Linux)
-    dnsmasq_config="/etc/dnsmasq.conf"
-    moreconfig=$'listen-address=192.168.1.1\ninterface=kubr0'
-    ;;
+os=$(uname -s)
+case "$os" in
+  Darwin) dnsmasq_config="/opt/homebrew/etc/dnsmasq.conf";;
+  Linux) dnsmasq_config="/etc/dnsmasq.conf";;
 esac
 
 sedi '/#setuphost_generated_start/,/#setuphost_generated_end/d' "$dnsmasq_config"
+
 cat <<EOF | tee -a "$dnsmasq_config"
 #setuphost_generated_start
 dhcp-range=192.168.1.2,192.168.1.20,12h
@@ -101,7 +98,17 @@ dhcp-host=52:52:52:00:00:06,192.168.1.16
 dhcp-authoritative
 domain=kubenet
 expand-hosts
-$moreconfig
+EOF
+
+if [[ "$os" == Linux ]]; then
+cat <<EOF | tee -a "$dnsmasq_config"
+listen-address=192.168.1.1
+interface=kubr0
+bind-interfaces
+EOF
+fi
+
+cat <<EOF | tee -a "$dnsmasq_config"
 #setuphost_generated_end
 EOF
 
