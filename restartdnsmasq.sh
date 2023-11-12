@@ -12,21 +12,29 @@ if [[ "$EUID" -ne 0 ]]; then
   exit 1
 fi
 
-brew services restart dnsmasq
+case $(uname -s) in
+  Linux)
+    systemctl restart dnsmasq
+    ;;
 
-if ! lsof -ni4TCP:53 | grep -q '192\.168\.1\.1'; then
-  qemu-system-aarch64 \
-      -nographic \
-      -machine virt \
-      -nic vmnet-shared,start-address=192.168.1.1,end-address=192.168.1.20,subnet-mask=255.255.255.0 \
-      </dev/null >/dev/null 2>&1 &
-  qemu_pid=$!
+  Darwin)
+    brew services restart dnsmasq
 
-  sleep 1
+    if ! lsof -ni4TCP:53 | grep -q '192\.168\.1\.1'; then
+      qemu-system-aarch64 \
+          -nographic \
+          -machine virt \
+          -nic vmnet-shared,start-address=192.168.1.1,end-address=192.168.1.20,subnet-mask=255.255.255.0 \
+          </dev/null >/dev/null 2>&1 &
+      qemu_pid=$!
 
-  # Restart dnsmasq while the bridge interface exists (because a VM is running)
-  brew services restart dnsmasq
-  until lsof -i4TCP:53 | grep -q vmhost; do sleep 1; done
-  kill $qemu_pid
-  wait $qemu_pid
-fi
+      sleep 1
+
+      # Restart dnsmasq while the bridge interface exists (because a VM is running)
+      brew services restart dnsmasq
+      until lsof -i4TCP:53 | grep -q vmhost; do sleep 1; done
+      kill $qemu_pid
+      wait $qemu_pid
+    fi
+    ;;
+esac

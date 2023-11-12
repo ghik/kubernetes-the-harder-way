@@ -10,7 +10,34 @@ sudo -v
 
 export USE_CILIUM
 
-brew install qemu wget curl cdrtools dnsmasq tmux cfssl kubernetes-cli helm
+case $(uname -s) in
+  Darwin)
+    brew install \
+      qemu wget curl cdrtools dnsmasq tmux cfssl kubernetes-cli helm
+    ;;
+
+  Linux)
+    sudo apt install -y \
+      apt-transport-https ca-certificates qemu-system-x86 curl genisoimage dnsmasq tmux golang-cfssl nfs-kernel-server
+
+    if [[ -z "$(which kubectl)" ]]; then
+      curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.28/deb/Release.key \
+        | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+      echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.28/deb/ /' \
+        | sudo tee /etc/apt/sources.list.d/kubernetes.list
+      sudo apt-get update
+      sudo apt-get install -y kubectl
+    fi
+
+    if [[ -z "$(which helm)" ]]; then
+      curl https://baltocdn.com/helm/signing.asc | gpg --dearmor | sudo tee /usr/share/keyrings/helm.gpg > /dev/null
+      echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/helm.gpg] https://baltocdn.com/helm/stable/debian/ all main" \
+        | sudo tee /etc/apt/sources.list.d/helm-stable-debian.list
+      sudo apt-get update
+      sudo apt-get install -y helm
+    fi
+    ;;
+esac
 
 cd "$dir/auth"
 ./genauth.sh

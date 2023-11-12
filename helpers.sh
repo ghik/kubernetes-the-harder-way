@@ -7,3 +7,10 @@ id_to_name() {
   else echo "bad machine ID: $id" >&2; return 1
   fi
 }
+
+xsed() {
+  case $(uname -s) in
+    Linux) sed $*;;
+    Darwin) sed -i '' $*;;
+  esac
+}
