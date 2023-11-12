@@ -127,7 +127,7 @@ case $(uname -s) in
     gid=$(stat -c '%g' "$dir")
     user=$(stat -c '%U' "$dir")
     group=$(stat -c '%G' "$dir")
-    export="$(realpath "$dir")/nfs-pvs 192.168.1.0/24(rw,root_squash,anonuid=$uid,anongid=$gid)"
+    export="$(realpath "$dir")/nfs-pvs 192.168.1.0/24(rw,root_squash,anonuid=$uid,anongid=$gid,no_subtree_check)"
     ;;
 esac
 

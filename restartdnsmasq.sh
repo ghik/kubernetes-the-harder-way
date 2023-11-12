@@ -14,7 +14,7 @@ fi
 
 case $(uname -s) in
   Linux)
-    systemctl restart dnsmasq
+    until systemctl restart dnsmasq; do sleep 1; done
     ;;
 
   Darwin)
