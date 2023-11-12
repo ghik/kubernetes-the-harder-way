@@ -102,7 +102,6 @@ EOF
 
 if [[ "$os" == Linux ]]; then
 cat <<EOF | tee -a "$dnsmasq_config"
-listen-address=192.168.1.1
 interface=kubr0
 bind-interfaces
 EOF
