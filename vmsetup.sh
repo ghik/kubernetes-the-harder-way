@@ -28,6 +28,11 @@ instance-id: $vmname
 local-hostname: $vmname
 EOF
 
+if [[ ! -f "~/.ssh/id_rsa.pub" ]]; then
+  echo "No SSH public key found for current user. Generate it with ssh-keygen." >&2
+  exit 1
+fi
+
 # Evaluate `user-data` "bash template" for this VM type and save the result
 eval "cat << EOF
 $(<"$dir/cloud-init/user-data.$vmtype")
