@@ -37,10 +37,12 @@ case $(uname -s) in
   Darwin)
     qemu_version=$($qemucmd --version | head -n 1 | sed "s/^QEMU emulator version //")
     efi="/opt/homebrew/Cellar/qemu/$qemu_version/share/qemu/edk2-aarch64-code.fd"
+    machine="virt,accel=hvf,highmem=on"
     nic="vmnet-shared,start-address=192.168.1.1,end-address=192.168.1.20,subnet-mask=255.255.255.0"
     ;;
   Linux)
     efi="/usr/share/qemu/OVMF.fd"
+    machine="pc,accel=kvm"
     nic="tap,script=$dir/tapup.sh"
     ;;
 esac
@@ -48,7 +50,7 @@ esac
 # Launch the VM
 $qemucmd \
     -nographic \
-    -machine virt,accel=hvf,highmem=on \
+    -machine $machine \
     -cpu host \
     -smp $vcpus \
     -m $memory \
