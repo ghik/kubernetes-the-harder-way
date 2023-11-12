@@ -22,6 +22,7 @@ network:
     kubr0:
       addresses: [192.168.1.1/24]
 EOF
+chmod 600 /etc/netplan/99-kubenet.yaml
 netplan apply
 
 cat <<EOF | tee /usr/local/bin/kubenet-nat.sh
