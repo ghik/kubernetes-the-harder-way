@@ -90,13 +90,14 @@ the guest system needing additional drivers for these virtio devices. Fortunatel
 Try running QEMU with this bare-bones command:
 
 ```
-qemu-system-aarch64 \
-    -machine virt,accel=hvf \
+qemu-system-x86_64 \
+    -machine q35,accel=kvm \
     -cpu host
 ```
 
-* `-machine virt` specifies a type of a machine - we have no interest in emulating a specific hardware so we just use the special type `virt`
-* the `accel=hvf` part is the important one: it enables hardware acceleration using macOS Hypervisor Framework
+* `-machine q35` specifies the type of a machine - we have no interest in emulating a specific hardware, so we just use
+  whatever generic machine `qemu` supports (you can list available machines with `qemu-system-x86_64 -machine help`)
+* the `accel=kvm` part is the important one: it enables hardware acceleration using KVM
 * `-cpu host` specifies that the guest machine will see exactly the same CPU model as the host machine (required for acceleration)
 
 Note that we haven't specified any drives yet, and as a result, there's no operating system to boot.
@@ -132,9 +133,9 @@ Just to see what's really going on and have full control, we will turn off these
 (monitor console and serial port, we'll ignore the parallel port). We achieve this with the following command:
 
 ```
-qemu-system-aarch64 \
+qemu-system-x86_64 \
     -nodefaults \
-    -machine virt,accel=hvf \
+    -machine q35,accel=kvm \
     -cpu host \
     -chardev vc,id=monitor \
     -mon monitor \
@@ -151,25 +152,25 @@ qemu-system-aarch64 \
 ### UEFI
 
 In order to start an operating system, we are first going to need something to boot it up, i.e. a BIOS or UEFI, on an emulated, read-only flash drive.
-QEMU uses BIOS by default. However, it is obsolete and won't work on an Apple Silicon CPU. We'll need to plug in an UEFI flash drive instead.
+QEMU uses BIOS by default. However, since BIOS is largely obsolete, we'll UEFI flash drive instead.
 
 QEMU comes with bundled, open source impelementation of UEFI firmware called OVMF (Open Virtual Machine Firmware), which is a port of
-proprietary Intel UEFI implementation (TianoCore). If you installed QEMU with Homebrew, you should be able to find it in this location:
+proprietary Intel UEFI implementation (TianoCore). You should be able to find it in this location:
 
 ```
-/opt/homebrew/share/qemu/edk2-aarch64-code.fd
+/usr/share/qemu/OVMF.fd
 ```
 
 The simplest QEMU option to mount OVMF file as a BIOS/UEFI is:
 
 ```
--bios /opt/homebrew/share/qemu/edk2-aarch64-code.fd
+-bios /usr/share/qemu/OVMF.fd
 ```
 
 However, we can be a little more explicit:
 
 ```
--drive if=pflash,readonly=on,format=raw,file=/opt/homebrew/share/qemu/edk2-aarch64-code.fd
+-drive if=pflash,readonly=on,format=raw,file=/usr/share/qemu/OVMF.fd
 ```
 
 This is a common situation in QEMU - we can use very raw and detailed options and wire every device manually,
@@ -178,14 +179,14 @@ version possible, but as our command grows new options, we don't want it to beco
 the shorthand:
 
 ```
-qemu-system-aarch64 \
+qemu-system-x86_64 \
     -nodefaults \
-    -machine virt,accel=hvf \
+    -machine q35,accel=kvm \
     -cpu host \
     -chardev vc,id=monitor \
     -mon monitor \
     -serial vc \
-    -bios /opt/homebrew/share/qemu/edk2-aarch64-code.fd
+    -bios /usr/share/qemu/OVMF.fd
 ```
 
 Now if you go to the serial console (using `Ctrl`+`Opt`+`2` in the QEMU window), you should see the UEFI running:
@@ -206,25 +207,25 @@ distribution to finally have a working operating system!
 Let's download a Live CD image for Ubuntu Jammy:
 
 ```
-wget https://cdimage.ubuntu.com/jammy/daily-live/current/jammy-desktop-arm64.iso
+wget https://cdimage.ubuntu.com/jammy/daily-live/current/jammy-desktop-amd64.iso
 ```
 
 The shortest option to mount it as a CD-ROM is:
 
 ```
--cdrom jammy-desktop-arm64.iso
+-cdrom jammy-desktop-amd64.iso
 ```
 
 which has a longer version:
 
 ```
--drive file=jammy-desktop-arm64.iso,index=2,media=cdrom
+-drive file=jammy-desktop-amd64.iso,index=2,media=cdrom
 ```
 
 ...which can be further split into a separate "backend" (`-blockdev`) and "frontend" (`-device`):
 
 ```
--blockdev node-name=cdrom,driver=file,read-only=on,filename=jammy-desktop-arm64.iso \
+-blockdev node-name=cdrom,driver=file,read-only=on,filename=jammy-desktop-amd64.iso \
 -device virtio-blk-pci,drive=cdrom
 ```
 
@@ -239,9 +240,6 @@ Let's give it 2GB for a start. An option for that is:
 ```
 -m 2G
 ```
-
-We will also add a `highmem=on` property for the `-machine` option so that we can increase the amount of physical memory
-to over 4GB in the future.
 
 This is also a good moment to explicitly assign the number of virtual CPUs to our VM. Let's give it 2 CPUs:
 
@@ -260,17 +258,17 @@ This is also a good moment to explicitly assign the number of virtual CPUs to ou
 Ultimately we end up with this command:
 
 ```
-qemu-system-aarch64 \
+qemu-system-x86_64 \
     -nodefaults \
-    -machine virt,accel=hvf,highmem=on \
+    -machine q35,accel=kvm \
     -cpu host \
     -smp 2 \
     -m 2G \
     -chardev vc,id=monitor \
     -mon monitor \
     -serial vc \
-    -bios /opt/homebrew/share/qemu/edk2-aarch64-code.fd \
-    -cdrom jammy-desktop-arm64.iso
+    -bios /usr/share/qemu/OVMF.fd \
+    -cdrom jammy-desktop-amd64.iso
 ```
 
 If you now go to the serial console (using `Ctrl`+`Opt`+`2` in the QEMU window), you'll see that UEFI has picked up the 
@@ -298,66 +296,55 @@ Some of the most commonly used network backends are:
 
 * `user` is an userspace implemented network ([SLIRP](https://en.wikipedia.org/wiki/Slirp)) between the host and guest OS.
   Allows the guest to access the guest machine to communicate with the host, and provides internet access to the guest.
-  Unfortunately, guest machine is not addressable from the host machine in this mode. It also has poor performance, being implemented
-  in userspace. For these reasons we will not be using it. It is however worth mentioning because it is the default network
-  backend that QEMU sets up if we don't configure one (and provided that we don't use `-nodefaults`).
+  Unfortunately, guest machine is not addressable from the host machine in this mode. It also has relatively poor performance, 
+  being implemented in userspace.
 
-* `tap` creates a virtual layer 2 network interface on the host machine connected to the guest machine. This is versatile and
-   has good performance, but generally requires root privileges. Unfortunately, macOS does not currently support it so we won't be able
-   to use it in this tutorial.
+* `tap` creates a virtual layer 2 network interface on the host machine connected to the guest machine. It is versatile and
+   has good performance, but usually requires root privileges and additional network configuration on the host machine.
 
 * `bridge` connects the VM to a network bridge that needs to be previously set up on the host machine and connected to one
   of host's native interfaces. This effectively makes the VM appear in the same network that the host machine lives in, making it
   visible to the external world. The VM will then typically get configured by the same DHCP server as the host machine
-  (e.g. your home router). Unfortunately, this exact mode is not available on macOS either, but it has a macOS specific equivalent
-  called `vmnet-bridged`.
+  (e.g. your home router).
 
-There are many more modes which we will not cover here. We are on macOS, which provides three additional modes implemented
-by its `vmnet` framework:
+There are many more modes which we will not cover here. You can refer to the 
+[manpage](https://manpages.debian.org/testing/qemu-system-x86/qemu-system-x86_64.1.en.html) for more details.
 
-* `vmnet-host` - a host-only network that allows the guest to communicate with the host but without internet access
-* `vmnet-shared` - allows the guest to communicate with the host and provides it with internet access via NAT
-* `vmnet-bridged` - just like `bridge` mode, connects the VM to a layer 2 bridge, but the bridge itself is set up automatically
+The target backend that we'll ultimately use is `tap`. However, because it requires some manual network configuration
+on the host machine, we'll cover that in the [next chapter](02_Preparing_Environment_for_a_VM_Cluster.md#shared-network-setup),
+while keeping things simple in this one, using the `user` backend.
 
-When using these modes, macOS also automatically configures its built-in DHCP server and starts a DNS server so that the VM
-can have a properly configured network.
-  
-In this guide we'll always use the `vmnet-shared` network backend. Let's enable it with the following option:
+`user` backend is the default one set up by QEMU. The explicit option to do that is:
 
 ```
--nic vmnet-shared
+-nic user
 ```
 
 A longer version (with separate "backend" and "frontend") would be:
 
 ```
--netdev vmnet-shared,id=net0 \
+-netdev user,id=net0 \
 -device virtio-net-pci,netdev=net0
 ```
 
-These options can be refined with additional properties, e.g. we can choose the IP address range for shared network and
-decide to isolate it from other VMs. We can also manually assign a MAC address to the guest VM. We will use some of these
-options later, when setting up an actual Kubernetes machine.
-
-Unfortunately, usage of `vmnet` requires escalated privileges on macOS, so from now on we must run QEMU using `sudo`:
+Let's run the VM with it:
 
 ```
-sudo qemu-system-aarch64 \
+qemu-system-x86_64 \
     -nodefaults \
-    -machine virt,accel=hvf,highmem=on \
+    -machine q35,accel=kvm \
     -cpu host \
     -smp 2 \
     -m 2G \
     -chardev vc,id=monitor \
     -mon monitor \
     -serial vc \
-    -bios /opt/homebrew/share/qemu/edk2-aarch64-code.fd \
-    -cdrom jammy-desktop-arm64.iso \
-    -nic vmnet-shared
+    -bios /usr/share/qemu/OVMF.fd \
+    -cdrom jammy-desktop-amd64.iso \
+    -nic user
 ```
 
-Let's log into Ubuntu and run the `ip addr` command. We can see a new virtual ethernet interface with a nicely
-assigned IP address:
+Log into Ubuntu and run the `ip addr` command. We can see a new virtual ethernet interface:
 
 <img width="656" alt="image" src="images/vm_interface.png">
 
@@ -371,17 +358,17 @@ so I will not explain all the QEMU options in detail, but for the sake of comple
 our VM with support for all these devices:
 
 ```
-sudo qemu-system-aarch64 \
+sudo qemu-system-x86_64 \
     -nodefaults \
-    -machine virt,accel=hvf,highmem=on \
+    -machine q35,accel=kvm \
     -cpu host \
     -smp 2 \
     -m 2G \
     -chardev vc,id=monitor \
     -mon monitor \
     -serial vc \
-    -bios /opt/homebrew/share/qemu/edk2-aarch64-code.fd \
-    -cdrom jammy-desktop-arm64.iso \
+    -bios /usr/share/qemu/OVMF.fd \
+    -cdrom jammy-desktop-amd64.iso \
     -nic vmnet-shared \
     -device virtio-gpu-pci \
     -display cocoa,show-cursor=on \
@@ -436,17 +423,17 @@ Unsurprisingly, this is a shorthand for something more verbose:
 And the full command:
 
 ```
-sudo qemu-system-aarch64 \
+sudo qemu-system-x86_64 \
     -nodefaults \
-    -machine virt,accel=hvf,highmem=on \
+    -machine q35,accel=kvm \
     -cpu host \
     -smp 2 \
     -m 2G \
     -chardev vc,id=monitor \
     -mon monitor \
     -serial vc \
-    -bios /opt/homebrew/share/qemu/edk2-aarch64-code.fd \
-    -cdrom jammy-desktop-arm64.iso \
+    -bios /usr/share/qemu/OVMF.fd \
+    -cdrom jammy-desktop-amd64.iso \
     -nic vmnet-shared \
     -hda ubuntu.img \
     -device virtio-gpu-pci \
@@ -481,7 +468,7 @@ requires some additional, automated preconfiguration (e.g. to set up remote SSH 
 Let's download a Jammy cloud image for AArch64:
 
 ```
-wget https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-arm64.img
+wget https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-amd64.img
 ```
 
 This file is in QCOW2 format.
@@ -505,7 +492,7 @@ of VM's state from the past.
 Let's create an image backed by the Ubuntu cloud image that we have just downloaded:
 
 ```
-qemu-img create -F qcow2 -b jammy-server-cloudimg-arm64.img -f qcow2 ubuntu0.img 128G
+qemu-img create -F qcow2 -b jammy-server-cloudimg-amd64.img -f qcow2 ubuntu0.img 128G
 ```
 
 > [!NOTE]
@@ -525,13 +512,13 @@ and didn't use `-nodefaults`... Ok, let's stop being pedantic and drop it.
 We end up with a much simplified command:
 
 ```
-sudo qemu-system-aarch64 \
+sudo qemu-system-x86_64 \
     -nographic \
-    -machine virt,accel=hvf,highmem=on \
+    -machine q35,accel=kvm \
     -cpu host \
     -smp 2 \
     -m 2G \
-    -bios /opt/homebrew/share/qemu/edk2-aarch64-code.fd \
+    -bios /usr/share/qemu/OVMF.fd \
     -nic vmnet-shared \
     -hda ubuntu0.img
 ```
@@ -585,7 +572,7 @@ password: ubuntu
 > The `#cloud-config` is a magic comment that must be present at the beginning of `user-data` file to be picked up by `cloud-init`.
 
 Now we need to format a special ISO drive with these files. The drive must be labeled as `cidata` in order for `cloud-init` to recognize it.
-On macOS, the command to do this is `mkisofs` from `cdrtools` package. Let's build the ISO:
+Let's build the ISO:
 
 ```
 mkisofs -output cidata.iso -volid cidata -joliet -rock cloud-init/{user-data,meta-data}
@@ -606,7 +593,7 @@ We can deal with this in two ways:
 * Reset the VM to its initial state. We can do that simply by reformatting its image file, using the same
   command that was used to create it, i.e.
   ```
-  qemu-img create -F qcow2 -b jammy-server-cloudimg-arm64.img -f qcow2 ubuntu0.img 128G
+  qemu-img create -F qcow2 -b jammy-server-cloudimg-amd64.img -f qcow2 ubuntu0.img 128G
   ```
   This is where the QCOW2 format comes in handy - we effectively removed only the "diff" over the original cloud image.
 
@@ -621,13 +608,13 @@ We can deal with this in two ways:
 Now we can finally launch the VM and log in as `ubuntu` with `ubuntu` password:
 
 ```
-sudo qemu-system-aarch64 \
+sudo qemu-system-x86_64 \
     -nographic \
-    -machine virt,accel=hvf,highmem=on \
+    -machine q35,accel=kvm \
     -cpu host \
     -smp 2 \
     -m 2G \
-    -bios /opt/homebrew/share/qemu/edk2-aarch64-code.fd \
+    -bios /usr/share/qemu/OVMF.fd \
     -nic vmnet-shared \
     -hda ubuntu0.img \
     -drive file=cidata.iso,driver=raw,if=virtio
@@ -663,7 +650,7 @@ installing Kubernetes on it.
 
 1. [QEMU main page](https://qemu.org)
 2. [QEMU ELI5](https://medium.com/@tunacici7/qemu-eli5-part-1-introduction-957ae2f48de5) by Tuna Cici
-3. [`qemu-system-aarch64` manpage](https://manpages.debian.org/testing/qemu-system-arm/qemu-system-aarch64.1.en.html)
+3. [`qemu-system-x86_64` manpage](https://manpages.debian.org/testing/qemu-system-arm/qemu-system-x86_64.1.en.html)
 4. [`cloud-init`](https://canonical-cloud-init.readthedocs-hosted.com/en/latest/index.html)
 
 Next: [Preparing Environment for a VM Cluster](02_Preparing_Environment_for_a_VM_Cluster.md)

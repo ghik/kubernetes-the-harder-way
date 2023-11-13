@@ -1,7 +1,6 @@
 # Introduction
 
-This guide describes how to set up a production-like Kubernetes cluster on a local machine
-(optimized for macOS and Apple Silicon).
+This guide describes how to set up a production-like Kubernetes cluster on a local machine.
 
 The purpose is primarily educational: to understand better how Kubernetes works under the hood, what it is made of and how its 
 components fit together. For this reason we'll be doing everything _from scratch_, and we'll avoid using any "convenience" 
@@ -70,23 +69,34 @@ knowledge of its inner workings. This may be beneficial in several ways:
 
 ### Hardware and OS
 
-The computer this guide was created and tested on was a MacBook Pro M2 Max running macOS Ventura.
-This means that some of the commands and tools used here are specific to macOS and the Apple Silicon CPU
-architecture (also known as AArch64 or ARM64).
-
-While the guide itself currently targets Mac/ARM64, the reference scripts have been written to be multi-platform - 
-they also support Ubuntu/AMD64 (or any distribution using `apt`, `systemd`, and `netplan`).
+This version of the guide was prepared and tested on a laptop with Intel Core i7 CPU, running Ubuntu 22.04 (Jammy).
+It may be compatible with other Linux distributions, but it assumes usage of the following components:
+* `apt` for package management (Ubuntu default repos are assumed)
+* `systemd` for system initialization
+* `netplan` for network configuration
 
 Since we'll run several VMs at once, a decent amount of RAM is recommended, preferably at
 least 32GB.
 
 ### Software
 
-For completing this guide, you'll need the following packages:
+Use this script to install all the necessary software for this guide:
 
 ```bash
-brew install \
-  qemu wget curl cdrtools dnsmasq tmux cfssl kubernetes-cli helm
+sudo apt install -y apt-transport-https ca-certificates
+
+curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.28/deb/Release.key \
+  | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.28/deb/ /' \
+  | sudo tee /etc/apt/sources.list.d/kubernetes.list
+
+curl https://baltocdn.com/helm/signing.asc | sudo gpg --dearmor -o /usr/share/keyrings/helm.gpg
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/helm.gpg] https://baltocdn.com/helm/stable/debian/ all main" \
+  | sudo tee /etc/apt/sources.list.d/helm-stable-debian.list
+  
+sudo apt update
+sudo apt install -y \
+  qemu-system-x86 curl genisoimage dnsmasq tmux golang-cfssl nfs-kernel-server kubectl helm
 ```
 
 ## Scope
