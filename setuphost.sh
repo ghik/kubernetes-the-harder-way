@@ -25,6 +25,11 @@ EOF
 chmod 600 /etc/netplan/99-kubenet.yaml
 netplan apply
 
+cat <<EOF | tee /etc/sysctl.d/50-ip-forward.conf
+net.ipv4.ip_forward = 1
+EOF
+sysctl -p /etc/sysctl.d/50-ip-forward.conf
+
 cat <<EOF | tee /usr/local/bin/kubenet-nat.sh
 #!/usr/bin/env sh
 

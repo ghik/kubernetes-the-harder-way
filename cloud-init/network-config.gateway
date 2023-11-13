@@ -1,8 +1,8 @@
 network:
   version: 2
   ethernets:
-    enp0s1:
+    eth:
       match:
-        name: enp0s1
+        macaddress: '52:52:52:00:00:0$vmid'
       addresses: [192.168.1.21/32]
       dhcp4: true
