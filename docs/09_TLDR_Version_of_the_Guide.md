@@ -94,6 +94,13 @@ sudo USE_CILIUM=true ./setuphost.sh
 
 ## Launch and connect the VMs
 
+It is recommended to have the following settings in `~/.tmux.conf`:
+
+```
+set -g mouse on
+bind C-s setw synchronize-panes
+```
+
 Launch the VMs (in a detached `tmux` session):
 
 ```bash

@@ -363,7 +363,7 @@ sudo qemu-system-aarch64 \
     -nic vmnet-shared
 ```
 
-Let's log into Ubuntu and run the `ip addr` command. We can see a new `enp0s1` virtual ethernet interface with a nicely
+Let's log into Ubuntu and run the `ip addr` command. We can see a new virtual ethernet interface with a nicely
 assigned IP address:
 
 <img width="656" alt="image" src="images/vm_interface.png">
