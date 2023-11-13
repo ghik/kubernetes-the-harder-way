@@ -11,7 +11,7 @@ if [[ "$EUID" -ne 0 ]]; then
   exit 1
 fi
 
-vmaddr=$(ip addr show enp0s1 | grep -Po 'inet \K192\.168\.1\.\d+')
+vmaddr=$(ip addr show | grep -Po 'inet \K192\.168\.1\.1\d+')
 vmname=$(hostname -s)
 
 # etcd
@@ -33,7 +33,6 @@ Documentation=https://github.com/coreos
 
 [Service]
 Type=notify
-Environment=ETCD_UNSUPPORTED_ARCH=${arch}
 ExecStart=/usr/local/bin/etcd \\
   --name $vmname \\
   --cert-file=/etc/etcd/kubernetes.pem \\

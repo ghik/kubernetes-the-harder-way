@@ -5,8 +5,8 @@
 set -xe
 dir=$(dirname "$0")
 
-# Grab our helpers
 source "$dir/helpers.sh"
+source "$dir/variables.sh"
 
 # Parse the argument
 vmid=$1
@@ -20,13 +20,18 @@ vmtype=${vmname%%[0-9]*}
 mkdir -p "$vmdir"
 
 # Prepare the VM disk image
-qemu-img create -F qcow2 -b ../jammy-server-cloudimg-arm64.img -f qcow2 "$vmdir/disk.img" 20G
+qemu-img create -F qcow2 -b ../jammy-server-cloudimg-${arch}.img -f qcow2 "$vmdir/disk.img" 20G
 
 # Prepare `cloud-init` config files
 cat << EOF > "$vmdir/meta-data"
 instance-id: $vmname
 local-hostname: $vmname
 EOF
+
+if [[ ! -f ~/.ssh/id_rsa.pub ]]; then
+  echo "No SSH public key found for current user. Generate it with ssh-keygen." >&2
+  exit 1
+fi
 
 # Evaluate `user-data` "bash template" for this VM type and save the result
 eval "cat << EOF

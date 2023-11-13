@@ -233,7 +233,7 @@ sudo qemu-system-aarch64 \
 ```
 
 The machine should run, and you should be able to log in, 
-like we've done in the [previous chapter](QEMU.md#running-a-cloud-image).
+like we've done in the [previous chapter](01_Learning_How_to_Run_VMs_with_QEMU.md#running-a-cloud-image).
 
 ## Shared network setup
 
@@ -427,10 +427,11 @@ sudo qemu-system-aarch64 \
     -drive file=gateway/cidata.iso,driver=raw,if=virtio
 ```
 
-Run `ip addr show enp0s1` on the VM to see if it got the right IP:
+Run `ip addr` on the VM to see if it got the right IP:
 
 ```
-ubuntu@gateway:~$ ip addr show enp0s1
+ubuntu@gateway:~$ ip addr
+...
 2: enp0s1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
     link/ether 52:52:52:00:00:00 brd ff:ff:ff:ff:ff:ff
     inet 192.168.1.10/24 metric 100 brd 192.168.1.255 scope global dynamic enp0s1
@@ -510,7 +511,7 @@ ssh_authorized_keys:
 > The amount of repetition is however small enough that getting rid of it would not be worth 
 > the cost in additional complexity (the templating already makes things complex).
 
-> [!WARNING]
+> [!IMPORTANT]
 > Remember that any changes in `cloud-init` configs require resetting the VM state (reformatting its disk image)
 > or changing the `instance-id` in order to take effect.
 
@@ -566,10 +567,12 @@ vmid=$1
 vmname=$(id_to_name "$vmid")
 
 # Wait until the VM is ready to accept SSH connections
-until nc -zG120 "$vmname" 22; do sleep 1; done
+until nc -zw 10 "$vmname" 22; do sleep 1; done
 
 # Remove any stale entries for this VM from known_hosts
-sed -i '' "/^$vmname/d" ~/.ssh/known_hosts
+if [[ -f ~/.ssh/known_hosts ]]; then
+  sed -i '' "/^$vmname/d" ~/.ssh/known_hosts
+fi
 
 # Add new entries for this VM to known_hosts
 ssh-keyscan "$vmname" 2> /dev/null >> ~/.ssh/known_hosts

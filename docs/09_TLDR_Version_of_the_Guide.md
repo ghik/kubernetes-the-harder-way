@@ -68,6 +68,12 @@ Download the base image:
 wget https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-arm64.img
 ```
 
+Make sure you have an SSH public key (`~/.ssh/id_rsa.pub`). If not, generate with:
+
+```bash
+ssh-keygen
+```
+
 Set up VM images and configs:
 
 ```bash
@@ -87,6 +93,13 @@ sudo USE_CILIUM=true ./setuphost.sh
 ```
 
 ## Launch and connect the VMs
+
+It is recommended to have the following settings in `~/.tmux.conf`:
+
+```
+set -g mouse on
+bind C-s setw synchronize-panes
+```
 
 Launch the VMs (in a detached `tmux` session):
 

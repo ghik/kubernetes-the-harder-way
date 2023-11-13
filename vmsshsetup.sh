@@ -14,10 +14,12 @@ vmid=$1
 vmname=$(id_to_name "$vmid")
 
 # Wait until the VM is ready to accept SSH connections
-until nc -zG120 "$vmname" 22; do sleep 1; done
+until nc -zw 10 "$vmname" 22; do sleep 1; done
 
 # Remove any stale entries for this VM from known_hosts
-sed -i '' "/^$vmname/d" ~/.ssh/known_hosts
+if [[ -f ~/.ssh/known_hosts ]]; then
+  sedi "/^$vmname/d" ~/.ssh/known_hosts
+fi
 
 # Add new entries for this VM to known_hosts
 ssh-keyscan "$vmname" 2> /dev/null >> ~/.ssh/known_hosts

@@ -265,8 +265,6 @@ metadata:
 spec:
   ipAddressPools:
     - lb-pool
-  interfaces:
-    - enp0s1
 EOF
 ```
 

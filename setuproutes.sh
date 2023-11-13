@@ -12,6 +12,15 @@ if [[ "$EUID" -ne 0 ]]; then
   exit 1
 fi
 
+add_route() {
+  net=$1
+  via=$2
+  case $(uname -s) in
+    Darwin) route -n add -net "$net" "$via";;
+    Linux) ip route add "$net" via "$via";;
+  esac
+}
+
 for vmid in $(seq 1 6); do
-  route -n add -net 10.${vmid}.0.0/16 192.168.1.$((10 + $vmid))
+  add_route 10.${vmid}.0.0/16 192.168.1.$((10 + $vmid))
 done

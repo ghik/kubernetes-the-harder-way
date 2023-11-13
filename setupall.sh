@@ -10,7 +10,18 @@ sudo -v
 
 export USE_CILIUM
 
-brew install qemu wget curl cdrtools dnsmasq tmux cfssl kubernetes-cli helm
+case $(uname -s) in
+  Darwin)
+    brew install \
+      qemu wget curl cdrtools dnsmasq tmux cfssl kubernetes-cli helm
+    ;;
+
+  Linux)
+    sudo "$dir/addaptrepos.sh"
+    sudo apt install -y \
+      qemu-system-x86 curl genisoimage dnsmasq tmux golang-cfssl nfs-kernel-server kubectl helm
+    ;;
+esac
 
 cd "$dir/auth"
 ./genauth.sh

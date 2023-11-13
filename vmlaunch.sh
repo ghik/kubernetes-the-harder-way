@@ -28,16 +28,33 @@ esac
 # Compute the MAC address
 mac="52:52:52:00:00:0$vmid"
 
+case $(uname -m) in
+  arm64|aarch64) qemucmd=qemu-system-aarch64;;
+  x86_64|amd64) qemucmd=qemu-system-x86_64;;
+esac
+
+case $(uname -s) in
+  Darwin)
+    qemu_version=$($qemucmd --version | head -n 1 | sed "s/^QEMU emulator version //")
+    efi="/opt/homebrew/Cellar/qemu/$qemu_version/share/qemu/edk2-aarch64-code.fd"
+    machine="virt,accel=hvf,highmem=on"
+    nic="vmnet-shared,start-address=192.168.1.1,end-address=192.168.1.20,subnet-mask=255.255.255.0"
+    ;;
+  Linux)
+    efi="/usr/share/qemu/OVMF.fd"
+    machine="q35,accel=kvm"
+    nic="tap,script=$dir/tapup.sh"
+    ;;
+esac
+
 # Launch the VM
-qemu_version=$(qemu-system-aarch64 --version | head -n 1 | sed "s/^QEMU emulator version //")
-qemu-system-aarch64 \
+$qemucmd \
     -nographic \
-    -machine virt,accel=hvf,highmem=on \
+    -machine $machine \
     -cpu host \
     -smp $vcpus \
     -m $memory \
-    -bios "/opt/homebrew/Cellar/qemu/$qemu_version/share/qemu/edk2-aarch64-code.fd" \
-    -nic vmnet-shared,start-address=192.168.1.1,end-address=192.168.1.20,subnet-mask=255.255.255.0,"mac=$mac" \
+    -bios "$efi" \
+    -nic "$nic,mac=$mac" \
     -hda "$vmdir/disk.img" \
     -drive file="$vmdir/cidata.iso",driver=raw,if=virtio
-

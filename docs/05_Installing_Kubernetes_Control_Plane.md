@@ -398,9 +398,9 @@ network:
       match:
         name: lo
       addresses: [192.168.1.21/32]
-    enp0s1:
+    eth:
       match:
-        name: enp0s1
+        name: enp*
       dhcp4: true
 ```
 
@@ -448,7 +448,7 @@ nodes, we want the `gateway` VM to publicly admit the ownership of this address 
 to configure it on loopback (although it would work too) nor to change any kernel network options.
 
 ```bash
-sudo ip addr add 192.168.1.21/32 dev enp0s1
+sudo ip addr add 192.168.1.21/32 dev <interface-name>
 ```
 
 ...or in `cloud-init/network-config.gateway`:
@@ -457,9 +457,9 @@ sudo ip addr add 192.168.1.21/32 dev enp0s1
 network:
   version: 2
   ethernets:
-    enp0s1:
+    eth:
       match:
-        name: enp0s1
+        name: enp*
       addresses: [192.168.1.21/32]
       dhcp4: true
 ```
