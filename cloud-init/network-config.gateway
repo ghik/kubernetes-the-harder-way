@@ -3,6 +3,6 @@ network:
   ethernets:
     eth:
       match:
-        name: enps*
+        name: enp*
       addresses: [192.168.1.21/32]
       dhcp4: true
