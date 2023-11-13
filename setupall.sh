@@ -17,7 +17,7 @@ case $(uname -s) in
     ;;
 
   Linux)
-    "$dir/addaptrepos.sh"
+    sudo "$dir/addaptrepos.sh"
     sudo apt install -y \
       qemu-system-x86 curl genisoimage dnsmasq tmux golang-cfssl nfs-kernel-server kubectl helm
     ;;
