@@ -1,3 +1,5 @@
+\[ [macOS/ARM64](../../macos/docs/01_Learning_How_to_Run_VMs_with_QEMU.md) | **Linux/AMD64** \]
+
 Previous: [Introduction](00_Introduction.md)
 
 # Learning How to Run VMs with QEMU

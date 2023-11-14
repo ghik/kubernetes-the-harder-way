@@ -1,3 +1,5 @@
+\[ [macOS/ARM64](../../macos/docs/03_Launching_the_VM_Cluster.md) | **Linux/AMD64** \]
+
 Previous: [Preparing Environment for a VM Cluster](02_Preparing_Environment_for_a_VM_Cluster.md)
 
 # Launching the VM Cluster
