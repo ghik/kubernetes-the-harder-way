@@ -556,16 +556,33 @@ We need to remedy this by adding appropriate routes on the host machine:
 
 ```bash
 for vmid in $(seq 1 6); do
-  sudo route -n add -net 10.${vmid}.0.0/16 192.168.1.$((10 + $vmid))
+  sudo ip route add 10.${vmid}.0.0/16 via 192.168.1.$((10 + $vmid))
 done
 ```
 
-> [!NOTE]
-> This is a macOS specific command.
+We can also make these routes persistent. Edit the `/etc/netplan/99-kubenet.yaml` file that we have
+[previously created](02_Preparing_Environment_for_a_VM_Cluster.md#virtual-bridge), and make sure it looks like this:
 
-> [!IMPORTANT]
-> Make sure routes are added while at least one VM is running, so that the bridge interface exists.
-> Unfortunately, if you stop all the VMs, the routes will be deleted.
+```yaml
+network:
+  version: 2
+  bridges:
+    kubr0:
+      addresses: [192.168.1.1/24]
+      routes:
+      - to: 10.1.0.0/16
+        via: 192.168.1.1
+      - to: 10.2.0.0/16
+        via: 192.168.1.2
+      - to: 10.3.0.0/16
+        via: 192.168.1.3
+      - to: 10.4.0.0/16
+        via: 192.168.1.4
+      - to: 10.5.0.0/16
+        via: 192.168.1.5
+      - to: 10.6.0.0/16
+        via: 192.168.1.6
+```
 
 A better solution to this problem would be to use a CNI implementation that does not expose
 cluster-internal IP addresses to the nodes' network. We'll do that in an 

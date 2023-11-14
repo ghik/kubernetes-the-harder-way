@@ -441,6 +441,12 @@ packages:
   - ldirectord
 ```
 
+> [!NOTE]
+> You may wonder why we are wasting resources on a dedicated VM just for load balancing when we could configure
+> it directly on the host machine (which also runs Linux). The main reason is simply to keep the differences between 
+> macOS and Linux versions of this guide as small as possible. Having a separate VM also reflects a "production"
+> environment somewhat better, where a load balancer is usually a physically separate, specialized piece of hardware.
+
 #### Adding the virtual IP
 
 Just like the control nodes, the `gateway` machine must recognize the virtual IP as its own. Unlike for control

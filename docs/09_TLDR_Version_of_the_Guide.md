@@ -23,7 +23,8 @@ scripts shipped with this repository.
 ## Install necessary software
 
 ```bash
-brew install qemu wget curl cdrtools dnsmasq tmux cfssl kubernetes-cli helm
+sudo ./addaptrepos.sh
+sudo apt install -y qemu-system-x86 curl genisoimage dnsmasq tmux golang-cfssl nfs-kernel-server kubectl helm
 ```
 
 ## Clone the repository
