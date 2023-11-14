@@ -470,7 +470,7 @@ and didn't use `-nodefaults`... Ok, let's stop being pedantic and drop it.
 We end up with a much simplified command:
 
 ```
-sudo qemu-system-x86_64 \
+qemu-system-x86_64 \
     -nographic \
     -machine q35,accel=kvm \
     -cpu host \
@@ -566,7 +566,7 @@ We can deal with this in two ways:
 Now we can finally launch the VM and log in as `ubuntu` with `ubuntu` password:
 
 ```
-sudo qemu-system-x86_64 \
+qemu-system-x86_64 \
     -nographic \
     -machine q35,accel=kvm \
     -cpu host \
