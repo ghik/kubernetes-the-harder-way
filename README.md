@@ -6,8 +6,9 @@ It is written in the spirit, and with inspirations from Kelsey Hightower's [Kube
 and may be considered its lengthier, extended version, optimized for a local deployment.
 
 This repository contains the guide itself, as well as scripts and configuration files that serve as a
-reference result of completing the guide. The guide comes in two versions: for macOS/ARM64 (Apple Silicon)
-and for Linux/AMD64 (Ubuntu). The scripts work on both platforms (there are no separate versions).
+reference result of completing the guide. The guide comes in two versions: for 
+[macOS/ARM64](https://github.com/ghik/kubernetes-the-harder-way/tree/macos#chapters) (Apple Silicon)
+and for **Linux/AMD64** (Ubuntu). The scripts work on both platforms (there are no separate versions).
 
 ## License
 
