@@ -106,7 +106,7 @@ What we're currently simulating is like a bare-bones computer without any hard d
 
 You should see a window with the QEMU monitor console:
 
-<img width="656" alt="image" src="images/qemu_console.png">
+<img width="500" alt="image" src="images/qemu_console.png">
 
 There isn't anything particularly interesting about it, but it's a good opportunity to learn some basic QEMU controls. 
 The console itself gives a bunch of [commands](https://en.wikibooks.org/wiki/QEMU/Monitor) for things like stopping or resuming a running VM.
@@ -192,7 +192,7 @@ qemu-system-aarch64 \
 
 Now if you go to the serial console (using `Ctrl`+`Opt`+`2` in the QEMU window), you should see the UEFI running:
 
-<img width="656" alt="image" src="images/uefi_console.png">
+<img width="500" alt="image" src="images/uefi_console.png">
 
 We haven't provided any drive with an actual operating system though, so nothing boots up and UEFI defaults to a console.
 
@@ -278,11 +278,11 @@ qemu-system-aarch64 \
 If you now go to the serial console (using `Ctrl`+`Opt`+`2` in the QEMU window), you'll see that UEFI has picked up the 
 new drive and detected a system on it:
 
-<img width="656" alt="image" src="images/grub_menu.png">
+<img width="500" alt="image" src="images/grub_menu.png">
 
 Hit enter and launch the system. Soon you should see a login screen:
 
-<img width="656" alt="image" src="images/ubuntu_login.png">
+<img width="500" alt="image" src="images/ubuntu_login.png">
 
 Log in as `ubuntu` and you're in.
 
@@ -361,7 +361,7 @@ sudo qemu-system-aarch64 \
 Let's log into Ubuntu and run the `ip addr` command. We can see a new virtual ethernet interface with a nicely
 assigned IP address:
 
-<img width="656" alt="image" src="images/vm_interface.png">
+<img width="500" alt="image" src="images/vm_interface.png">
 
 You can also run `ping google.com` to confirm internet access.
 
@@ -398,7 +398,7 @@ sudo qemu-system-aarch64 \
 
 And here it is running:
 
-<img width="1282" alt="image" src="images/ubuntu_graphic.png">
+<img width="750" alt="image" src="images/ubuntu_graphic.png">
 
 ### Disk drive
 
@@ -540,7 +540,7 @@ sudo qemu-system-aarch64 \
 
 Run it, and soon you should see logs of the Linux kernel starting in the terminal, followed by a login prompt:
 
-<img width="767" alt="image" src="images/ubuntu_headless.png">
+<img width="500" alt="image" src="images/ubuntu_headless.png">
 
 You can switch between serial port output and QEMU monitor console using `Ctrl`+`A` followed by `C`.
 You can also kill the VM with `Ctrl`+`A` followed by `X`. For a help on these keyboard shortcuts, use `Ctrl`+`A` followed by `H`.
