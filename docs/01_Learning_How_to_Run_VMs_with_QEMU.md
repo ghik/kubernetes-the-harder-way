@@ -103,19 +103,20 @@ qemu-system-x86_64 \
 Note that we haven't specified any drives yet, and as a result, there's no operating system to boot.
 What we're currently simulating is like a bare-bones computer without any hard drive or CDROM plugged in.
 
-You should see a window with the QEMU monitor console:
+You should see a window with a bootloader output informing us of an (expected) failure when trying to boot an
+operating system.
+
+There isn't anything particularly interesting about it, but it's a good opportunity to learn some basic QEMU controls. 
+The QEMU window has several "tabs". In this case, the default one contains machine's virtualized VGA output.
+You can switch tabs using the drop-down "View" menu, or with keyboard shortcuts: `Ctrl`+`Alt`+`1`/`2`/`3`/etc.
+
+One of the "tabs" contains the QEMU _monitor console_. It provides a set of [commands](https://en.wikibooks.org/wiki/QEMU/Monitor) 
+for controlling VM's execution (stopping, pausing, resuming, etc.).
 
 <img width="656" alt="image" src="images/qemu_console.png">
 
-There isn't anything particularly interesting about it, but it's a good opportunity to learn some basic QEMU controls. 
-The console itself gives a bunch of [commands](https://en.wikibooks.org/wiki/QEMU/Monitor) for things like stopping or resuming a running VM.
-
-What might not be apparent, though, is that this window has other "tabs" (terminals). Try hitting `Ctrl`+`Opt`+`2` or `Ctrl`+`Opt`+`3` and you should
-see the output of serial and parallel ports. This is where we're going to see our operating system running. You can always go back to
-the monitor console with `Ctrl`+`Opt`+`1`.
-
 > [!NOTE]
-> If you click on the QEMU window, it will capture your mouse. Hit `Ctrl`+`Opt`+`G` to release it.
+> If you click on the QEMU window, it will capture your mouse. Hit `Ctrl`+`Alt`+`G` to release it.
 
 In order to kill the machine, type `quit` into the console, close the window or kill the process from the terminal.
 
@@ -151,11 +152,12 @@ qemu-system-x86_64 \
 
 ### UEFI
 
-In order to start an operating system, we are first going to need something to boot it up, i.e. a BIOS or UEFI, on an emulated, read-only flash drive.
-QEMU uses BIOS by default. However, since BIOS is largely obsolete, we'll UEFI flash drive instead.
+In order to start an operating system, we are first going to need something to boot it up, i.e. a BIOS or UEFI, 
+on an emulated, read-only flash drive. QEMU uses BIOS by default. However, since BIOS is largely obsolete and 
+unavailable on some of the modern hardware (e.g. Apple Silicon), we'll use UEFI flash drive instead.
 
-QEMU comes with bundled, open source impelementation of UEFI firmware called OVMF (Open Virtual Machine Firmware), which is a port of
-proprietary Intel UEFI implementation (TianoCore). You should be able to find it in this location:
+QEMU comes with a bundled, open source implementation of UEFI firmware called OVMF (Open Virtual Machine Firmware), 
+which is a port of a proprietary Intel UEFI implementation (TianoCore). You should be able to find it in:
 
 ```
 /usr/share/qemu/OVMF.fd
@@ -189,7 +191,7 @@ qemu-system-x86_64 \
     -bios /usr/share/qemu/OVMF.fd
 ```
 
-Now if you go to the serial console (using `Ctrl`+`Opt`+`2` in the QEMU window), you should see the UEFI running:
+Now if you go to the serial console (using `Ctrl`+`Alt`+`2` in the QEMU window), you should see the UEFI running:
 
 <img width="656" alt="image" src="images/uefi_console.png">
 
@@ -271,7 +273,7 @@ qemu-system-x86_64 \
     -cdrom jammy-desktop-amd64.iso
 ```
 
-If you now go to the serial console (using `Ctrl`+`Opt`+`2` in the QEMU window), you'll see that UEFI has picked up the 
+If you now go to the serial console (using `Ctrl`+`Alt`+`2` in the QEMU window), you'll see that UEFI has picked up the 
 new drive and detected a system on it:
 
 <img width="656" alt="image" src="images/grub_menu.png">
