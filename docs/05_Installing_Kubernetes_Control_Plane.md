@@ -103,7 +103,7 @@ for that purpose.
 Let's define some reusable shell variables to use throughout this chapter:
 
 ```bash
-arch=arm64
+arch=amd64
 
 etcd_version=3.5.9
 k8s_version=1.28.3

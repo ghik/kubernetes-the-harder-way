@@ -83,7 +83,7 @@ from regular pod scheduling, and we'll take advantage of that.
 Let's define some reusable shell variables for this chapter. Run this in the SSH shell on all control & worker nodes:
 
 ```bash
-arch=arm64
+arch=amd64
 k8s_version=1.28.3
 cri_version=1.28.0
 runc_version=1.1.9
