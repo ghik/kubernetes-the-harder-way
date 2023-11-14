@@ -1,5 +1,3 @@
-Next: [Learning how to Run VMs with QEMU](01_Learning_How_to_Run_VMs_with_QEMU.md)
-
 # Introduction
 
 This guide describes how to set up a production-like Kubernetes cluster on a local machine.
