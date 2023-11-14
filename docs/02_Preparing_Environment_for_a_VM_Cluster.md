@@ -71,6 +71,11 @@ Before we start doing anything, let's have a clean directory for all of our work
 mkdir kubenet && cd kubenet
 ```
 
+> [!IMPORTANT]
+> Make sure this is a _clean_ directory, i.e. do not reuse scripts and files from the guide's repository.
+> They serve only as a reference and represent the final outcome of completing **all** the chapters.
+> They are also used in the [express variant](09_TLDR_Version_of_the_Guide.md) of this guide.
+
 Now let's create a helper function to convert a VM ID into VM name, and put it into
 the `helpers.sh` file that can be later included into other scripts:
 
@@ -412,9 +417,16 @@ sudo ./restartdnsmasq.sh
 
 ### Testing the network setup
 
-Let's run the `gateway` VM to test what we just configured:
+Let's run the `gateway` VM to test what we just configured. Make sure to reformat its image, to clear any
+network configuration that may have been persisted in a previous run:
 
+```bash
+./vmsetup.sh 0
 ```
+
+Run it:
+
+```bash
 sudo qemu-system-aarch64 \
     -nographic \
     -machine virt,accel=hvf,highmem=on \
