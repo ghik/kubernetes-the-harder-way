@@ -1,12 +1,13 @@
 # Kubernetes the Harder Way
 
-A guide to setting up a production-like Kubernetes cluster on a local machine.
+A guide to setting up a production-like Kubernetes cluster on a local machine 
+(currently written for macOS & Apple Silicon).
 
 It is written in the spirit, and with inspirations from Kelsey Hightower's [Kubernetes the Hard Way](https://github.com/kelseyhightower/kubernetes-the-hard-way), 
 and can be treated as its lengthier, extended version, optimized for a local deployment.
 
 This repository contains the guide itself, as well as scripts and configuration files that serve as a
-"reference" result of completing the guide. While the guide is written for MacOS/ARM64 (Apple Silicon), the scripts
+reference result of completing the guide. While the guide is written for macOS/ARM64 (Apple Silicon), the scripts
 are multi-platform and should also work on Ubuntu/AMD64.
 
 ## License
