@@ -74,9 +74,8 @@ The computer this guide was created and tested on was a MacBook Pro M2 Max runni
 This means that some of the commands and tools used here are specific to macOS and the Apple Silicon CPU
 architecture (also known as AArch64 or ARM64).
 
-In principle however, everything should be portable to Linux & Intel/AMD with relatively
-small effort (see the [guidelines](../README.md#guidelines-for-porting-the-guide-to-linuxx86_64)).
-Having it run on Windows would probably require more work, though.
+While the guide itself currently targets Mac/ARM64, the reference scripts have been written to be multi-platform - 
+they also support Ubuntu/AMD64 (or any distribution using `apt`, `systemd`, and `netplan`).
 
 Since we'll run several VMs at once, a decent amount of RAM is recommended, preferably at
 least 32GB.
