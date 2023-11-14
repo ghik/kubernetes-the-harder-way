@@ -9,5 +9,6 @@ nfs-pvs/
 .idea/
 bin/
 *.img
+*.iso
 *.swp
 *~

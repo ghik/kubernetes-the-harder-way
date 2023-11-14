@@ -560,9 +560,6 @@ for vmid in $(seq 1 6); do
 done
 ```
 
-> [!NOTE]
-> This is a macOS specific command.
-
 > [!IMPORTANT]
 > Make sure routes are added while at least one VM is running, so that the bridge interface exists.
 > Unfortunately, if you stop all the VMs, the routes will be deleted.

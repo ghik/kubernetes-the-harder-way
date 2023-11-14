@@ -584,11 +584,6 @@ ssh-keyscan "$vmname" 2> /dev/null >> ~/.ssh/known_hosts
 until ssh "ubuntu@$vmname" exit; do sleep 1; done
 ```
 
-> [!WARNING]
-> There are [differences](https://unix.stackexchange.com/questions/13711/differences-between-sed-on-mac-osx-and-other-standard-sed)
-> between `sed` implementations for various Unix platforms. The `sed` invocation from this script is for macOS and may not
-> work on Linux.
-
 Let's break it down:
 
 1. Just like `vmsetup.sh`, `vmsshsetup.sh` takes VM ID as an argument.
