@@ -27,7 +27,6 @@ for learning. You may jump straight into the [next chapter](02_Preparing_Environ
   - [UEFI](#uefi)
 - [Running a Ubuntu Live CD](#running-a-ubuntu-live-cd)
   - [Adding a network](#adding-a-network)
-  - [Graphics and peripherals](#graphics-and-peripherals)
   - [Disk drive](#disk-drive)
 - [Running a cloud image](#running-a-cloud-image)
   - [The cloud image](#the-cloud-image)
