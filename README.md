@@ -17,7 +17,7 @@ This guide follows the license of the original
 
 ## Chapters
 
-\[ **macOS/ARM64** | [Linux/AMD64](/kubernetes-the-harder-way/tree/linux#chapters) \]
+\[ [macOS/ARM64](/kubernetes-the-harder-way/tree/macos#chapters) | **Linux/AMD64** \]
 
 0. [Introduction](docs/00_Introduction.md)
 1. [Learning How to Run VMs with QEMU](docs/01_Learning_How_to_Run_VMs_with_QEMU.md)
