@@ -8,7 +8,7 @@ and can be treated as its lengthier, extended version, optimized for a local dep
 
 This repository contains the guide itself, as well as scripts and configuration files that serve as a
 reference result of completing the guide. While the guide is written for macOS/ARM64 (Apple Silicon), the scripts
-are multi-platform and should also work on Ubuntu/AMD64.
+are multi-platform and have been tested on macOS/ARM64 and Ubuntu/AMD64.
 
 ## License
 
@@ -31,25 +31,22 @@ This guide follows the license of the original
 
 ## Guidelines for porting the guide to Linux/x86_64
 
-Adapting this guide to the x86_64 CPU architecture should be fairly easy and includes:
+Adapting this guide to the x86_64 CPU architecture requires minor changes:
 * changing the QEMU command from `qemu-system-aarch64` to `qemu-system-x86_64`
 * changing the OVMF (UEFI) binary from `edk2-aarch64-code.fd` to `edk2-x86_64-code.fd`
 * changing the architecture of Ubuntu images from `arm64` to `amd64`
 * changing the architecture of Kubernetes, container runtime & CNI binaries from `arm64` to `amd64`
 
 Porting the guide to Linux would require some more work:
-* Different network interface for QEMU VMs, in place of `vmnet-shared` \
-  This would likely require some manual network configuration on the host machine (e.g. setting up a bridge, a `tap` 
-  device and NAT), but ultimately should result in a simpler and more robust configuration, as Linux is more flexible 
-  in this regard than macOS (e.g. no problems with the [ephemeral nature](docs/02_Preparing_Environment_for_a_VM_Cluster.md#restarting-dnsmasq) 
-  of bridge interfaces created by `vmnet`)
-* Linux-specific package manager (e.g. `apt`, `yum`) in place of `homebrew`
-* Linux-specific command (e.g. `systemctl`) for restarting services in place of `brew services` and `nfsd`
-* running VMs (using QEMU) with `accel=kvm` instead of `accel=hvf`
-* different tool for formatting ISO images, in place of `mkisofs`
-* different location of `dnsmasq` configuration file
-* different command for configuring routing on the host machine
-* minor differences in some commands, e.g. `sed`
+* Solving the problem of [QEMU serial console not displaying the login prompt]()
+* Using different QEMU machine type and hypervisor, i.e. `q35,accel=kvm` instead of `virt,accel=hvf`
+* Using different network interface for QEMU VMs, i.e. `tap` backend instead of `vmnet-shared`
+* Using Linux-specific package manager (e.g. `apt`, `yum`) in place of `homebrew`
+* Using Linux-specific commands (e.g. `systemctl`) for restarting services in place of `brew services` and `nfsd`
+* Different command for configuring routing on the host machine (`ip route` in place of `route`)
+* Minor differences in some commands, e.g. `sed`, `nc`
+* Minor differences in some paths, e.g. `dnsmasq` configuration file
 
-Out of these changes, only the setup of VM network interface seems to be potentially not trivial to port
-(but not necessarily hard).
+All of these changes have already been included into reference scripts and tested on Ubuntu/AMD64.
+While it is fine for scripts to be multi-platform, the text of the guide would become extremely unwieldy if it
+tried to cover more than one platform. Therefore, a completely separate version is necessary for Linux.
