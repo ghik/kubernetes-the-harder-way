@@ -3,7 +3,7 @@ Previous: [Preparing Environment for a VM Cluster](02_Preparing_Environment_for_
 # Launching the VM Cluster
 
 The network is configured, and we have all the VM images and configs prepared.
-It's time to automate launching the entire cluster of VMs.
+It's time to automate launching an entire cluster of VMs.
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
@@ -33,7 +33,7 @@ It's time to automate launching the entire cluster of VMs.
 
 ## Prerequisites
 
-Make sure you have all the necessary [packages](00_Introduction.md#software) installed and you have completed
+Make sure you have all the necessary [packages](00_Introduction.md#software) installed, and that you have completed
 the [previous chapter](02_Preparing_Environment_for_a_VM_Cluster.md).
 
 ## Granting resources
@@ -95,6 +95,7 @@ qemu-system-aarch64 \
 Give it executable permissions and test it on the `gateway` VM:
 
 ```
+./vmsetup.sh 0
 sudo ./vmlaunch.sh 0
 ```
 
@@ -153,7 +154,7 @@ have a built-in keyboard shortcut. For example, `:next-window` and `:previous-wi
 `Ctrl`+`b`,`n` and `Ctrl`+`b`,`p` shortcuts. You can also use `Ctrl`+`b`,\<window-number\> to switch windows by numbers.
 
 > [!NOTE]
-> `Ctrl`+`b` is called the _prefix_ and it precedes every keyboard shortcut.
+> `Ctrl`+`b` is called the _prefix_, and it precedes every keyboard shortcut.
 
 There are several online resources you can use to explore the vastness of `tmux` capabilities.
 For example, [here's a cheatsheet](https://tmuxcheatsheet.com/) with the most essential shortcuts.
