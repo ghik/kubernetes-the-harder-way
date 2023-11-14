@@ -257,7 +257,7 @@ This is also a good moment to explicitly assign the number of virtual CPUs to ou
 > between the host and guest CPUs. It is even possible for a VM to have more CPUs than there are present on the
 > host machine.
 
-Ubuntu images for AMD64 use VGA as the primary output (they don't write on serial port). For this reason,
+Ubuntu images for AMD64 use VGA as the primary output (serial port is not used). For this reason,
 let's replace the serial console (`-serial vc`) with a VGA device (`-vga std`).
 
 Ultimately we end up with this command:
@@ -284,7 +284,7 @@ Hit enter and launch the system. Soon you should see a welcome screen:
 
 <img width="1044" alt="image" src="images/ubuntu_welcome.png">
 
-Log in as `ubuntu` and you're in.
+Click "Try Ubuntu" to log in.
 
 Congratulations! You've successfully run a Linux distribution using raw QEMU.
 
@@ -348,8 +348,7 @@ qemu-system-x86_64 \
     -nic user
 ```
 
-On Ubuntu Welcome screen, click "Try Ubuntu". If you look into network settings, you can see the newly configured
-interface:
+If you look into network settings within the VM, you can see the newly configured interface:
 
 <img width="583" alt="image" src="images/network_details.png">
 
@@ -600,7 +599,7 @@ In this chapter, we have:
 * learnt the basic principles of a _hypervisor_ and _hardware assisted_ virtualization
 * learnt how to launch QEMU and how to craft a virtual machine from its vast set of options
 * learnt how to work with VM images
-* learnt how to succesfully launch a headless cloud image and initialize it using `cloud-init`
+* learnt how to successfully launch a headless cloud image and initialize it using `cloud-init`
 
 In the next chapter, we will proceed to build a multi-machine cluster in preparation for
 installing Kubernetes on it.
