@@ -423,7 +423,7 @@ in order to prepare a more server-like distribution. Here's what's going to chan
 Cloud image is a disk image with a preinstalled Ubuntu distribution. It is optimized for server usage (headless) and
 requires some additional, automated preconfiguration (e.g. to set up remote SSH access).
 
-Let's download a Jammy cloud image for AArch64:
+Let's download a Jammy cloud image for AMD64:
 
 ```
 wget https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-amd64.img
