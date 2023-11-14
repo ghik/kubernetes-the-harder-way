@@ -282,7 +282,7 @@ When you run the machine, you'll see that UEFI has picked up the new drive and d
 
 Hit enter and launch the system. Soon you should see a welcome screen:
 
-<img width="750" alt="image" src="images/ubuntu_welcome.png">
+<img width="550" alt="image" src="images/ubuntu_welcome.png">
 
 Click "Try Ubuntu" to log in.
 
