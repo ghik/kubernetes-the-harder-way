@@ -115,7 +115,7 @@ You can switch tabs using the drop-down "View" menu, or with keyboard shortcuts:
 One of the "tabs" contains the QEMU _monitor console_. It provides a set of [commands](https://en.wikibooks.org/wiki/QEMU/Monitor) 
 for controlling VM's execution (stopping, pausing, resuming, etc.).
 
-<img width="656" alt="image" src="images/qemu_console.png">
+<img width="1312" alt="image" src="images/qemu_console.png">
 
 > [!NOTE]
 > If you click on the QEMU window, it will capture your mouse. Hit `Ctrl`+`Alt`+`G` to release it.
@@ -195,7 +195,7 @@ qemu-system-x86_64 \
 
 Now if you go to the serial console (using `Ctrl`+`Alt`+`2` in the QEMU window), you should see the UEFI running:
 
-<img width="656" alt="image" src="images/uefi_console.png">
+<img width="1312" alt="image" src="images/uefi_console.png">
 
 We haven't provided any drive with an actual operating system though, so nothing boots up and UEFI defaults to a console.
 
@@ -205,8 +205,7 @@ We haven't provided any drive with an actual operating system though, so nothing
 
 ## Running a Ubuntu Live CD
 
-So far we have a VM with a monitor console, serial console and a UEFI flash drive. Let's add a CDROM drive with a Live CD Ubuntu
-distribution to finally have a working operating system!
+After first steps with QEMU, it's time to launch an actual operating system.
 
 Let's download a Live CD image for Ubuntu Jammy:
 
@@ -214,7 +213,7 @@ Let's download a Live CD image for Ubuntu Jammy:
 wget https://cdimage.ubuntu.com/jammy/daily-live/current/jammy-desktop-amd64.iso
 ```
 
-The shortest option to mount it as a CD-ROM is:
+The QEMU option to mount it as a CDROM drive is:
 
 ```
 -cdrom jammy-desktop-amd64.iso
@@ -259,6 +258,9 @@ This is also a good moment to explicitly assign the number of virtual CPUs to ou
 > between the host and guest CPUs. It is even possible for a VM to have more CPUs than there are present on the
 > host machine.
 
+Ubuntu images for AMD64 use VGA as the primary output (they don't write on serial port). For this reason,
+let's replace the serial console (`-serial vc`) with a VGA device (`-vga std`).
+
 Ultimately we end up with this command:
 
 ```
@@ -270,19 +272,18 @@ qemu-system-x86_64 \
     -m 2G \
     -chardev vc,id=monitor \
     -mon monitor \
-    -serial vc \
+    -vga std \
     -bios /usr/share/qemu/OVMF.fd \
     -cdrom jammy-desktop-amd64.iso
 ```
 
-If you now go to the serial console (using `Ctrl`+`Alt`+`2` in the QEMU window), you'll see that UEFI has picked up the 
-new drive and detected a system on it:
+When you run the machine, you'll see that UEFI has picked up the new drive and detected a system on it:
 
-<img width="656" alt="image" src="images/grub_menu.png">
+<img width="742" alt="image" src="images/grub_menu_vga.png">
 
-Hit enter and launch the system. Soon you should see a login screen:
+Hit enter and launch the system. Soon you should see a welcome screen:
 
-<img width="656" alt="image" src="images/ubuntu_login.png">
+<img width="1044" alt="image" src="images/ubuntu_welcome.png">
 
 Log in as `ubuntu` and you're in.
 
@@ -314,11 +315,11 @@ Some of the most commonly used network backends are:
 There are many more modes which we will not cover here. You can refer to the 
 [manpage](https://manpages.debian.org/testing/qemu-system-x86/qemu-system-x86_64.1.en.html) for more details.
 
-The target backend that we'll ultimately use is `tap`. However, because it requires some manual network configuration
-on the host machine, we'll cover that in the [next chapter](02_Preparing_Environment_for_a_VM_Cluster.md#shared-network-setup),
-while keeping things simple in this one, using the `user` backend.
+The target backend that we'll ultimately use is `tap`. However, because it requires some additional manual plumbing,
+we'll cover that in the [next chapter](02_Preparing_Environment_for_a_VM_Cluster.md#shared-network-setup),
+while keeping things simple in this one, by using the `user` backend.
 
-`user` backend is the default one set up by QEMU. The explicit option to do that is:
+`user` backend is the default one set up by QEMU (without `-nodefaults`). The explicit option to do that is:
 
 ```
 -nic user
@@ -342,52 +343,16 @@ qemu-system-x86_64 \
     -m 2G \
     -chardev vc,id=monitor \
     -mon monitor \
-    -serial vc \
+    -vga std \
     -bios /usr/share/qemu/OVMF.fd \
     -cdrom jammy-desktop-amd64.iso \
     -nic user
 ```
 
-Log into Ubuntu and run the `ip addr` command. We can see a new virtual ethernet interface:
+On Ubuntu Welcome screen, click "Try Ubuntu". If you look into network settings, you can see the newly configured
+interface:
 
-<img width="656" alt="image" src="images/vm_interface.png">
-
-You can also run `ping google.com` to confirm internet access.
-
-### Graphics and peripherals
-
-Ubuntu on Live CD is a graphical distribution. It would be nice to see a proper graphical output, hear some sounds and be
-able to work with mouse and keyboard in a graphical shell. We're not going to need any of this for our Kubernetes deployment
-so I will not explain all the QEMU options in detail, but for the sake of completeness, this is the full command that runs
-our VM with support for all these devices:
-
-```
-sudo qemu-system-x86_64 \
-    -nodefaults \
-    -machine q35,accel=kvm \
-    -cpu host \
-    -smp 2 \
-    -m 2G \
-    -chardev vc,id=monitor \
-    -mon monitor \
-    -serial vc \
-    -bios /usr/share/qemu/OVMF.fd \
-    -cdrom jammy-desktop-amd64.iso \
-    -nic vmnet-shared \
-    -device virtio-gpu-pci \
-    -display cocoa,show-cursor=on \
-    -device nec-usb-xhci \
-    -device usb-mouse \
-    -device usb-tablet \
-    -device usb-kbd \
-    -audiodev coreaudio,id=audio0 \
-    -device ich9-intel-hda \
-    -device hda-output,audiodev=audio0
-```
-
-And here it is running:
-
-<img width="1282" alt="image" src="images/ubuntu_graphic.png">
+<img width="583" alt="image" src="images/network_details.png">
 
 ### Disk drive
 
@@ -427,7 +392,7 @@ Unsurprisingly, this is a shorthand for something more verbose:
 And the full command:
 
 ```
-sudo qemu-system-x86_64 \
+qemu-system-x86_64 \
     -nodefaults \
     -machine q35,accel=kvm \
     -cpu host \
@@ -435,20 +400,11 @@ sudo qemu-system-x86_64 \
     -m 2G \
     -chardev vc,id=monitor \
     -mon monitor \
-    -serial vc \
+    -vga std \
     -bios /usr/share/qemu/OVMF.fd \
     -cdrom jammy-desktop-amd64.iso \
-    -nic vmnet-shared \
-    -hda ubuntu.img \
-    -device virtio-gpu-pci \
-    -display cocoa,show-cursor=on \
-    -device nec-usb-xhci \
-    -device usb-mouse \
-    -device usb-tablet \
-    -device usb-kbd \
-    -audiodev coreaudio,id=audio0 \
-    -device ich9-intel-hda \
-    -device hda-output,audiodev=audio0
+    -nic user \
+    -hda ubuntu.img
 ```
 
 Now you can install your Ubuntu on this drive. After you do that, you can remove the CDROM device and image and
@@ -529,7 +485,7 @@ sudo qemu-system-x86_64 \
 
 Run it, and soon you should see logs of the Linux kernel starting in the terminal, followed by a login prompt:
 
-<img width="767" alt="image" src="images/ubuntu_headless.png">
+<img width="1534" alt="image" src="images/ubuntu_headless.png">
 
 You can switch between serial port output and QEMU monitor console using `Ctrl`+`A` followed by `C`.
 You can also kill the VM with `Ctrl`+`A` followed by `X`. For a help on these keyboard shortcuts, use `Ctrl`+`A` followed by `H`.
