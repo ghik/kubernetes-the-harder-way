@@ -13,7 +13,7 @@ vmid=$1
 vmname=$(id_to_name "$vmid")
 vmdir="$dir/$vmname"
 
-# Strips the number off VM name, leaving only VM "type", i.e. gateway/control/worker
+# Strip the number off VM name, leaving only VM "type", i.e. gateway/control/worker
 vmtype=${vmname%%[0-9]*}
 
 # Make sure VM directory exists
