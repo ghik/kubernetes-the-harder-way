@@ -478,7 +478,7 @@ sudo qemu-system-x86_64 \
     -smp 2 \
     -m 2G \
     -bios /usr/share/qemu/OVMF.fd \
-    -nic vmnet-shared \
+    -nic user \
     -hda ubuntu0.img
 ```
 
@@ -574,7 +574,7 @@ sudo qemu-system-x86_64 \
     -smp 2 \
     -m 2G \
     -bios /usr/share/qemu/OVMF.fd \
-    -nic vmnet-shared \
+    -nic user \
     -hda ubuntu0.img \
     -drive file=cidata.iso,driver=raw,if=virtio
 ```
