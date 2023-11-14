@@ -2,8 +2,7 @@
 
 # Introduction
 
-This guide describes how to set up a production-like Kubernetes cluster on a local machine
-(optimized for macOS and Apple Silicon).
+This guide describes how to set up a production-like Kubernetes cluster on a local machine.
 
 The purpose is primarily educational: to understand better how Kubernetes works under the hood, what it is made of and how its 
 components fit together. For this reason we'll be doing everything _from scratch_, and we'll avoid using any "convenience" 
@@ -72,11 +71,11 @@ knowledge of its inner workings. This may be beneficial in several ways:
 
 ### Hardware and OS
 
-The computer this guide was created and tested on was a MacBook Pro M2 Max running macOS Ventura.
+The variant of the guide was created and tested on was a MacBook Pro M2 Max running macOS Ventura.
 This means that some of the commands and tools used here are specific to macOS and the Apple Silicon CPU
 architecture (also known as AArch64 or ARM64).
 
-While the guide itself currently targets Mac/ARM64, the reference scripts have been written to be multi-platform - 
+While this variant of the guide targets Mac/ARM64, the reference scripts have been written to be multi-platform - 
 they also support Ubuntu/AMD64 (or any distribution using `apt`, `systemd`, and `netplan`).
 
 Since we'll run several VMs at once, a decent amount of RAM is recommended, preferably at
