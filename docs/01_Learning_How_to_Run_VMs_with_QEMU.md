@@ -481,15 +481,21 @@ qemu-system-x86_64 \
     -hda ubuntu0.img
 ```
 
-Run it, and soon you should see logs of the Linux kernel starting in the terminal, followed by a login prompt:
-
-<img width="1534" alt="image" src="images/ubuntu_headless.png">
+Run it, and soon you should see logs of the Linux kernel starting in the terminal, ultimately followed by a login prompt.
 
 You can switch between serial port output and QEMU monitor console using `Ctrl`+`A` followed by `C`.
-You can also kill the VM with `Ctrl`+`A` followed by `X`. For a help on these keyboard shortcuts, use `Ctrl`+`A` followed by `H`.
+You can also kill the VM with `Ctrl`+`A` followed by `X`. 
+For a help on these keyboard shortcuts, use `Ctrl`+`A` followed by `H`.
 
 Yay, our system runs! Unfortunately, we can't log in. Any credentials we try to use will be rejected. We need some additional
 initialization, and we'll deal with that in the next section.
+
+> [!WARNING]
+> Ubuntu sometimes seems to have some problems initializing its networking when run with the command above.
+> The exact cause of this is unknown at the time of writing this comment. This seems to be related to `cloud-init` 
+> (see next section), as the issue magically disappears when `cloud-init` drive is mounted (even with empty configuration).
+> Also, an analogous command on macOS works completely fine. Since this does not block us in any way with progressing
+> through the guide, let's ignore it.
 
 ### `cloud-init`
 
@@ -581,7 +587,7 @@ qemu-system-x86_64 \
 After logging in, the system immediately asks for a password change:
 
 ```
-Ubuntu 22.04.3 LTS ubuntu ttyAMA0
+Ubuntu 22.04.3 LTS ubuntu ttyS0
 
 ubuntu login: ubuntu
 Password:
