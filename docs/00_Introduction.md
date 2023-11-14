@@ -1,4 +1,4 @@
-\[ [**macOS/ARM64**](../../macos/docs/00_Introduction.md) | **Linux/AMD64**\ ]
+\[ [**macOS/ARM64**](../../macos/docs/00_Introduction.md) | **Linux/AMD64** \]
 
 Next: [Learning how to Run VMs with QEMU](01_Learning_How_to_Run_VMs_with_QEMU.md)
 
