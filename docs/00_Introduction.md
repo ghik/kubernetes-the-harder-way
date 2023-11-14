@@ -71,7 +71,7 @@ knowledge of its inner workings. This may be beneficial in several ways:
 
 ### Hardware and OS
 
-This version of the guide was prepared and tested on a laptop with Intel Core i7 CPU, running Ubuntu 22.04 (Jammy).
+This variant of the guide was prepared and tested on a laptop with Intel Core i7 CPU, running Ubuntu 22.04 (Jammy).
 It may be compatible with other Linux distributions, but it assumes usage of the following components:
 * `apt` for package management (Ubuntu default repos are assumed)
 * `systemd` for system initialization
