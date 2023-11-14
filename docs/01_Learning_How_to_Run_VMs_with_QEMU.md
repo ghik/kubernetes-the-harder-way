@@ -16,7 +16,7 @@ for learning. You may jump straight into the [next chapter](02_Preparing_Environ
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
-- [Prerequisites](#prerequisites)
+  - [Prerequisites](#prerequisites)
 - [Introduction to QEMU and virtualization](#introduction-to-qemu-and-virtualization)
   - [Hardware-assisted virtualization](#hardware-assisted-virtualization)
   - [QEMU, virtualization and paravirtualization](#qemu-virtualization-and-paravirtualization)

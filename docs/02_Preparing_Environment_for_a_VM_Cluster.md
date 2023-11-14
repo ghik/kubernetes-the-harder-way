@@ -122,7 +122,7 @@ vmid=$1
 vmname=$(id_to_name $vmid)
 vmdir="$dir/$vmname"
 
-# Strips the number off VM name, leaving only VM "type", i.e. gateway/control/worker
+# Strip the number off VM name, leaving only VM "type", i.e. gateway/control/worker
 vmtype=${vmname%%[0-9]*}
 
 # Make sure VM directory exists
@@ -201,7 +201,7 @@ throughout this guide.
 
 #### Running
 
-Let's give the script proper permissions, and let's run it (for the `gateway` VM):
+Let's give the script proper permissions, and run it (for the `gateway` VM):
 
 ```bash
 chmod u+x vmsetup.sh
@@ -234,12 +234,13 @@ like we've done in the [previous chapter](01_Learning_How_to_Run_VMs_with_QEMU.m
 
 ## Shared network setup
 
-Let's lay out some requirements regarding the network for our VMs. We want all our VMs to:
+Let's clarify the requirements for the shared network for the VMs. We want them to:
 
-* live in the same local network
+* live in the same local (layer 2) network
 * have stable and predictable IP addresses
-* be addressable by their hostnames
+* be addressable using hostnames
 * be directly accessible from the host machine (but not necessarily from outside world)
+* have internet access
 * require as little direct network configuration as possible
 
 ### Choosing an IP range
@@ -294,7 +295,7 @@ In other words, our machines will get MACs in the range `52:52:52:00:00:00` to `
 > `$(printf "%02x\n" $vmid)` as the last byte of the MAC address.
 
 Now it's time to configure `dnsmasq`'s DHCP server:
-* configure a DHCP address range (the same as in the QEMU option)
+* define a DHCP address range (the same as in the QEMU option)
 * associate fixed IPs with VM MACs - in order for them to look nice, we choose the range
   from `192.168.1.10` to `192.168.1.16` (i.e. `192.168.1.$((10 + $vmid))` in shell script syntax)
 * make the server _authoritative_
@@ -342,9 +343,9 @@ will pick it up:
 
 > [!NOTE]
 > The mysterious `kubernetes` domain name is assigned to a virtual IP that will serve the Kubernetes API
-> via the load balancer VM (`gateway`). We are including it for the sake of completeness. We will set it up properly 
-> in another chapter, so do not bother about it now. You may note how it is outside the configured DHCP IP range to 
-> reduce the risk of an IP conflict.
+> via the load balancer VM (`gateway`). We are including it for the sake of completeness. We will set it up properly
+> in [another chapter](05_Installing_Kubernetes_Control_Plane.md#kubernetes-api-load-balancer), so do not bother about
+> it now. You may note how it is outside the configured DHCP IP range to reduce the risk of IP conflicts.
 
 Finally, let's put all the VMs into a _domain_. Add these lines into `dnsmasq` configuration:
 
@@ -404,13 +405,11 @@ Run it in order for the DHCP & DNS settings from previous sections to take effec
 sudo ./restartdnsmasq.sh
 ```
 
-> [!NOTE]
-> This script won't work without the DNS server configured.
-
 ### Testing the network setup
 
-Let's run the `gateway` VM to test what we just configured. Make sure to reformat its image, to clear any
-network configuration that may have been persisted in a previous run:
+Let's run the `gateway` VM to test what we just configured.
+
+Make sure to reformat its image, to clear any network configuration that may have been persisted in a previous run:
 
 ```bash
 ./vmsetup.sh 0
@@ -446,10 +445,10 @@ ubuntu@gateway:~$ ip addr
        valid_lft forever preferred_lft forever
 ```
 
-Run `ip route show` to see if the VM got the right default gateway:
+Run `ip route` to see if the VM got the right default gateway:
 
 ```
-ubuntu@gateway:~$ ip route show
+ubuntu@gateway:~$ ip route
 default via 192.168.1.1 dev enp0s1 proto dhcp src 192.168.1.10 metric 100
 192.168.1.0/24 dev enp0s1 proto kernel scope link src 192.168.1.10 metric 100
 192.168.1.1 dev enp0s1 proto dhcp scope link src 192.168.1.10 metric 100
@@ -481,22 +480,22 @@ worker0: 192.168.1.14                          -- link: enp0s1
 
 ## Remote SSH access
 
-The network is set up, VMs have nice, stable IP addresses and domain names.
-Now we would like to be able to log into them from the host machine with SSH.
+The network is set up, the VMs have stable IP addresses and domain names.
+Now we would like to be able to access them from the host machine via SSH.
 
-A VM set up from a cloud image already has an SSH server up and running.
+A VM that was set up from a cloud image already has an SSH server up and running.
 However, by default it is configured to reject login-based attempts. We must authenticate using a public key,
 which must be preconfigured on the VM.
 
-On your host machine, if you don't already have an SSH key (see if you have an `~/.ssh/id_rsa.pub`
-or a similar file ending with `.pub`), you can generate it using:
+Make sure you have an SSH key prepared on the host machine (`~/.ssh/id_rsa.pub`).
+If not, run:
 
 ```
 ssh-keygen
 ```
 
 This will generate a keypair: a private key (`~/.ssh/id_rsa`) and a public key (`~/.ssh/id_rsa.pub`).
-We must now authorize the public key inside the VM by adding it to VM's `~/.ssh/authorized_keys` file.
+We must now authorize this public key inside the VM by adding it to VM's `~/.ssh/authorized_keys` file.
 
 If you're already running the VM, you can do this manually: just append the contents of your
 `~/.ssh/id_rsa.pub` file to the VM's `~/.ssh/authorized_keys` file (create it if it doesn't exist).
@@ -533,7 +532,7 @@ Are you sure you want to continue connecting (yes/no/[fingerprint])?
 
 You can say `yes` and VM's key will be added to `.ssh/known_hosts` on the host machine, and from on now
 you'll be able to log in without any hassle. Unfortunately, if you reset your VM and run it again, you'll
-see something less pleasant upon an SSH connection attempt:
+see something less pleasant:
 
 ```
 $ ssh ubuntu@gateway

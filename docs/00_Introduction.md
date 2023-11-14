@@ -103,8 +103,8 @@ These include:
 * [`cfssl`](https://github.com/cloudflare/cfssl)
 * [IPVS](https://en.wikipedia.org/wiki/IP_Virtual_Server) (`ipvsadm` and `ldirectord`)
 * [`systemd`](https://systemd.io/)
+* a bit of [`iptables`](https://en.wikipedia.org/wiki/Iptables)
 * basics of Linux containerization: namespaces and cgroups
-* a bit of `iptables`
 
 Apart from Kubernetes core, our deployment will also include the following third party projects:
 * [`nfs-subdir-external-provisioner`](https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner)
