@@ -87,7 +87,7 @@ qemu-system-x86_64 \
     -smp $vcpus \
     -m $memory \
     -bios /usr/share/qemu/OVMF.fd \
-    -nic vmnet-shared,start-address=192.168.1.1,end-address=192.168.1.20,subnet-mask=255.255.255.0,"mac=$mac" \
+    -nic tap,script=tapup.sh,downscript=no,"mac=$mac" \
     -hda "$vmdir/disk.img" \
     -drive file="$vmdir/cidata.iso",driver=raw,if=virtio
 ```
