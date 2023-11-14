@@ -99,6 +99,11 @@ sudo apt install -y \
   qemu-system-x86 curl genisoimage dnsmasq tmux golang-cfssl nfs-kernel-server kubectl helm
 ```
 
+> [!NOTE]
+> If you're seeing an error message indicating that `dnsmasq` could not start, do not worry.
+> This is expected at this point, and we'll deal with it properly 
+> [when the time comes](02_Preparing_Environment_for_a_VM_Cluster.md#using-dnsmasq).
+
 ## Scope
 
 In order to make this guide complete, we won't focus just on Kubernetes. We'll also look at some foundational stuff within

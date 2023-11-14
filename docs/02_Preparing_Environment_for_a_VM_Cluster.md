@@ -25,11 +25,14 @@ This way we can easily do iterative improvements and experiments to our VM setup
     - [Running](#running)
   - [Testing the VM](#testing-the-vm)
 - [Shared network setup](#shared-network-setup)
-  - [Choosing an IP range](#choosing-an-ip-range)
-  - [`dnsmasq`](#dnsmasq)
+  - [TAP interfaces](#tap-interfaces)
+  - [Virtual bridge](#virtual-bridge)
+  - [Connecting TAP interfaces to the bridge](#connecting-tap-interfaces-to-the-bridge)
+  - [Enabling IP forwarding on the host machine](#enabling-ip-forwarding-on-the-host-machine)
+  - [Setting up NAT](#setting-up-nat)
+  - [Using `dnsmasq`](#using-dnsmasq)
   - [DHCP server configuration](#dhcp-server-configuration)
   - [DNS server configuration](#dns-server-configuration)
-  - [Restarting `dnsmasq`](#restarting-dnsmasq)
   - [Testing the network setup](#testing-the-network-setup)
 - [Remote SSH access](#remote-ssh-access)
   - [Automating establishment of VM's authenticity](#automating-establishment-of-vms-authenticity)
@@ -265,13 +268,14 @@ the TAP interface to an interface inside the VM. This effectively creates a poin
 between the host system and the VM.
 
 > [!NOTE]
-> The `tap` backend typically requires running QEMU with root privileges in order to create TAP interfaces.
+> Creating TAP interfaces typically requires root privileges, 
+> so we must run QEMU with `sudo` when using the `tap` backend.
 
 However, creating a TAP interface alone does not give the VM layer 3 connectivity and internet access. That requires
 some more plumbing in the host system. By default, `qemu` invokes predefined scripts for additional setup and teardown
 of TAP interfaces. These can be found in `/etc/qemu-ifup` and `/etc/qemu-ifdown`. The default implementation of
 `qemu-ifup` is to search for a virtual bridge interface in the host system corresponding to default route. The TAP
-interface is the connected to that bridge.
+interface is then connected to that bridge.
 
 We want to take full control of this process. Fortunately, `qemu` allows us to pass custom scripts for TAP interface
 setup and teardown. 
@@ -301,6 +305,10 @@ You can inspect the effects of these commands with `ip addr show kubr0`. You sho
     inet 192.168.1.1/24 scope global kubr0
        valid_lft forever preferred_lft forever
 ```
+
+> [!NOTE]
+> Do not worry about the state of bridge being `DOWN` - it will change to `UP` when at least one VM successfully
+> connects to it.
 
 Unfortunately, network configuration using raw `ip` command will not survive a system restart. In order to make it
 persistent, we can create a relevant configuration in the Ubuntu `netplan` utility:
@@ -478,7 +486,7 @@ In other words, our machines will get MACs in the range `52:52:52:00:00:00` to `
 > `$(printf "%02x\n" $vmid)` as the last byte of the MAC address.
 
 Now it's time to configure `dnsmasq`'s DHCP server:
-* configure a DHCP address range (the same as in the QEMU option)
+* define a DHCP address range
 * associate fixed IPs with VM MACs - in order for them to look nice, we choose the range
   from `192.168.1.10` to `192.168.1.16` (i.e. `192.168.1.$((10 + $vmid))` in shell script syntax)
 * make the server _authoritative_
