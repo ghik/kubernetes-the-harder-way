@@ -217,13 +217,13 @@ chmod u+x vmsetup.sh
 If the setup script succeeds, we can do a test-run of the `gateway` VM:
 
 ```bash
-sudo qemu-system-aarch64 \
+sudo qemu-system-x86_64 \
     -nographic \
-    -machine virt,accel=hvf,highmem=on \
+    -machine q35,accel=kvm \
     -cpu host \
     -smp 2 \
     -m 2G \
-    -bios /opt/homebrew/share/qemu/edk2-aarch64-code.fd \
+    -bios /usr/share/qemu/OVMF.fd \
     -nic vmnet-shared \
     -hda gateway/disk.img \
     -drive file=gateway/cidata.iso,driver=raw,if=virtio
@@ -384,7 +384,7 @@ set -xe
 
 brew services restart dnsmasq
 if ! lsof -ni4TCP:53 | grep -q '192\.168\.1\.1'; then
-  qemu-system-aarch64 \
+  qemu-system-x86_64 \
       -nographic \
       -machine virt \
       -nic vmnet-shared,start-address=192.168.1.1,end-address=192.168.1.20,subnet-mask=255.255.255.0 \
@@ -419,13 +419,13 @@ network configuration that may have been persisted in a previous run:
 Run it:
 
 ```bash
-sudo qemu-system-aarch64 \
+sudo qemu-system-x86_64 \
     -nographic \
-    -machine virt,accel=hvf,highmem=on \
+    -machine q35,accel=kvm \
     -cpu host \
     -smp 2 \
     -m 2G \
-    -bios /opt/homebrew/share/qemu/edk2-aarch64-code.fd \
+    -bios /usr/share/qemu/OVMF.fd \
     -nic vmnet-shared,start-address=192.168.1.1,end-address=192.168.1.20,subnet-mask=255.255.255.0,mac=52:52:52:00:00:00 \
     -hda gateway/disk.img \
     -drive file=gateway/cidata.iso,driver=raw,if=virtio
