@@ -1,3 +1,5 @@
+\[ **macOS/ARM64** | [Linux/AMD64](../../linux/docs/07_Installing_Essential_Cluster_Services.md) \]
+
 Previous: [Spinning up Worker Nodes](06_Spinning_up_Worker_Nodes.md)
 
 # Installing Essential Cluster Services

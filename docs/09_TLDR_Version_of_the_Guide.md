@@ -1,3 +1,5 @@
+\[ **macOS/ARM64** | [Linux/AMD64](../../linux/docs/09_TLDR_Version_of_the_Guide.md) \]
+
 # TLDR Version of the Guide
 
 This chapter is a "TLDR" version of this guide that contains pure instructions for setting up the Kubernetes

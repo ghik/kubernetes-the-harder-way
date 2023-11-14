@@ -1,3 +1,5 @@
+\[ **macOS/ARM64** | [Linux/AMD64](../../linux/docs/00_Introduction.md) \]
+
 # Introduction
 
 This guide describes how to set up a production-like Kubernetes cluster on a local machine

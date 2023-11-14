@@ -1,3 +1,5 @@
+\[ **macOS/ARM64** | [Linux/AMD64](../../linux/docs/05_Installing_Kubernetes_Control_Plane.md) \]
+
 Previous: [Bootstrapping Kubernetes Security](04_Bootstrapping_Kubernetes_Security.md)
 
 # Installing Kubernetes Control Plane

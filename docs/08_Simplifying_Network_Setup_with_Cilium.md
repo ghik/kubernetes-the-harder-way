@@ -1,3 +1,5 @@
+\[ **macOS/ARM64** | [Linux/AMD64](../../linux/docs/08_Simplifying_Network_Setup_with_Cilium.md) \]
+
 Previous: [Installing Essential Cluster Services](07_Installing_Essential_Cluster_Services.md)
 
 # Simplifying Network Setup with Cilium (optional)

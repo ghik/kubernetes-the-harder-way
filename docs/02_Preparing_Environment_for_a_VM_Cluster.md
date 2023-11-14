@@ -1,3 +1,5 @@
+\[ **macOS/ARM64** | [Linux/AMD64](../../linux/docs/02_Preparing_Environment_for_a_VM_Cluster.md) \]
+
 Previous: [Learning How to Run VMs with QEMU](01_Learning_How_to_Run_VMs_with_QEMU.md)
 
 # Preparing Environment for a VM Cluster

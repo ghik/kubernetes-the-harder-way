@@ -1,3 +1,5 @@
+\[ **macOS/ARM64** | [Linux/AMD64](../../linux/docs/06_Spinning_up_Worker_Nodes.md) \]
+
 Previous: [Installing Kubernetes Control Plane](05_Installing_Kubernetes_Control_Plane.md)
 
 # Spinning up Worker Nodes
