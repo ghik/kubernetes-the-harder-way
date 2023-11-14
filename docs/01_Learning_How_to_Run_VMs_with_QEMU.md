@@ -114,7 +114,7 @@ You can switch tabs using the drop-down "View" menu, or with keyboard shortcuts:
 One of the "tabs" contains the QEMU _monitor console_. It provides a set of [commands](https://en.wikibooks.org/wiki/QEMU/Monitor) 
 for controlling VM's execution (stopping, pausing, resuming, etc.).
 
-<img width="1312" alt="image" src="images/qemu_console.png">
+<img width="500" alt="image" src="images/qemu_console.png">
 
 > [!NOTE]
 > If you click on the QEMU window, it will capture your mouse. Hit `Ctrl`+`Alt`+`G` to release it.
@@ -194,7 +194,7 @@ qemu-system-x86_64 \
 
 Now if you go to the serial console (using `Ctrl`+`Alt`+`2` in the QEMU window), you should see the UEFI running:
 
-<img width="1312" alt="image" src="images/uefi_console.png">
+<img width="500" alt="image" src="images/uefi_console.png">
 
 We haven't provided any drive with an actual operating system though, so nothing boots up and UEFI defaults to a console.
 
@@ -278,11 +278,11 @@ qemu-system-x86_64 \
 
 When you run the machine, you'll see that UEFI has picked up the new drive and detected a system on it:
 
-<img width="742" alt="image" src="images/grub_menu_vga.png">
+<img width="500" alt="image" src="images/grub_menu_vga.png">
 
 Hit enter and launch the system. Soon you should see a welcome screen:
 
-<img width="1044" alt="image" src="images/ubuntu_welcome.png">
+<img width="750" alt="image" src="images/ubuntu_welcome.png">
 
 Click "Try Ubuntu" to log in.
 
@@ -350,7 +350,7 @@ qemu-system-x86_64 \
 
 If you look into network settings within the VM, you can see the newly configured interface:
 
-<img width="583" alt="image" src="images/network_details.png">
+<img width="500" alt="image" src="images/network_details.png">
 
 ### Disk drive
 
