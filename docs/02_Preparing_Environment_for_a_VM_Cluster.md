@@ -214,15 +214,7 @@ chmod u+x vmsetup.sh
 
 ### Testing the VM
 
-If the setup script succeeds, we can do a test-run of the VM. Before we do that, let's copy the UEFI firmware
-into current directory, for convenience:
-
-```bash
-qemu_version=$(qemu-system-aarch64 --version | head -n 1 | sed "s/^QEMU emulator version //")
-cp "/opt/homebrew/Cellar/qemu/$qemu_version/share/qemu/edk2-aarch64-code.fd" OVMF.fd
-```
-
-Let's launch the `gateway` VM:
+If the setup script succeeds, we can do a test-run of the `gateway` VM:
 
 ```bash
 sudo qemu-system-aarch64 \
@@ -231,7 +223,7 @@ sudo qemu-system-aarch64 \
     -cpu host \
     -smp 2 \
     -m 2G \
-    -bios OVMF.fd \
+    -bios /opt/homebrew/share/qemu/edk2-aarch64-code.fd \
     -nic vmnet-shared \
     -hda gateway/disk.img \
     -drive file=gateway/cidata.iso,driver=raw,if=virtio
@@ -433,7 +425,7 @@ sudo qemu-system-aarch64 \
     -cpu host \
     -smp 2 \
     -m 2G \
-    -bios OVMF.fd \
+    -bios /opt/homebrew/share/qemu/edk2-aarch64-code.fd \
     -nic vmnet-shared,start-address=192.168.1.1,end-address=192.168.1.20,subnet-mask=255.255.255.0,mac=52:52:52:00:00:00 \
     -hda gateway/disk.img \
     -drive file=gateway/cidata.iso,driver=raw,if=virtio

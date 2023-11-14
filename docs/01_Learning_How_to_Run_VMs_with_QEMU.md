@@ -91,7 +91,7 @@ Try running QEMU with this bare-bones command:
 
 ```
 qemu-system-aarch64 \
-    -machine virt,accel=hvf
+    -machine virt,accel=hvf \
     -cpu host
 ```
 
@@ -157,26 +157,19 @@ QEMU comes with bundled, open source impelementation of UEFI firmware called OVM
 proprietary Intel UEFI implementation (TianoCore). If you installed QEMU with Homebrew, you should be able to find it in this location:
 
 ```
-/opt/homebrew/Cellar/qemu/${QEMU_VERSION}/share/qemu/edk2-aarch64-code.fd
-```
-
-In order to make our commands portable between QEMU versions, from now we'll assume that you have `QEMU_VERSION` variable set.
-You can automate it with this command:
-
-```
-QEMU_VERSION=$(qemu-system-aarch64 --version | head -n 1 | sed "s/^QEMU emulator version //")
+/opt/homebrew/share/qemu/edk2-aarch64-code.fd
 ```
 
 The simplest QEMU option to mount OVMF file as a BIOS/UEFI is:
 
 ```
--bios /opt/homebrew/Cellar/qemu/${QEMU_VERSION}/share/qemu/edk2-aarch64-code.fd
+-bios /opt/homebrew/share/qemu/edk2-aarch64-code.fd
 ```
 
 However, we can be a little more explicit:
 
 ```
--drive if=pflash,readonly=on,format=raw,file=/opt/homebrew/Cellar/qemu/${QEMU_VERSION}/share/qemu/edk2-aarch64-code.fd
+-drive if=pflash,readonly=on,format=raw,file=/opt/homebrew/share/qemu/edk2-aarch64-code.fd
 ```
 
 This is a common situation in QEMU - we can use very raw and detailed options and wire every device manually,
@@ -192,7 +185,7 @@ qemu-system-aarch64 \
     -chardev vc,id=monitor \
     -mon monitor \
     -serial vc \
-    -bios /opt/homebrew/Cellar/qemu/${QEMU_VERSION}/share/qemu/edk2-aarch64-code.fd
+    -bios /opt/homebrew/share/qemu/edk2-aarch64-code.fd
 ```
 
 Now if you go to the serial console (using `Ctrl`+`Opt`+`2` in the QEMU window), you should see the UEFI running:
@@ -276,7 +269,7 @@ qemu-system-aarch64 \
     -chardev vc,id=monitor \
     -mon monitor \
     -serial vc \
-    -bios /opt/homebrew/Cellar/qemu/${QEMU_VERSION}/share/qemu/edk2-aarch64-code.fd \
+    -bios /opt/homebrew/share/qemu/edk2-aarch64-code.fd \
     -cdrom jammy-desktop-arm64.iso
 ```
 
@@ -358,7 +351,7 @@ sudo qemu-system-aarch64 \
     -chardev vc,id=monitor \
     -mon monitor \
     -serial vc \
-    -bios /opt/homebrew/Cellar/qemu/${QEMU_VERSION}/share/qemu/edk2-aarch64-code.fd \
+    -bios /opt/homebrew/share/qemu/edk2-aarch64-code.fd \
     -cdrom jammy-desktop-arm64.iso \
     -nic vmnet-shared
 ```
@@ -387,7 +380,7 @@ sudo qemu-system-aarch64 \
     -chardev vc,id=monitor \
     -mon monitor \
     -serial vc \
-    -bios /opt/homebrew/Cellar/qemu/${QEMU_VERSION}/share/qemu/edk2-aarch64-code.fd \
+    -bios /opt/homebrew/share/qemu/edk2-aarch64-code.fd \
     -cdrom jammy-desktop-arm64.iso \
     -nic vmnet-shared \
     -device virtio-gpu-pci \
@@ -452,7 +445,7 @@ sudo qemu-system-aarch64 \
     -chardev vc,id=monitor \
     -mon monitor \
     -serial vc \
-    -bios /opt/homebrew/Cellar/qemu/${QEMU_VERSION}/share/qemu/edk2-aarch64-code.fd \
+    -bios /opt/homebrew/share/qemu/edk2-aarch64-code.fd \
     -cdrom jammy-desktop-arm64.iso \
     -nic vmnet-shared \
     -hda ubuntu.img \
@@ -538,7 +531,7 @@ sudo qemu-system-aarch64 \
     -cpu host \
     -smp 2 \
     -m 2G \
-    -bios /opt/homebrew/Cellar/qemu/${QEMU_VERSION}/share/qemu/edk2-aarch64-code.fd \
+    -bios /opt/homebrew/share/qemu/edk2-aarch64-code.fd \
     -nic vmnet-shared \
     -hda ubuntu0.img
 ```
@@ -634,7 +627,7 @@ sudo qemu-system-aarch64 \
     -cpu host \
     -smp 2 \
     -m 2G \
-    -bios /opt/homebrew/Cellar/qemu/${QEMU_VERSION}/share/qemu/edk2-aarch64-code.fd \
+    -bios /opt/homebrew/share/qemu/edk2-aarch64-code.fd \
     -nic vmnet-shared \
     -hda ubuntu0.img \
     -drive file=cidata.iso,driver=raw,if=virtio

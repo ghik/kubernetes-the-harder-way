@@ -29,14 +29,13 @@ esac
 mac="52:52:52:00:00:0$vmid"
 
 case $(uname -m) in
-  arm64|aarch64) qemucmd=qemu-system-aarch64;;
-  x86_64|amd64) qemucmd=qemu-system-x86_64;;
+  arm64|aarch64) qemu_arch=aarch64;;
+  x86_64|amd64) qemu_arch=x86_64;;
 esac
 
 case $(uname -s) in
   Darwin)
-    qemu_version=$($qemucmd --version | head -n 1 | sed "s/^QEMU emulator version //")
-    efi="/opt/homebrew/Cellar/qemu/$qemu_version/share/qemu/edk2-aarch64-code.fd"
+    efi="/opt/homebrew/share/qemu/edk2-${qemu_arch}-code.fd"
     machine="virt,accel=hvf,highmem=on"
     nic="vmnet-shared,start-address=192.168.1.1,end-address=192.168.1.20,subnet-mask=255.255.255.0"
     ;;
@@ -48,7 +47,7 @@ case $(uname -s) in
 esac
 
 # Launch the VM
-$qemucmd \
+qemu-system-${qemu_arch} \
     -nographic \
     -machine $machine \
     -cpu host \
