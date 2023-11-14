@@ -38,7 +38,7 @@ Adapting this guide to the x86_64 CPU architecture requires minor changes:
 * changing the architecture of Kubernetes, container runtime & CNI binaries from `arm64` to `amd64`
 
 Porting the guide to Linux would require some more work:
-* Solving the problem of [QEMU serial console not displaying the login prompt]()
+* Solving the problem of [QEMU serial console not displaying the login prompt](https://unix.stackexchange.com/questions/761426/no-login-prompt-in-qemu-serial-console)
 * Using different QEMU machine type and hypervisor, i.e. `q35,accel=kvm` instead of `virt,accel=hvf`
 * Using different network interface for QEMU VMs, i.e. `tap` backend instead of `vmnet-shared`
 * Using Linux-specific package manager (e.g. `apt`, `yum`) in place of `homebrew`
