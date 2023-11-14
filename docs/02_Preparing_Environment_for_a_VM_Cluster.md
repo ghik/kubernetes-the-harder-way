@@ -224,7 +224,7 @@ sudo qemu-system-x86_64 \
     -smp 2 \
     -m 2G \
     -bios /usr/share/qemu/OVMF.fd \
-    -nic vmnet-shared \
+    -nic user \
     -hda gateway/disk.img \
     -drive file=gateway/cidata.iso,driver=raw,if=virtio
 ```
@@ -242,41 +242,225 @@ Let's lay out some requirements regarding the network for our VMs. We want all o
 * be directly accessible from the host machine (but not necessarily from outside world)
 * require as little direct network configuration as possible
 
-### Choosing an IP range
-
 So far, the entire network setup for our VMs consisted of this QEMU option:
 
 ```
--nic vmnet-shared
+-nic user
 ```
 
-and we let everything else to be handled automatically by macOS (DHCP, DNS).
+This provided the VM with internet access, but had poor performance, and the VM was not addressable from the host
+machine. This type of network also cannot be shared between multiple VMs.
 
-Let's gain some more control. First, we set the network address range and mask.
-We can do this by adding the following properties to `-nic` option:
+### TAP interfaces
+
+We need to do something more advanced. Instead of `user`, we'll use the `tap` backend:
 
 ```
--nic vmnet-shared,start-address=192.168.1.1,end-address=192.168.1.20,subnet-mask=255.255.255.0
+-nic tap
 ```
 
-The host machine will always get the first address from the pool while the rest will get assigned to our VMs.
-However, we would like IPs of the VMs to be more predictable, preferably statically
-assigned. That's why we configured a very small address range (20 IPs). We can achieve fixed IPs in two ways:
-* turning off DHCP client on VMs and configuring them with static IPs (via `cloud-init` configs)
-* giving VMs predefined MAC addresses and configuring a fixed MAC->IP mapping in the DHCP server.
+This creates a [TAP](https://en.wikipedia.org/wiki/TUN/TAP) interface in the host system - a special kind of network 
+interface which can be read and written by an userspace program. In this case, that program is QEMU, and it "connects" 
+the TAP interface to an interface inside the VM. This effectively creates a point-to-point, layer 2 connection
+between the host system and the VM.
 
-We'll choose the second option, as it avoids configuring anything directly on VMs.
+> [!NOTE]
+> The `tap` backend typically requires running QEMU with root privileges in order to create TAP interfaces.
 
-### `dnsmasq`
+However, creating a TAP interface alone does not give the VM layer 3 connectivity and internet access. That requires
+some more plumbing in the host system. By default, `qemu` invokes predefined scripts for additional setup and teardown
+of TAP interfaces. These can be found in `/etc/qemu-ifup` and `/etc/qemu-ifdown`. The default implementation of
+`qemu-ifup` is to search for a virtual bridge interface in the host system corresponding to default route. The TAP
+interface is the connected to that bridge.
 
-A running VM needs a DHCP server and a DNS server in its LAN. MacOS takes care of that:
-when running a VM with `vmnet` based network, it automatically starts its own, built-in implementations
-of DHCP & DNS servers. Unfortunately, these servers are not very customizable. While they allow some
-rudimentary configuration, they lack many features that we are going to need, like DHCP options.
+We want to take full control of this process. Fortunately, `qemu` allows us to pass custom scripts for TAP interface
+setup and teardown. 
 
-That's why we'll use [`dnsmasq`](https://en.wikipedia.org/wiki/Dnsmasq) instead. If you followed
-[prerequisites](#prerequisites), you should have it installed already. It will serve us both as a DHCP and
+### Virtual bridge
+
+Our intention is to connect all the VMs and the host machine with a private local network. In order to achieve
+that, we must first create a _virtual bridge_. The raw commands to do that are:
+
+```bash
+sudo ip link add kubr0 type bridge
+sudo ip link set kubr0 up
+```
+
+We choose **192.168.1.0/24** as the CIDR for the network, where 192.168.1.1 is the host machine address.
+Let's make this a reality:
+
+```bash
+sudo ip addr add 192.168.1.1/24 dev kubr0
+```
+
+You can inspect the effects of these commands with `ip addr show kubr0`. You should see something like this:
+
+```
+3: kubr0: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc noqueue state DOWN group default qlen 1000
+    link/ether f6:a5:e7:4d:09:9a brd ff:ff:ff:ff:ff:ff
+    inet 192.168.1.1/24 scope global kubr0
+       valid_lft forever preferred_lft forever
+```
+
+Unfortunately, network configuration using raw `ip` command will not survive a system restart. In order to make it
+persistent, we can create a relevant configuration in the Ubuntu `netplan` utility:
+
+```bash
+cat <<EOF | sudo tee /etc/netplan/99-kubenet.yaml
+network:
+  version: 2
+  bridges:
+    kubr0:
+      addresses: [192.168.1.1/24]
+EOF
+
+sudo chmod 600 /etc/netplan/99-kubenet.yaml
+sudo netplan apply
+```
+
+### Connecting TAP interfaces to the bridge
+
+The bridge is ready, and now we need to make sure that QEMU connects TAP interfaces to that bridge. For that, we
+create a simple script, `tapup.sh`:
+
+```bash
+#!/usr/bin/env sh
+
+ifname="$1"
+ip link set "$ifname" master kubr0
+ip link set "$ifname" up
+```
+
+QEMU can be instructed to use this script with:
+
+```
+-nic tap,script=tapup.sh,downscript=no
+```
+
+> [!IMPORTANT]
+> Don't forget to give `tapup.sh` executable permissions
+
+### Enabling IP forwarding on the host machine
+
+VMs need to communicate with the external world. In order for that to work, our host machine must act like a router
+and allow traffic forwarding. To enable this, run:
+
+```bash
+sudo sysctl net.ipv4.ip_forward=1
+```
+
+In order to make this persistent between system restarts:
+
+```bash
+cat <<EOF | sudo tee /etc/sysctl.d/50-ip-forward.conf
+net.ipv4.ip_forward = 1
+EOF
+sudo sysctl -p /etc/sysctl.d/50-ip-forward.conf
+```
+
+### Setting up NAT
+
+The network setup is still not enough to allow internet access to our VMs.
+
+Packets leaving the 192.168.1.0/24 network must have their source addresses translated in order for the returning
+packets to be routable from the external world. On Linux, this is typically done by setting up NAT in `iptables`:
+
+```bash
+sudo iptables -t nat -A POSTROUTING ! -o kubr0 -s 192.168.1.0/24 -j MASQUERADE
+```
+
+The condition `! -o kubr0 -s 192.168.1.0/24` ensures that NAT is performed for packets originating from
+192.168.1.0/24 and destined for outgoing interface other than `kubr0`.
+
+> [!NOTE]
+> The `! -o kubr0` condition will be necessary for a reason very specific to our future Kubernetes deployment, 
+> in which addresses from the private pod CIDR may need to be routable between VMs. The
+> [relevant chapter](06_Spinning_up_Worker_Nodes.md#routing-pod-traffic-via-the-host-machine) 
+> contains the details.
+
+Setting up NAT this way is very rudimentary. Let's make it more automated and bulletproof with a special 
+`systemd` one-shot service. For that, first create a system script to set up `iptables` a little more properly:
+
+```bash
+cat <<EOF | sudo tee /usr/local/bin/kubenet-nat.sh
+#!/usr/bin/env sh
+
+# Remove any previously added rules to keep the script idempotent
+if iptables -t nat -L KUBENET_NAT > /dev/null 2>&1; then
+  iptables -t nat -D POSTROUTING -j KUBENET_NAT
+  iptables -t nat -F KUBENET_NAT
+  iptables -t nat -X KUBENET_NAT
+fi
+
+iptables -t nat -N KUBENET_NAT
+iptables -t nat -A POSTROUTING -j KUBENET_NAT
+iptables -t nat -A KUBENET_NAT ! -o kubr0 -s 192.168.1.0/24 -j MASQUERADE
+EOF
+sudo chmod +x /usr/local/bin/kubenet-nat.sh
+```
+
+Then, create a `systemd` _unit file_, which makes sure that this script is invoked on every system boot:
+
+```bash
+cat <<EOF | sudo tee /etc/systemd/system/kubenet-nat.service
+[Unit]
+Description=Kubenet VM network NAT rules
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/kubenet-nat.sh
+
+[Install]
+WantedBy=multi-user.target
+EOF
+```
+
+Enable and run it:
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable kubenet-nat
+sudo systemctl start kubenet-nat
+```
+
+> [!NOTE]
+> We'll talk a bit more about `systemd` in 
+> [another chapter](05_Installing_Kubernetes_Control_Plane.md#quick-overview-of-systemd).
+
+This has the following advantages:
+* it is persistent between system restarts
+* it is _idempotent_ (can be invoked multiple times with the same end result)
+* it is more readable and maintainable thanks to usage of dedicated `KUBENET_NAT` chain
+
+> [!IMPORTANT]
+> This `iptables` setup was tested on a system that has no other rules and allows all traffic by default.
+> You may need to create additional rules, especially in the `filter` table, if your system configuration is stricter 
+> and more complex. You also need to make sure that `iptables` rules set up by different tools don't interfere.
+
+### Using `dnsmasq`
+
+A running VM needs a DHCP server in its local network, as well as a DNS server.
+We will use [`dnsmasq`](https://en.wikipedia.org/wiki/Dnsmasq) for that. If you followed
+[prerequisites](#prerequisites), you should have it installed already. It will serve both as a DHCP and
 as a DNS server.
+
+First, we need to make sure that it does not interfere with other servers on the same machine (e.g. `systemd-resolve`)
+The easiest way to do this is to make sure it only binds to the virtual bridge. This can be done with the 
+following configuration options:
+
+```
+interface=kubr0
+bind-interfaces
+```
+
+Add them to `dnsmasq` configuration file, which typically sits at `/etc/dnsmasq.conf`. 
+
+Then, restart it with:
+
+```bash
+sudo systemctl restart dnsmasq
+```
 
 ### DHCP server configuration
 
@@ -284,7 +468,7 @@ Let's assign predictable MAC addresses to our VMs. This is as simple as adding a
 to the `-nic` QEMU option. Assuming that `vmid` shell variable contains VM ID, it would look like this:
 
 ```
--nic vmnet-shared,...,mac=52:52:52:00:00:0$vmid
+-nic tap,...,mac=52:52:52:00:00:0$vmid
 ```
 
 In other words, our machines will get MACs in the range `52:52:52:00:00:00` to `52:52:52:00:00:06`.
@@ -313,8 +497,7 @@ dhcp-host=52:52:52:00:00:06,192.168.1.16
 dhcp-authoritative
 ```
 
-Add this to the contents of `dnsmasq` configuration file,
-which sits at `/opt/homebrew/etc/dnsmasq.conf`. Don't restart `dnsmasq` yet.
+Add this to the contents of `/etc/dnsmasq.conf`.
 
 ### DNS server configuration
 
@@ -343,8 +526,8 @@ will pick it up:
 > [!NOTE]
 > The mysterious `kubernetes` domain name is assigned to a virtual IP that will serve the Kubernetes API
 > via the load balancer VM (`gateway`). We are including it for the sake of completeness. We will set it up properly 
-> in another chapter, so do not bother about it now. You may note how it is outside the configured DHCP IP range to 
-> reduce the risk of an IP conflict.
+> in [another chapter](05_Installing_Kubernetes_Control_Plane.md#kubernetes-api-load-balancer), so do not bother about 
+> it now. You may note how it is outside the configured DHCP IP range to reduce the risk of IP conflicts.
 
 Finally, let's put all the VMs into a _domain_. Add these lines into `dnsmasq` configuration:
 
@@ -358,54 +541,11 @@ DNS queries for unqualified hosts (e.g. `nslookup worker0`) performed by VMs wou
 Additionally, `expand-hosts` option allows the DNS server to append domain name to simple names
 listed in `/etc/hosts`.
 
-### Restarting `dnsmasq`
-
-Unfortunately, there are some annoying technical obstacles associated with running `dnsmasq` on macOS along
-`vmnet`. They stem from the fact that macOS only creates a bridge interface for VMs when at least one VM
-is running. In the same way it starts its built-in DHCP & DNS server. There are two problems associated with that:
-* If we start the VMs first, and then start `dnsmasq`, it won't properly bind to DHCP & DNS ports because of
-  interference with the already running, built-in macOS DHCP & DNS servers
-* If we start `dnsmasq` first, and then launch the VMs, `dnsmasq` won't properly bind the DNS port, because the
-  bridge interface does not yet exist.
-
-The only reliable, but ugly solution to this problem that I was able to find is to:
-* start `dnsmasq` first
-* launch at least one VM, with target network configuration
-* restart `dnsmasq` while at least one VM is running
-
-Using this method, `dnsmasq` will remain properly bound even in VMs are stopped or restarted.
-We only need to make sure to restart `dnsmasq` only when at least one VM is running.
-
-Here's a script that does this. Save it as `restartdnsmasq.sh`.
+Restart `dnsmasq` to apply changes:
 
 ```bash
-#!/usr/bin/env bash
-set -xe
-
-brew services restart dnsmasq
-if ! lsof -ni4TCP:53 | grep -q '192\.168\.1\.1'; then
-  qemu-system-x86_64 \
-      -nographic \
-      -machine virt \
-      -nic vmnet-shared,start-address=192.168.1.1,end-address=192.168.1.20,subnet-mask=255.255.255.0 \
-      </dev/null >/dev/null 2>&1 &
-  qemu_pid=$!
-  sleep 1
-  brew services restart dnsmasq
-  until lsof -i4TCP:53 | grep -q vmhost; do sleep 1; done
-  kill $qemu_pid
-  wait $qemu_pid
-fi
+sudo systemctl restart dnsmasq
 ```
-
-Run it in order for the DHCP & DNS settings from previous sections to take effect:
-
-```bash
-sudo ./restartdnsmasq.sh
-```
-
-> [!NOTE]
-> This script won't work without the DNS server configured.
 
 ### Testing the network setup
 
@@ -416,7 +556,7 @@ network configuration that may have been persisted in a previous run:
 ./vmsetup.sh 0
 ```
 
-Run it:
+Then run it:
 
 ```bash
 sudo qemu-system-x86_64 \
@@ -426,7 +566,7 @@ sudo qemu-system-x86_64 \
     -smp 2 \
     -m 2G \
     -bios /usr/share/qemu/OVMF.fd \
-    -nic vmnet-shared,start-address=192.168.1.1,end-address=192.168.1.20,subnet-mask=255.255.255.0,mac=52:52:52:00:00:00 \
+    -nic tap,script=tapup.sh,downscript=no,mac=52:52:52:00:00:00 \
     -hda gateway/disk.img \
     -drive file=gateway/cidata.iso,driver=raw,if=virtio
 ```
@@ -436,23 +576,21 @@ Run `ip addr` on the VM to see if it got the right IP:
 ```
 ubuntu@gateway:~$ ip addr
 ...
-2: enp0s1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+2: enp0s2: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
     link/ether 52:52:52:00:00:00 brd ff:ff:ff:ff:ff:ff
-    inet 192.168.1.10/24 metric 100 brd 192.168.1.255 scope global dynamic enp0s1
-       valid_lft 23542sec preferred_lft 23542sec
-    inet6 fd33:42e1:ab3f:c1b5:5052:52ff:fe00:0/64 scope global dynamic mngtmpaddr noprefixroute
-       valid_lft 2591949sec preferred_lft 604749sec
+    inet 192.168.1.10/24 metric 100 brd 192.168.1.255 scope global dynamic enp0s2
+       valid_lft 42983sec preferred_lft 42983sec
     inet6 fe80::5052:52ff:fe00:0/64 scope link
        valid_lft forever preferred_lft forever
 ```
 
-Run `ip route show` to see if the VM got the right default gateway:
+Run `ip route` to see if the VM got the right default gateway:
 
 ```
-ubuntu@gateway:~$ ip route show
-default via 192.168.1.1 dev enp0s1 proto dhcp src 192.168.1.10 metric 100
-192.168.1.0/24 dev enp0s1 proto kernel scope link src 192.168.1.10 metric 100
-192.168.1.1 dev enp0s1 proto dhcp scope link src 192.168.1.10 metric 100
+ubuntu@gateway:~$ ip route
+default via 192.168.1.1 dev enp0s2 proto dhcp src 192.168.1.10 metric 100
+192.168.1.0/24 dev enp0s2 proto kernel scope link src 192.168.1.10 metric 100
+192.168.1.1 dev enp0s2 proto dhcp scope link src 192.168.1.10 metric 100
 ```
 
 Finally, let's validate the DNS configuration with `resolvectl status`:
@@ -463,11 +601,11 @@ Global
        Protocols: -LLMNR -mDNS -DNSOverTLS DNSSEC=no/unsupported
 resolv.conf mode: stub
 
-Link 2 (enp0s1)
+Link 2 (enp0s2)
     Current Scopes: DNS
          Protocols: +DefaultRoute +LLMNR -mDNS -DNSOverTLS DNSSEC=no/unsupported
 Current DNS Server: 192.168.1.1
-       DNS Servers: 192.168.1.1 fe80::5ce9:1eff:fe18:5b64%65535
+       DNS Servers: 192.168.1.1
         DNS Domain: kubenet
 ```
 
@@ -475,7 +613,7 @@ You can also test DNS resolution with `resolvectl query` (or other like `nslooku
 
 ```
 ubuntu@gateway:~$ resolvectl query worker0
-worker0: 192.168.1.14                          -- link: enp0s1
+worker0: 192.168.1.14                          -- link: enp0s2
          (worker0.kubenet)
 ```
 
@@ -575,7 +713,7 @@ until nc -zw 10 "$vmname" 22; do sleep 1; done
 
 # Remove any stale entries for this VM from known_hosts
 if [[ -f ~/.ssh/known_hosts ]]; then
-  sed -i '' "/^$vmname/d" ~/.ssh/known_hosts
+  sed -i "/^$vmname/d" ~/.ssh/known_hosts
 fi
 
 # Add new entries for this VM to known_hosts
@@ -584,11 +722,6 @@ ssh-keyscan "$vmname" 2> /dev/null >> ~/.ssh/known_hosts
 # Wait until the system boots up and starts accepting unprivileged SSH connections
 until ssh "ubuntu@$vmname" exit; do sleep 1; done
 ```
-
-> [!WARNING]
-> There are [differences](https://unix.stackexchange.com/questions/13711/differences-between-sed-on-mac-osx-and-other-standard-sed)
-> between `sed` implementations for various Unix platforms. The `sed` invocation from this script is for macOS and may not
-> work on Linux.
 
 Let's break it down:
 

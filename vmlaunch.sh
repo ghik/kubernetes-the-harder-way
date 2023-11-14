@@ -42,7 +42,7 @@ case $(uname -s) in
   Linux)
     efi="/usr/share/qemu/OVMF.fd"
     machine="q35,accel=kvm"
-    nic="tap,script=$dir/tapup.sh"
+    nic="tap,script=$dir/tapup.sh,downscript=no"
     ;;
 esac
 
