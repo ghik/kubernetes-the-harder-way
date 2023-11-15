@@ -10,8 +10,8 @@ scripts shipped with this repository.
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
-- [Install necessary software](#install-necessary-software)
 - [Clone the repository](#clone-the-repository)
+- [Install necessary software](#install-necessary-software)
 - [Bootstrap security](#bootstrap-security)
 - [Prepare VM environment](#prepare-vm-environment)
 - [Launch and connect the VMs](#launch-and-connect-the-vms)
@@ -22,18 +22,18 @@ scripts shipped with this repository.
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
-## Install necessary software
-
-```bash
-sudo ./addaptrepos.sh
-sudo apt install -y qemu-system-x86 curl genisoimage dnsmasq tmux golang-cfssl nfs-kernel-server kubectl helm
-```
-
 ## Clone the repository
 
 ```bash
 git clone https://github.com/ghik/kubernetes-the-harder-way
 cd kubernetes-the-harder-way
+```
+
+## Install necessary software
+
+```bash
+sudo ./addaptrepos.sh
+sudo apt install -y qemu-system-x86 curl genisoimage dnsmasq tmux golang-cfssl nfs-kernel-server kubectl helm
 ```
 
 ## Bootstrap security
