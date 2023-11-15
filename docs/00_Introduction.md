@@ -72,10 +72,13 @@ knowledge of its inner workings. This may be beneficial in several ways:
 ### Hardware and OS
 
 This variant of the guide was prepared and tested on a laptop with Intel Core i7 CPU, running Ubuntu 22.04 (Jammy).
-It may be compatible with other Linux distributions, but it assumes usage of the following components:
-* `apt` for package management (Ubuntu default repos are assumed)
-* `systemd` for system initialization
-* `netplan` for network configuration
+It assumes usage of the following components:
+* [`apt`](https://en.wikipedia.org/wiki/APT_(software)) for package management (packages from Ubuntu repositories)
+* [`systemd`](https://systemd.io/) for system initialization
+* [`netplan`](https://netplan.io/) for network configuration
+
+However, dependence on these tools is not heavy, and it should be straightforward to translate their usage to
+other popular alternatives available in various Linux distributions.
 
 Since we'll run several VMs at once, a decent amount of RAM is recommended, preferably at
 least 32GB.
