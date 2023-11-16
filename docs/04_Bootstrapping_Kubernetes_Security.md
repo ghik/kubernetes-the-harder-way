@@ -76,8 +76,7 @@ we'll run `kubelet` and `kube-proxy` on control plane nodes, too.
 ### Communication channels
 
 Now, let's outline all the ways these components 
-[communicate](https://kubernetes.io/docs/concepts/architecture/control-plane-node-communication/) with each other. 
-Every communication channel must be properly secured.
+[communicate](https://kubernetes.io/docs/concepts/architecture/control-plane-node-communication/) with each other.
 
 * every `etcd` instance talks to all other `etcd` instances (peers)
 * `kube-apiserver` talks to `etcd` as a client
@@ -85,7 +84,7 @@ Every communication channel must be properly secured.
 * `kube-controller-manager` talks to `kube-apiserver` as a client
 * `kubelet` talks to `kube-apiserver` as a client
 * `kube-proxy` talks to `kube-apiserver` as a client
-* also, the `kube-apiserver` talks to `kubelet` as a client - for some specific purposes like fetching logs from pods
+* also, the `kube-apiserver` talks to `kubelet` as a client - for some specific purposes like fetching logs
   or setting up port forwarding to pods
 * external clients talk to `kube-apiserver`, typically using `kubectl`
 * pods running in the cluster may talk to `kube-apiserver` as clients
@@ -105,20 +104,20 @@ Let's quickly discuss the basic authentication model of Kubernetes:
 * A human client of a Kubernetes API typically identifies itself as a _user_, 
   optionally belonging to one or more _groups_. Users and groups are not managed by Kubernetes in any way, i.e. there
   is no catalogue of users and groups maintained by the cluster. Instead, users and groups are treated like opaque 
-  identifiers, and the API server trusts the selected authentication strategy to determine them. For example, in case of
-  certificates, when the certificate is valid according to preconfigured CA, the Common Name field is assumed to contain
-  the username, while Organization fields are interpreted as group names.
+  identifiers, and the API server trusts its selected _authentication strategy_ to determine them. \
+  For example, in case of certificates, when the certificate is valid according to preconfigured CA, the _Common Name_ 
+  field is assumed to contain the username, while _Organization_ fields are interpreted as group names.
 * A non-human client of a Kubernetes API (e.g. a pod running in the cluster) typically authenticates itself using a 
   [service account](https://kubernetes.io/docs/concepts/security/service-accounts/). Unlike users and groups, service
   accounts are managed by Kubernetes, i.e. they can be created, deleted, etc. When identifying as a service account,
-  an API client does not use a certificate but a [JWT](https://jwt.io/) token, previously generated and provisioned by the cluster
+  an API client uses a [JWT](https://jwt.io/) token, previously generated and provisioned by the cluster
   to the pod (see [projected volumes](https://kubernetes.io/docs/concepts/storage/projected-volumes/#serviceaccounttoken)).
   However, the token itself must be signed - unsurprisingly - with a certificate, and this certificate must be
   preconfigured.
 
 ### Listing all the necessary certificates
 
-This gives us an overview of all the certificates that we need to prepare for fully functioning Kubernetes cluster:
+This gives us an overview of all the certificates that we need to prepare for a fully functioning Kubernetes cluster:
 
 * `etcd` peer certificate, for every `etcd` instance
 * server certificates:
@@ -148,13 +147,13 @@ distinct CAs for different kinds of certificates:
 ### Simplifying the setup
 
 The previous section presents an exhaustive list of certificates and CAs that could be configured separately.
-In practice, however, there is no reason to use all that configurability, at least the purposes of this guide.
-Therefore, we'll simplify things in the following ways:
+In practice, however, there is no reason to go that far, at least for the purposes of this guide.
+We'll simplify things in the following ways:
 
 * We'll use a single root CA to sign all the certificates
-* `kube-apiserver`, even though deployed as three separate instances, is seen by the client as a single, distributed
-  service. We are also planning to set up a load balancer for it (the `gateway` VM) and make it reachable using
-  a single virtual IP address and domain name. For this reason it is natural and necessary to have a single
+* `kube-apiserver`, even though deployed as three separate instances, is seen by its clients as a single
+  service. We are planning to set up a load balancer for it (the `gateway` VM) and make it reachable using
+  a single virtual IP address and domain name. For this reason it is natural (and necessary) to have a single
   server certificate for the Kubernetes API. This certificate will contain [SAN](https://en.wikipedia.org/wiki/Subject_Alternative_Name)
   entries for all the possible IPs and domain names that can be used to reach the API, including addresses
   of individual instances, the virtual, load balanced address, as well as Kubernetes-internal IPs and domains.
@@ -171,7 +170,7 @@ set of permissions within the Kubernetes API server.
 
 In this guide, the only human user will be the `admin` user, with full permissions to the entire Kubernetes API.
 
-Ultimately, this gives us the following list of certificates to generate:
+Ultimately, this gives us the following list of certificates to prepare:
 
 1. The root CA
 2. The main Kubernetes API certificate
@@ -281,12 +280,12 @@ into a shared configuration file, the `ca-config.json`:
 ```
 
 Here are some details to note about it:
-* `default` specifies global options while `profiles` contains a set of arbitrarily named "profiles" that may
-  override these options. The actual profile will be selected with a command line option. This way the config file
-  may serve as an aggregate for multiple, independent sets of options.
+* `default` specifies global options, while `profiles` contains a set of arbitrarily named "profiles" that may
+  override these options. When generating a certificate, the desired profile is selected with a command line option. 
+  This way the config file may serve as an aggregate for multiple, independent sets of options.
 * `expiry` specifies the validity of a certificate - in this case we set it to 10 years
   (unfortunately, hour is the largest time unit possible to use here)
-* `usages` corresponds to [Key Usage Extension](https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.3) of
+* `usages` corresponds to the [Key Usage Extension](https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.3) of
   the X.509 certificate format
 
 #### The main Kubernetes API certificate
@@ -332,8 +331,8 @@ Create a `kubernetes-csr.json` file:
 }
 ```
 
-CN and `names` are arbitrary, what's important is the `hosts` list, which includes all the domain names and IPs
-that may be used to reach the Kubernetes API, both from outside and inside the Kubernetes cluster:
+CN and `names` for this certificate are arbitrary. What's important is the `hosts` list, which includes all the domain 
+names and IPs that may be used to reach the Kubernetes API, both from outside and inside the Kubernetes cluster:
 * `kubernetes.default.*` are domain names used to communicate with the Kubernetes API from within the cluster,
   they will resolve to the Kubernetes API internal Service IP
 * 10.32.0.1 is the Kubernetes API internal Service IP - it may be chosen arbitrarily as long as it is consistent
@@ -638,8 +637,8 @@ done
 ### Generating kubeconfigs
 
 As already explained, we need a _kubeconfig_ for every Kubernetes API client certificate.
-We can do that with the `kubectl` command. Below is a script fragment to do this. You can add this to
-`genauth.sh`:
+We can make them with the `kubectl` command. Below is a script fragment that does this. 
+You can add it to `genauth.sh`.
 
 ```bash
 genkubeconfig() {
@@ -682,8 +681,8 @@ done
 ### Generating cluster data encryption key
 
 The final security-related piece of data, although unrelated to authentication, is a symmetric encryption
-key that can be used by `kube-apiserver` to encrypt sensitive data stored in `etcd`. The key is random, and the only
-thing we need to do it is wrap it into a simple YAML file.
+key which can be used by `kube-apiserver` to encrypt sensitive data stored in `etcd`. The key is random, and the only
+thing we need to do is to wrap it into a simple YAML file.
 
 Let's do it with a script, `genenckey.sh`:
 
