@@ -78,8 +78,10 @@ architecture (also known as AArch64 or ARM64).
 While this variant of the guide targets Mac/ARM64, the reference scripts have been written to be multi-platform - 
 they also support Ubuntu/AMD64 (or any distribution using `apt`, `systemd`, and `netplan`).
 
-Since we'll run several VMs at once, a decent amount of RAM is recommended, preferably at
-least 32GB.
+Since we'll run several VMs at once, a decent amount of RAM is recommended. With default settings, the VMs take 20GB
+of memory in total. This is an amount that should let you comfortably run some workloads. However, it can
+be significantly reduced to around 8-10GB if necessary. The resulting installation may not be able to support any
+"real" application running in Kubernetes, but it should be more than enough for a bare-bones, educational deployment.
 
 ### Software
 
