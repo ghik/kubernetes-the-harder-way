@@ -80,8 +80,10 @@ It assumes usage of the following components:
 However, dependence on these tools is not heavy, and it should be straightforward to translate their usage to
 other popular alternatives available in various Linux distributions.
 
-Since we'll run several VMs at once, a decent amount of RAM is recommended, preferably at
-least 32GB.
+Since we'll run several VMs at once, a decent amount of RAM is recommended. With default settings, the VMs take 20GB
+of memory in total. This is an amount that should let you comfortably run some workloads. However, it can
+be significantly reduced to around 8-10GB if necessary. The resulting installation may not be able to support any
+"real" application running in Kubernetes, but it should be more than enough for a bare-bones, educational deployment.
 
 ### Software
 
