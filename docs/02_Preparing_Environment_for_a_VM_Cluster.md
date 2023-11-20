@@ -33,6 +33,7 @@ This way we can easily do iterative improvements and experiments to our VM setup
   - [Enabling IP forwarding on the host machine](#enabling-ip-forwarding-on-the-host-machine)
   - [Setting up NAT](#setting-up-nat)
   - [Using `dnsmasq`](#using-dnsmasq)
+    - [Making sure `dnsmasq` starts after network](#making-sure-dnsmasq-starts-after-network)
   - [DHCP server configuration](#dhcp-server-configuration)
   - [DNS server configuration](#dns-server-configuration)
   - [Testing the network setup](#testing-the-network-setup)
@@ -471,6 +472,49 @@ Then, restart it with:
 
 ```bash
 sudo systemctl restart dnsmasq
+```
+
+#### Making sure `dnsmasq` starts after network
+
+Unfortunately, there's one more hurdle to overcome: if you reboot your system, `dnsmasq` may fail to start properly,
+because (in the default configuration) the system will attempt to start it before the `kubr0` interface is created.
+
+Fixing this will require some plumbing that involves interaction between two "system initialization" solutions that
+coexist on Ubuntu: the venerable System V Init system, and [`systemd`](https://systemd.io), its more modern successor.
+There's no reason to delve into details (we'll talk a bit more about `systemd` in 
+[another chapter](05_Installing_Kubernetes_Control_Plane.md#quick-overview-of-systemd)), let's just quickly lay out
+the situation, so that we have a rough understanding of what's going on:
+
+* `dnsmasq` uses classic SysV-init start/stop scripts in `/etc/init.d/`, it does not define a `systemd` unit file
+* For compatibility, `systemd` integrates with SysV-init - that's why we can use `systemctl` to start/stop `dnsmasq`
+* SysV-init scripts for `dnsmasq` are not aware of the dependency on the `kubr0` interface
+* In order to express this dependency, we need to define a proper `systemd` unit file and disable the SysV-Init scripts
+
+Here's how to do that:
+
+```bash
+cat <<EOF | sudo tee /etc/systemd/system/dnsmasq.service
+[Unit]
+Description=DNSmasq DNS and DHCP server
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=forking
+ExecStart=/etc/init.d/dnsmasq start
+ExecStop=/etc/init.d/dnsmasq stop
+
+[Install]
+WantedBy=multi-user.target
+EOF
+```
+
+Now, reconfigure SysV-init and `systemd`:
+
+```bash
+sudo update-rc.d dnsmasq disable
+sudo systemctl daemon-reload
+sudo systemctl enable dnsmasq
 ```
 
 ### DHCP server configuration
