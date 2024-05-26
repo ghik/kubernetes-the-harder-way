@@ -122,8 +122,12 @@ mkdir nfs-pvs
 Now, let's append an entry to `/etc/exports` file to export this directory:
 
 ```bash
+dir=$(pwd)
+uid=$(stat -c '%u' "$dir")
+gid=$(stat -c '%g' "$dir")
+
 cat <<EOF | sudo tee -a /etc/exports
-$(pwd)/nfs-pvs -network 192.168.1.0 -mask 255.255.255.0 -maproot=$(whoami) -alldirs
+$dir/nfs-pvs 192.168.1.0/24(rw,root_squash,anonuid=$uid,anongid=$gid,no_subtree_check)"
 EOF
 ```
 
