@@ -408,8 +408,8 @@ some scripting. Write out the `controlX-csr.json` and `workerX-csr.json` files:
 ```bash
 vmnames=(control{0,1,2} worker{0,1,2})
 
-for vmid in $(seq 1 ${#vmnames[@]}); do 
-vmname=${vmnames[$vmid]}
+vmid=0
+for vmname in ${vmnames[@]}; do 
 cat <<EOF > "$vmname-csr.json"
 {
   "CN": "system:node:$vmname",
@@ -433,13 +433,14 @@ cat <<EOF > "$vmname-csr.json"
   ]
 }
 EOF
+vmid=$(($vmid + 1))
 done
 ```
 
 and generate the certificates:
 
 ```bash
-for vmname in $vmnames; do cfssl gencert \
+for vmname in ${vmnames[@]}; do cfssl gencert \
   -ca=ca.pem \
   -ca-key=ca-key.pem \
   -config=ca-config.json \
@@ -754,6 +755,8 @@ for i in $(seq 0 2); do
       "$dir/kube-proxy.kubeconfig" \
       ubuntu@$vmname:~
 done
+
+scp "$dir/ca.pem" ubuntu@gateway:~
 ```
 
 ## Setting up local `kubeconfig`

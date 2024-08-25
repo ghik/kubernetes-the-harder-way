@@ -159,7 +159,7 @@ EOF
 cp kube-scheduler.kubeconfig /var/lib/kubernetes/
 
 cat <<EOF | tee /etc/kubernetes/config/kube-scheduler.yaml
-apiVersion: kubescheduler.config.k8s.io/v1beta3
+apiVersion: kubescheduler.config.k8s.io/v1
 kind: KubeSchedulerConfiguration
 clientConnection:
   kubeconfig: "/var/lib/kubernetes/kube-scheduler.kubeconfig"

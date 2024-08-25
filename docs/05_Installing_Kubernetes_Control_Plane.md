@@ -107,8 +107,8 @@ Let's define some reusable shell variables to use throughout this chapter:
 ```bash
 arch=amd64
 
-etcd_version=3.5.9
-k8s_version=1.28.3
+etcd_version=3.5.15
+k8s_version=1.31.0
 
 vmaddr=$(ip addr show enp0s1 | grep -Po 'inet \K192\.168\.1\.\d+')
 vmname=$(hostname -s)
@@ -721,7 +721,7 @@ sudo cp kube-scheduler.kubeconfig /var/lib/kubernetes/
 sudo mkdir -p /etc/kubernetes/config
 
 cat <<EOF | sudo tee /etc/kubernetes/config/kube-scheduler.yaml
-apiVersion: kubescheduler.config.k8s.io/v1beta3
+apiVersion: kubescheduler.config.k8s.io/v1
 kind: KubeSchedulerConfiguration
 clientConnection:
   kubeconfig: "/var/lib/kubernetes/kube-scheduler.kubeconfig"
