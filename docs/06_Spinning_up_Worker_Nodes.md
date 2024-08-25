@@ -86,11 +86,11 @@ Let's define some reusable shell variables for this chapter. Run this in the SSH
 
 ```bash
 arch=arm64
-k8s_version=1.28.3
-cri_version=1.28.0
-runc_version=1.1.9
-containerd_version=1.7.7
-cni_plugins_version=1.3.0
+k8s_version=1.31.0
+cri_version=1.31.1
+runc_version=1.1.13
+containerd_version=1.7.20
+cni_plugins_version=1.5.1
 cni_spec_version=1.0.0
 ```
 
