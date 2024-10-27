@@ -294,11 +294,11 @@ sudo ip link add kubr0 type bridge
 sudo ip link set kubr0 up
 ```
 
-We choose **192.168.1.0/24** as the CIDR for the network, where 192.168.1.1 is the host machine address.
+We choose **192.168.3.0/24** as the CIDR for the network, where 192.168.1.1 is the host machine address.
 Let's make this a reality:
 
 ```bash
-sudo ip addr add 192.168.1.1/24 dev kubr0
+sudo ip addr add 192.168.3.1/24 dev kubr0
 ```
 
 You can inspect the effects of these commands with `ip addr show kubr0`. You should see something like this:
@@ -306,7 +306,7 @@ You can inspect the effects of these commands with `ip addr show kubr0`. You sho
 ```
 3: kubr0: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc noqueue state DOWN group default qlen 1000
     link/ether f6:a5:e7:4d:09:9a brd ff:ff:ff:ff:ff:ff
-    inet 192.168.1.1/24 scope global kubr0
+    inet 192.168.3.1/24 scope global kubr0
        valid_lft forever preferred_lft forever
 ```
 
@@ -323,7 +323,7 @@ network:
   version: 2
   bridges:
     kubr0:
-      addresses: [192.168.1.1/24]
+      addresses: [192.168.3.1/24]
 EOF
 
 sudo chmod 600 /etc/netplan/99-kubenet.yaml
