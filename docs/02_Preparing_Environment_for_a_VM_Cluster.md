@@ -109,7 +109,7 @@ First, let's make sure we have the cloud image file in working directory. If you
 If not, download it with:
 
 ```bash
-wget https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-amd64.img
+wget https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img
 ```
 
 Now for the actual script:
@@ -135,7 +135,7 @@ vmtype=${vmname%%[0-9]*}
 mkdir -p "$vmdir"
 
 # Prepare the VM disk image
-qemu-img create -F qcow2 -b ../jammy-server-cloudimg-amd64.img -f qcow2 "$vmdir/disk.img" 20G
+qemu-img create -F qcow2 -b ../noble-server-cloudimg-amd64.img -f qcow2 "$vmdir/disk.img" 20G
 
 # Prepare `cloud-init` config files
 cat << EOF > "$vmdir/meta-data"
