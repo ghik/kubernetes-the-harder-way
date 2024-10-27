@@ -374,15 +374,15 @@ sudo sysctl -p /etc/sysctl.d/50-ip-forward.conf
 
 The network setup is still not enough to allow internet access to our VMs.
 
-Packets leaving the 192.168.1.0/24 network must have their source addresses translated in order for the returning
+Packets leaving the 192.168.3.0/24 network must have their source addresses translated in order for the returning
 packets to be routable from the external world. On Linux, this is typically done by setting up NAT in `iptables`:
 
 ```bash
-sudo iptables -t nat -A POSTROUTING ! -o kubr0 -s 192.168.1.0/24 -j MASQUERADE
+sudo iptables -t nat -A POSTROUTING ! -o kubr0 -s 192.168.3.0/24 -j MASQUERADE
 ```
 
-The condition `! -o kubr0 -s 192.168.1.0/24` ensures that NAT is performed for packets originating from
-192.168.1.0/24 and destined for outgoing interface other than `kubr0`.
+The condition `! -o kubr0 -s 192.168.3.0/24` ensures that NAT is performed for packets originating from
+192.168.3.0/24 and destined for outgoing interface other than `kubr0`.
 
 > [!NOTE]
 > The `! -o kubr0` condition will be necessary for a reason very specific to our future Kubernetes deployment, 
@@ -406,7 +406,7 @@ fi
 
 iptables -t nat -N KUBENET_NAT
 iptables -t nat -A POSTROUTING -j KUBENET_NAT
-iptables -t nat -A KUBENET_NAT ! -o kubr0 -s 192.168.1.0/24 -j MASQUERADE
+iptables -t nat -A KUBENET_NAT ! -o kubr0 -s 192.168.3.0/24 -j MASQUERADE
 EOF
 sudo chmod +x /usr/local/bin/kubenet-nat.sh
 ```
@@ -535,20 +535,20 @@ In other words, our machines will get MACs in the range `52:52:52:00:00:00` to `
 Now it's time to configure `dnsmasq`'s DHCP server:
 * define a DHCP address range
 * associate fixed IPs with VM MACs - in order for them to look nice, we choose the range
-  from `192.168.1.10` to `192.168.1.16` (i.e. `192.168.1.$((10 + $vmid))` in shell script syntax)
+  from `192.168.3.10` to `192.168.3.16` (i.e. `192.168.3.$((10 + $vmid))` in shell script syntax)
 * make the server _authoritative_
 
 This is the resulting configuration:
 
 ```
-dhcp-range=192.168.1.2,192.168.1.20,12h
-dhcp-host=52:52:52:00:00:00,192.168.1.10
-dhcp-host=52:52:52:00:00:01,192.168.1.11
-dhcp-host=52:52:52:00:00:02,192.168.1.12
-dhcp-host=52:52:52:00:00:03,192.168.1.13
-dhcp-host=52:52:52:00:00:04,192.168.1.14
-dhcp-host=52:52:52:00:00:05,192.168.1.15
-dhcp-host=52:52:52:00:00:06,192.168.1.16
+dhcp-range=192.168.3.2,192.168.3.20,12h
+dhcp-host=52:52:52:00:00:00,192.168.3.10
+dhcp-host=52:52:52:00:00:01,192.168.3.11
+dhcp-host=52:52:52:00:00:02,192.168.3.12
+dhcp-host=52:52:52:00:00:03,192.168.3.13
+dhcp-host=52:52:52:00:00:04,192.168.3.14
+dhcp-host=52:52:52:00:00:05,192.168.3.15
+dhcp-host=52:52:52:00:00:06,192.168.3.16
 dhcp-authoritative
 ```
 
@@ -564,15 +564,15 @@ To assign domain names to IPs, we can simply use `/etc/hosts` on the host machin
 will pick it up:
 
 ```
-192.168.1.1   vmhost
-192.168.1.10  gateway
-192.168.1.11  control0
-192.168.1.12  control1
-192.168.1.13  control2
-192.168.1.14  worker0
-192.168.1.15  worker1
-192.168.1.16  worker2
-192.168.1.21  kubernetes
+192.168.3.1   vmhost
+192.168.3.10  gateway
+192.168.3.11  control0
+192.168.3.12  control1
+192.168.3.13  control2
+192.168.3.14  worker0
+192.168.3.15  worker1
+192.168.3.16  worker2
+192.168.3.21  kubernetes
 ```
 
 > [!NOTE]
@@ -634,7 +634,7 @@ ubuntu@gateway:~$ ip addr
 ...
 2: enp0s2: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
     link/ether 52:52:52:00:00:00 brd ff:ff:ff:ff:ff:ff
-    inet 192.168.1.10/24 metric 100 brd 192.168.1.255 scope global dynamic enp0s2
+    inet 192.168.3.10/24 metric 100 brd 192.168.3.255 scope global dynamic enp0s2
        valid_lft 42983sec preferred_lft 42983sec
     inet6 fe80::5052:52ff:fe00:0/64 scope link
        valid_lft forever preferred_lft forever
@@ -644,9 +644,9 @@ Run `ip route` to see if the VM got the right default gateway:
 
 ```
 ubuntu@gateway:~$ ip route
-default via 192.168.1.1 dev enp0s2 proto dhcp src 192.168.1.10 metric 100
-192.168.1.0/24 dev enp0s2 proto kernel scope link src 192.168.1.10 metric 100
-192.168.1.1 dev enp0s2 proto dhcp scope link src 192.168.1.10 metric 100
+default via 192.168.3.1 dev enp0s2 proto dhcp src 192.168.3.10 metric 100
+192.168.3.0/24 dev enp0s2 proto kernel scope link src 192.168.3.10 metric 100
+192.168.3.1 dev enp0s2 proto dhcp scope link src 192.168.3.10 metric 100
 ```
 
 Finally, let's validate the DNS configuration with `resolvectl status`:
@@ -660,8 +660,8 @@ resolv.conf mode: stub
 Link 2 (enp0s2)
     Current Scopes: DNS
          Protocols: +DefaultRoute +LLMNR -mDNS -DNSOverTLS DNSSEC=no/unsupported
-Current DNS Server: 192.168.1.1
-       DNS Servers: 192.168.1.1
+Current DNS Server: 192.168.3.1
+       DNS Servers: 192.168.3.1
         DNS Domain: kubenet
 ```
 
@@ -669,7 +669,7 @@ You can also test DNS resolution with `resolvectl query` (or other like `nslooku
 
 ```
 ubuntu@gateway:~$ resolvectl query worker0
-worker0: 192.168.1.14                          -- link: enp0s2
+worker0: 192.168.3.14                          -- link: enp0s2
          (worker0.kubenet)
 ```
 
@@ -719,7 +719,7 @@ Run your VM and try connecting with SSH. You'll be asked if you trust this VM:
 
 ```
 $ ssh ubuntu@gateway
-The authenticity of host 'gateway (192.168.1.10)' can't be established.
+The authenticity of host 'gateway (192.168.3.10)' can't be established.
 ED25519 key fingerprint is SHA256:1ee+avZjtffo7DbiKq3xds1AqK6So0ezcBLYwd09iUw.
 This key is not known by any other names
 Are you sure you want to continue connecting (yes/no/[fingerprint])?
