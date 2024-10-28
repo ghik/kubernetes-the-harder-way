@@ -117,7 +117,9 @@ vmname=$(hostname -s)
 
 ### Installing `etcd`
 
-Let's download the `etcd` binary, unpack it and copy into appropriate system directory:
+Let's download the `etcd` binary, unpack it and copy into appropriate system directory.
+You might need to add `nameserver 8.8.8.8` at the end of `/etc/resolv.conf` if there are
+resolution issues below:
 
 ```bash
 etcd_archive=etcd-v${etcd_version}-linux-${arch}.tar.gz
