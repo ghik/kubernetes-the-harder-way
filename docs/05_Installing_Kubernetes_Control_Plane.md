@@ -102,7 +102,8 @@ for that purpose.
 
 ### Common variables
 
-Let's define some reusable shell variables to use throughout this chapter:
+Let's define some reusable shell variables to use throughout this chapter. Run
+`ip a` to identify network device in the vmaddr line below:
 
 ```bash
 arch=amd64
