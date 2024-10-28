@@ -682,25 +682,25 @@ A VM that was set up from a cloud image already has an SSH server up and running
 However, by default it is configured to reject login-based attempts. We must authenticate using a public key,
 which must be preconfigured on the VM.
 
-Make sure you have an SSH key prepared on the host machine (`~/.ssh/id_rsa.pub`).
+Make sure you have an SSH key prepared on the host machine (`~/.ssh/id_ed25519.pub`).
 If not, run:
 
 ```
 ssh-keygen
 ```
 
-This will generate a keypair: a private key (`~/.ssh/id_rsa`) and a public key (`~/.ssh/id_rsa.pub`).
+This will generate a keypair: a private key (`~/.ssh/id_rsa`) and a public key (`~/.ssh/id_ed25519.pub`).
 We must now authorize this public key inside the VM by adding it to VM's `~/.ssh/authorized_keys` file.
 
 If you're already running the VM, you can do this manually: just append the contents of your
-`~/.ssh/id_rsa.pub` file to the VM's `~/.ssh/authorized_keys` file (create it if it doesn't exist).
+`~/.ssh/id_ed25519.pub` file to the VM's `~/.ssh/authorized_keys` file (create it if it doesn't exist).
 
 We'll also automate it with `cloud-init`. Edit all the `user-data` template files in `cloud-init` directory
 and replace the `password: ubuntu` line with the following entry:
 
 ```
 ssh_authorized_keys:
-  - $(<~/.ssh/id_rsa.pub)
+  - $(<~/.ssh/id_ed25519.pub)
 ```
 
 > [!NOTE]
