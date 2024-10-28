@@ -111,7 +111,7 @@ arch=amd64
 etcd_version=3.5.15
 k8s_version=1.31.0
 
-vmaddr=$(ip addr show enp0s1 | grep -Po 'inet \K192\.168\.1\.\d+')
+vmaddr=$(ip addr show enp0s2 | grep -Po 'inet \K192\.168\.3\.\d+')
 vmname=$(hostname -s)
 ```
 
@@ -163,7 +163,7 @@ ExecStart=/usr/local/bin/etcd \\
   --listen-client-urls https://${vmaddr}:2379,https://127.0.0.1:2379 \\
   --advertise-client-urls https://${vmaddr}:2379 \\
   --initial-cluster-token etcd-cluster-0 \\
-  --initial-cluster control0=https://192.168.1.11:2380,control1=https://192.168.1.12:2380,control2=https://192.168.1.13:2380 \\
+  --initial-cluster control0=https://192.168.3.11:2380,control1=https://192.168.3.12:2380,control2=https://192.168.3.13:2380 \\
   --initial-cluster-state new \\
   --data-dir=/var/lib/etcd
 Restart=on-failure
@@ -199,7 +199,7 @@ If something is wrong, you can look up logs:
 journalctl -u etcd.service
 ```
 
-You can also verify if the cluster is running properly by listing cluster memebers with the following command:
+You can also verify if the cluster is running properly by listing cluster members with the following command:
 
 ```bash
 sudo ETCDCTL_API=3 etcdctl member list \
@@ -212,9 +212,9 @@ sudo ETCDCTL_API=3 etcdctl member list \
 The output should look similar to this:
 
 ```
-91bdf612a6839630, started, control0, https://192.168.1.11:2380, https://192.168.1.11:2379, false
-bb39bdb8c49d4b1b, started, control2, https://192.168.1.13:2380, https://192.168.1.13:2379, false
-dc0336cac5c58d30, started, control1, https://192.168.1.12:2380, https://192.168.1.12:2379, false
+91bdf612a6839630, started, control0, https://192.168.3.11:2380, https://192.168.3.11:2379, false
+bb39bdb8c49d4b1b, started, control2, https://192.168.3.13:2380, https://192.168.3.13:2379, false
+dc0336cac5c58d30, started, control1, https://192.168.3.12:2380, https://192.168.3.12:2379, false
 ```
 
 ### Installing `kube-apiserver`
@@ -261,7 +261,7 @@ ExecStart=/usr/local/bin/kube-apiserver \\
   --etcd-cafile=/var/lib/kubernetes/ca.pem \\
   --etcd-certfile=/var/lib/kubernetes/kubernetes.pem \\
   --etcd-keyfile=/var/lib/kubernetes/kubernetes-key.pem \\
-  --etcd-servers=https://192.168.1.11:2379,https://192.168.1.12:2379,https://192.168.1.13:2379 \\
+  --etcd-servers=https://192.168.3.11:2379,https://192.168.3.12:2379,https://192.168.3.13:2379 \\
   --event-ttl=1h \\
   --encryption-provider-config=/var/lib/kubernetes/encryption-config.yaml \\
   --kubelet-certificate-authority=/var/lib/kubernetes/ca.pem \\
@@ -270,7 +270,7 @@ ExecStart=/usr/local/bin/kube-apiserver \\
   --runtime-config='api/all=true' \\
   --service-account-key-file=/var/lib/kubernetes/service-account.pem \\
   --service-account-signing-key-file=/var/lib/kubernetes/service-account-key.pem \\
-  --service-account-issuer=https://192.168.1.21:6443 \\
+  --service-account-issuer=https://192.168.3.21:6443 \\
   --service-cluster-ip-range=10.32.0.0/16 \\
   --service-node-port-range=30000-32767 \\
   --tls-cert-file=/var/lib/kubernetes/kubernetes.pem \\
@@ -320,7 +320,7 @@ The Kubernetes API server is now running, and we can try using it. Unfortunately
 one of the control node IPs/addresses directly, rather than using a single, uniform IP and name for the entire
 API. We have configured all our kubeconfigs to use `https://kubernetes:6443` as the API url.
 The name `kubernetes` is [configured in the DNS server](02_Preparing_Environment_for_a_VM_Cluster.md#dns-server-configuration)
-to resolve to a mysterious, unassigned address 192.168.1.21. This is a virtual IP, and it is now time to properly
+to resolve to a mysterious, unassigned address 192.168.3.21. This is a virtual IP, and it is now time to properly
 set it up.
 
 ### What is a virtual IP?
@@ -339,12 +339,12 @@ and has the advantage of not involving any address translation or tunnelling
 
 ### Virtual IP on control nodes
 
-First, we need to make sure all the control nodes recognize the virtual IP 192.168.1.21 as their own.
+First, we need to make sure all the control nodes recognize the virtual IP 192.168.3.21 as their own.
 At first, this seems very easy to do: just assign this address statically to one of the network interfaces on the VM.
 For example, we could do something like this:
 
 ```bash
-sudo ip addr add 192.168.1.21/32 dev enp0s1
+sudo ip addr add 192.168.3.21/32 dev enp0s1
 ```
 
 However, we have a problem: an IP address conflict in the network. If anyone on the local network asks (via ARP) who has
@@ -355,7 +355,7 @@ IP as their own, we need to use some tricks:
 First, assign the address on loopback interface rather than virtual ethernet:
 
 ```bash
-sudo ip addr add 192.168.1.21/32 dev lo
+sudo ip addr add 192.168.3.21/32 dev lo
 ```
 
 This is not enough, though. By default, Linux considers all the addresses from all interfaces for ARP requests 
@@ -377,8 +377,8 @@ happens (virtual ethernet).
 Let's test this setup by pinging the virtual IP from the host machine:
 
 ```bash
-$ ping 192.168.1.21
-PING 192.168.1.21 (192.168.1.21): 56 data bytes
+$ ping 192.168.3.21
+PING 192.168.3.21 (192.168.3.21): 56 data bytes
 ping: sendto: Host is down
 ping: sendto: Host is down
 Request timeout for icmp_seq 0
@@ -402,7 +402,7 @@ network:
     lo:
       match:
         name: lo
-      addresses: [192.168.1.21/32]
+      addresses: [192.168.3.21/32]
     eth:
       match:
         name: enp*
@@ -459,7 +459,7 @@ nodes, we want the `gateway` VM to publicly admit the ownership of this address 
 to configure it on loopback (although it would work too) nor to change any kernel network options.
 
 ```bash
-sudo ip addr add 192.168.1.21/32 dev <interface-name>
+sudo ip addr add 192.168.3.21/32 dev <interface-name>
 ```
 
 ...or in `cloud-init/network-config.gateway`:
@@ -471,7 +471,7 @@ network:
     eth:
       match:
         name: enp*
-      addresses: [192.168.1.21/32]
+      addresses: [192.168.3.21/32]
       dhcp4: true
 ```
 
@@ -484,10 +484,10 @@ However, just for educational purposes, let's try to do it by hand.
 On the `gateway` machine, invoke:
 
 ```bash
-sudo ipvsadm -A -t 192.168.1.21:6443 -s rr
-sudo ipvsadm -a -t 192.168.1.21:6443 -r 192.168.1.11:6443 -g
-sudo ipvsadm -a -t 192.168.1.21:6443 -r 192.168.1.12:6443 -g
-sudo ipvsadm -a -t 192.168.1.21:6443 -r 192.168.1.13:6443 -g
+sudo ipvsadm -A -t 192.168.3.21:6443 -s rr
+sudo ipvsadm -a -t 192.168.3.21:6443 -r 192.168.3.11:6443 -g
+sudo ipvsadm -a -t 192.168.3.21:6443 -r 192.168.3.12:6443 -g
+sudo ipvsadm -a -t 192.168.3.21:6443 -r 192.168.3.13:6443 -g
 ```
 
 The `-s rr` specifies load balancing strategy (round-robin) and the `-g` option indicates direct routing
@@ -557,11 +557,11 @@ checkinterval=1
 autoreload=yes
 quiescent=yes
 
-virtual=192.168.1.21:6443
+virtual=192.168.3.21:6443
     servicename=kubernetes
-    real=192.168.1.11:6443 gate
-    real=192.168.1.12:6443 gate
-    real=192.168.1.13:6443 gate
+    real=192.168.3.11:6443 gate
+    real=192.168.3.12:6443 gate
+    real=192.168.3.13:6443 gate
     scheduler=wrr
     checktype=negotiate
     service=https
