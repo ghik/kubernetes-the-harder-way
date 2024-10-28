@@ -434,7 +434,7 @@ sudo systemctl start kubelet
 
 > [!WARNING]
 > `kubelet` by default requires that swap is turned off. This seems to be the case for Ubuntu cloud images.
-> However, just to be sure you can run `sudo swapoff` on all worker nodes.
+> However, just to be sure you can run `sudo swapoff -a` on all worker nodes.
 
 ## Scheduling a first pod
 
