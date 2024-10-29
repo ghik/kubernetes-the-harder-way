@@ -448,12 +448,12 @@ You should see an output like this:
 
 ```
 NAME      STATUS   ROLES    AGE   VERSION   INTERNAL-IP    EXTERNAL-IP   OS-IMAGE             KERNEL-VERSION      CONTAINER-RUNTIME
-control0  Ready    <none>   59s   v1.28.3   192.168.1.11   <none>        Ubuntu 22.04.3 LTS   5.15.0-83-generic   containerd://1.7.7
-control1  Ready    <none>   59s   v1.28.3   192.168.1.12   <none>        Ubuntu 22.04.3 LTS   5.15.0-83-generic   containerd://1.7.7
-control2  Ready    <none>   59s   v1.28.3   192.168.1.13   <none>        Ubuntu 22.04.3 LTS   5.15.0-83-generic   containerd://1.7.7
-worker0   Ready    <none>   59s   v1.28.3   192.168.1.14   <none>        Ubuntu 22.04.3 LTS   5.15.0-83-generic   containerd://1.7.7
-worker1   Ready    <none>   59s   v1.28.3   192.168.1.15   <none>        Ubuntu 22.04.3 LTS   5.15.0-83-generic   containerd://1.7.7
-worker2   Ready    <none>   59s   v1.28.3   192.168.1.16   <none>        Ubuntu 22.04.3 LTS   5.15.0-83-generic   containerd://1.7.7
+control0  Ready    <none>   59s   v1.28.3   192.168.3.11   <none>        Ubuntu 22.04.3 LTS   5.15.0-83-generic   containerd://1.7.7
+control1  Ready    <none>   59s   v1.28.3   192.168.3.12   <none>        Ubuntu 22.04.3 LTS   5.15.0-83-generic   containerd://1.7.7
+control2  Ready    <none>   59s   v1.28.3   192.168.3.13   <none>        Ubuntu 22.04.3 LTS   5.15.0-83-generic   containerd://1.7.7
+worker0   Ready    <none>   59s   v1.28.3   192.168.3.14   <none>        Ubuntu 22.04.3 LTS   5.15.0-83-generic   containerd://1.7.7
+worker1   Ready    <none>   59s   v1.28.3   192.168.3.15   <none>        Ubuntu 22.04.3 LTS   5.15.0-83-generic   containerd://1.7.7
+worker2   Ready    <none>   59s   v1.28.3   192.168.3.16   <none>        Ubuntu 22.04.3 LTS   5.15.0-83-generic   containerd://1.7.7
 ```
 
 At this point our Kubernetes deployment is starting to become functional.
@@ -559,7 +559,7 @@ We need to remedy this by adding appropriate routes on the host machine:
 
 ```bash
 for vmid in $(seq 1 6); do
-  sudo ip route add 10.${vmid}.0.0/16 via 192.168.1.$((10 + $vmid))
+  sudo ip route add 10.${vmid}.0.0/16 via 192.168.3.$((10 + $vmid))
 done
 ```
 
@@ -571,20 +571,20 @@ network:
   version: 2
   bridges:
     kubr0:
-      addresses: [192.168.1.1/24]
+      addresses: [192.168.3.1/24]
       routes:
       - to: 10.1.0.0/16
-        via: 192.168.1.1
+        via: 192.168.3.1
       - to: 10.2.0.0/16
-        via: 192.168.1.2
+        via: 192.168.3.2
       - to: 10.3.0.0/16
-        via: 192.168.1.3
+        via: 192.168.3.3
       - to: 10.4.0.0/16
-        via: 192.168.1.4
+        via: 192.168.3.4
       - to: 10.5.0.0/16
-        via: 192.168.1.5
+        via: 192.168.3.5
       - to: 10.6.0.0/16
-        via: 192.168.1.6
+        via: 192.168.3.6
 ```
 
 A better solution to this problem would be to use a CNI implementation that does not expose
