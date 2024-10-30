@@ -294,7 +294,7 @@ sudo ip link add kubr0 type bridge
 sudo ip link set kubr0 up
 ```
 
-We choose **192.168.3.0/24** as the CIDR for the network, where 192.168.1.1 is the host machine address.
+We choose **192.168.3.0/24** as the CIDR for the network, where 192.168.3.1 is the host machine address.
 Let's make this a reality:
 
 ```bash
