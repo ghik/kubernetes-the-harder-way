@@ -206,28 +206,28 @@ We haven't provided any drive with an actual operating system though, so nothing
 
 After first steps with QEMU, it's time to launch an actual operating system.
 
-Let's download a Live CD image for Ubuntu Jammy:
+Let's download a Live CD image for Ubuntu Noble:
 
 ```
-wget https://cdimage.ubuntu.com/jammy/daily-live/current/jammy-desktop-amd64.iso
+wget https://releases.ubuntu.com/24.04.1/ubuntu-24.04.1-desktop-amd64.iso
 ```
 
 The QEMU option to mount it as a CDROM drive is:
 
 ```
--cdrom jammy-desktop-amd64.iso
+-cdrom ubuntu-24.04.1-desktop-amd64.iso
 ```
 
 which has a longer version:
 
 ```
--drive file=jammy-desktop-amd64.iso,index=2,media=cdrom
+-drive file=ubuntu-24.04.1-desktop-amd64.iso,index=2,media=cdrom
 ```
 
 ...which can be further split into a separate "backend" (`-blockdev`) and "frontend" (`-device`):
 
 ```
--blockdev node-name=cdrom,driver=file,read-only=on,filename=jammy-desktop-amd64.iso \
+-blockdev node-name=cdrom,driver=file,read-only=on,filename=ubuntu-24.04.1-desktop-amd64.iso \
 -device virtio-blk-pci,drive=cdrom
 ```
 
@@ -273,7 +273,7 @@ qemu-system-x86_64 \
     -mon monitor \
     -vga std \
     -bios /usr/share/qemu/OVMF.fd \
-    -cdrom jammy-desktop-amd64.iso
+    -cdrom ubuntu-24.04.1-desktop-amd64.iso
 ```
 
 When you run the machine, you'll see that UEFI has picked up the new drive and detected a system on it:
@@ -344,7 +344,7 @@ qemu-system-x86_64 \
     -mon monitor \
     -vga std \
     -bios /usr/share/qemu/OVMF.fd \
-    -cdrom jammy-desktop-amd64.iso \
+    -cdrom ubuntu-24.04.1-desktop-amd64.iso \
     -nic user
 ```
 
@@ -400,7 +400,7 @@ qemu-system-x86_64 \
     -mon monitor \
     -vga std \
     -bios /usr/share/qemu/OVMF.fd \
-    -cdrom jammy-desktop-amd64.iso \
+    -cdrom ubuntu-24.04.1-desktop-amd64.iso \
     -nic user \
     -hda ubuntu.img
 ```
@@ -423,10 +423,10 @@ in order to prepare a more server-like distribution. Here's what's going to chan
 Cloud image is a disk image with a preinstalled Ubuntu distribution. It is optimized for server usage (headless) and
 requires some additional, automated preconfiguration (e.g. to set up remote SSH access).
 
-Let's download a Jammy cloud image for AMD64:
+Let's download a Noble cloud image for AMD64:
 
 ```
-wget https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-amd64.img
+wget https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img
 ```
 
 This file is in QCOW2 format.
@@ -450,7 +450,7 @@ of VM's state from the past.
 Let's create an image backed by the Ubuntu cloud image that we have just downloaded:
 
 ```
-qemu-img create -F qcow2 -b jammy-server-cloudimg-amd64.img -f qcow2 ubuntu0.img 128G
+qemu-img create -F qcow2 -b noble-server-cloudimg-amd64.img -f qcow2 ubuntu0.img 128G
 ```
 
 > [!NOTE]
@@ -557,7 +557,7 @@ We can deal with this in two ways:
 * Reset the VM to its initial state. We can do that simply by reformatting its image file, using the same
   command that was used to create it, i.e.
   ```
-  qemu-img create -F qcow2 -b jammy-server-cloudimg-amd64.img -f qcow2 ubuntu0.img 128G
+  qemu-img create -F qcow2 -b noble-server-cloudimg-amd64.img -f qcow2 ubuntu0.img 128G
   ```
   This is where the QCOW2 format comes in handy - we effectively removed only the "diff" over the original cloud image.
 
@@ -587,7 +587,7 @@ qemu-system-x86_64 \
 After logging in, the system immediately asks for a password change:
 
 ```
-Ubuntu 22.04.3 LTS ubuntu ttyS0
+Ubuntu 24.04 LTS ubuntu ttyS0
 
 ubuntu login: ubuntu
 Password:

@@ -117,6 +117,8 @@ In the toplevel project directory (`kubenet`) on the host machine, create a dire
 
 ```bash
 mkdir nfs-pvs
+sudo chown nobody:nogroup nfs-pvs    # user:group does not matter
+sudo chmod 2770 /data/nfs            # sticky-bit on
 ```
 
 Now, let's append an entry to `/etc/exports` file to export this directory:
@@ -127,7 +129,7 @@ uid=$(stat -c '%u' "$dir")
 gid=$(stat -c '%g' "$dir")
 
 cat <<EOF | sudo tee -a /etc/exports
-$dir/nfs-pvs 192.168.1.0/24(rw,root_squash,anonuid=$uid,anongid=$gid,no_subtree_check)"
+$dir/nfs-pvs 192.168.3.0/24(rw,sync,root_squash,no_subtree_check)"
 EOF
 ```
 
@@ -139,10 +141,11 @@ EOF
 Enable NFS with:
 
 ```bash
-sudo nfsd enable
+sudo systemctl enable nfs-kernel-server.service  # if its not already
+sudo systemctl start nfs-kernel-server.service  
 ```
 
-(or use `sudo nfsd update` if `nfsd` is already enabled)
+(or use `sudo systemctl restart nfs-kernel-server.service` if `nfs-kernel-server` is already enabled)
 
 ### Installing NFS client on worker nodes
 
@@ -168,7 +171,7 @@ Install the dynamic provisioner using `helm`:
 ```bash
 helm repo add nfs-provisioner https://kubernetes-sigs.github.io/nfs-subdir-external-provisioner/
 helm install -n kube-system nfs-provisioner nfs-provisioner/nfs-subdir-external-provisioner \
-  --set nfs.server=192.168.1.1 \
+  --set nfs.server=192.168.3.1 \
   --set nfs.path=$(pwd)/nfs-pvs \
   --set storageClass.defaultClass=true
 ```
@@ -214,7 +217,7 @@ pvc-9de54e35-b9c2-48fa-b92a-c365ef3dff5e   8Gi        RWO            Delete     
 Finally, let's see them in the NFS exported directory:
 
 ```
-$ ls -l nfs-pvs
+$ sudo ls -l nfs-pvs
 total 0
 drwxrwxrwx  3 rjghik  staff   96 Oct 26 17:51 default-redis-data-redis-master-0-pvc-9de54e35-b9c2-48fa-b92a-c365ef3dff5e
 drwxrwxrwx  4 rjghik  staff  128 Oct 26 17:52 default-redis-data-redis-replicas-0-pvc-93c2115d-a6f7-4e59-a41b-fbef620613f3
@@ -261,7 +264,7 @@ metadata:
   namespace: kube-system
 spec:
   addresses:
-    - 192.168.1.30-192.168.1.254
+    - 192.168.3.30-192.168.3.254
 ---
 apiVersion: metallb.io/v1beta1
 kind: L2Advertisement
@@ -274,7 +277,7 @@ spec:
 EOF
 ```
 
-Note the allocated range for Service external IPs (192.168.1.30-254). It's important for this range to be within
+Note the allocated range for Service external IPs (192.168.3.30-254). It's important for this range to be within
 the local network of the VMs, but outside the DHCP-assignable range. This is why we have previously
 [configured](02_Preparing_Environment_for_a_VM_Cluster.md#dhcp-server-configuration) it to be very narrow.
 
@@ -327,13 +330,13 @@ After a while, you should see an external IP assigned to it:
 ```bash
 $ kubectl get svc echo-lb
 NAME      TYPE           CLUSTER-IP     EXTERNAL-IP    PORT(S)          AGE
-echo-lb   LoadBalancer   10.32.89.174   192.168.1.30   5678:32479/TCP   72s
+echo-lb   LoadBalancer   10.32.89.174   192.168.3.30   5678:32479/TCP   72s
 ```
 
 Try connecting to it from your host machine:
 
 ```bash
-$ curl http://192.168.1.30:5678
+$ curl http://192.168.3.30:5678
 hello-world
 ```
 

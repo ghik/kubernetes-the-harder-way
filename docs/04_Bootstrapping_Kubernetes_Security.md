@@ -316,16 +316,16 @@ Create a `kubernetes-csr.json` file:
     "kubernetes.default.svc.cluster.local",
     "10.32.0.1",
     "kubernetes.kubenet",
-    "192.168.1.21",
+    "192.168.3.21",
     "control0",
     "control0.kubenet",
-    "192.168.1.11",
+    "192.168.3.11",
     "control1",
     "control1.kubenet",
-    "192.168.1.12",
+    "192.168.3.12",
     "control2",
     "control2.kubenet",
-    "192.168.1.13",
+    "192.168.3.13",
     "127.0.0.1"
   ]
 }
@@ -339,10 +339,10 @@ names and IPs that may be used to reach the Kubernetes API, both from outside an
   with configuration of `kube-proxy` and/or other Kubernetes components - we will see that in subsequent chapters
 * `kubernetes.kubenet` is the full domain name that resolves to the load-balanced virtual IP of the Kubernetes API
   from outside the cluster
-* 192.168.1.21 is the Kubernetes API virtual IP, which we will take care of in another chapter
+* 192.168.3.21 is the Kubernetes API virtual IP, which we will take care of in another chapter
 * the simple name `kubernetes` is resolvable both from outside and inside the cluster
 * `controlX`, `controlX.kubenet` are control node domain names
-* 192.168.1.1X are control node IPs
+* 192.168.3.1X are control node IPs
 * finally, a 127.0.0.1 entry to allow reaching Kubernetes API via localhost on control nodes
 
 Generate and sign the certificate with:
@@ -429,7 +429,7 @@ cat <<EOF > "$vmname-csr.json"
   "hosts": [
     "$vmname",
     "$vmname.kubenet",
-    "192.168.1.$((10 + $vmid))"
+    "192.168.3.$((10 + $vmid))"
   ]
 }
 EOF
