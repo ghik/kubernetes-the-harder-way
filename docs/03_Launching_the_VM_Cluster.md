@@ -115,7 +115,7 @@ Quoting the `tmux` wiki:
 > tmux is a terminal multiplexer. It lets you switch easily between several programs in one terminal,
 > detach them (they keep running in the background) and reattach them to a different terminal.
 
-More specifically, `tmux` will give us the fillowing powers:
+More specifically, `tmux` will give us the following powers:
 * to launch multiple shells inside a single terminal-based application (in a _session_)
 * to detach a running session from the current terminal (make it run fully in background) and reattach it later in any other terminal
 * to execute something simultaneously in multiple shells (i.e. on multiple VMs), using _pane synchronization_

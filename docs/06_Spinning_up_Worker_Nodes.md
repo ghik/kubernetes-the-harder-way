@@ -388,6 +388,7 @@ registerWithTaints:
     value: ""
     effect: NoSchedule
 EOF
+fi
 ```
 
 > [!IMPORTANT]
