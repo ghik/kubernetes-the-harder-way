@@ -15,9 +15,9 @@ tool. None of the actions in this chapter are necessary to progress with the dep
 for learning. You may jump straight into the [next chapter](02_Preparing_Environment_for_a_VM_Cluster.md) if you wish.
 
 > [!WARNING]  
-> Unfortunately, it looks like Ubuntu no longer publishes LiveCD images for ARM64 architecture that this chapter refers to,
-> and at this moment it is not possible to replicate hands-on instructions in this chapter. Despite that, just reading through
-> it may still be valuable for learning.
+> Unfortunately, as of Jan 2025 Ubuntu no longer publishes LiveCD images for ARM64 architecture that this chapter refers to,
+> and at this moment it is not possible to replicate the hands-on instructions. Despite that, just reading through it may
+> still be valuable for learning.
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
