@@ -580,7 +580,7 @@ touch cloud-init/{user-data,meta-data}
 
 These files can configure a multitude of things, including passwords, SSH keys, CA certificates, auto-installed packages, system configuration files, etc.
 Various settings are provided by different _modules_ - refer to the [documentation](https://canonical-cloud-init.readthedocs-hosted.com/en/latest/reference/modules.html)
-fore more details. In this section we are only interested in a minimal configuration that will allow us to log into our machine. We'll set up an initial
+for more details. In this section we are only interested in a minimal configuration that will allow us to log into our machine. We'll set up an initial
 password for the `ubuntu` user. We can do it by putting this setting into `user-data`:
 
 ```
