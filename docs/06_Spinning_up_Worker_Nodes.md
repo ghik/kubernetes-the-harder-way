@@ -86,11 +86,11 @@ Let's define some reusable shell variables for this chapter. Run this in the SSH
 
 ```bash
 arch=amd64
-k8s_version=1.31.0
-cri_version=1.31.1
-runc_version=1.1.13
-containerd_version=1.7.20
-cni_plugins_version=1.5.1
+k8s_version=1.33.2
+cri_version=1.33.0
+runc_version=1.3.0
+containerd_version=2.1.3
+cni_plugins_version=1.7.1
 cni_spec_version=1.0.0
 ```
 
@@ -341,7 +341,7 @@ Download and install the `kubelet` binary:
 
 ```bash
 wget -q --show-progress --https-only --timestamping \
-  https://storage.googleapis.com/kubernetes-release/release/v${k8s_version}/bin/linux/${arch}/kubelet
+  https://cdn.dl.k8s.io/release/v${k8s_version}/bin/linux/${arch}/kubelet
   
 chmod +x kubelet
 sudo cp kubelet /usr/local/bin/
@@ -664,7 +664,7 @@ Download and install the binary:
 
 ```bash
 wget -q --show-progress --https-only --timestamping \
-  https://storage.googleapis.com/kubernetes-release/release/v${k8s_version}/bin/linux/${arch}/kube-proxy
+  https://cdn.dl.k8s.io/release/v${k8s_version}/bin/linux/${arch}/kube-proxy
 
 chmod +x kube-proxy
 sudo cp kube-proxy /usr/local/bin/
