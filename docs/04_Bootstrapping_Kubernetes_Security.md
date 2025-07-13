@@ -429,7 +429,7 @@ cat <<EOF > "$vmname-csr.json"
   "hosts": [
     "$vmname",
     "$vmname.kubenet",
-    "192.168.1.$((10 + $vmid))"
+    "192.168.1.$((11 + $vmid))"
   ]
 }
 EOF
