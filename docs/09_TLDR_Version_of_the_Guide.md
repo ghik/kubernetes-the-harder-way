@@ -67,7 +67,7 @@ cd ..
 Download the base image:
 
 ```bash
-wget https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-arm64.img
+wget -O ubuntu-cloud.img https://cloud-images.ubuntu.com/plucky/current/plucky-server-cloudimg-arm64.img
 ```
 
 Make sure you have an SSH public key (`~/.ssh/id_rsa.pub`). If not, generate with:

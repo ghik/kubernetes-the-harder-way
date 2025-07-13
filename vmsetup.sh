@@ -20,7 +20,7 @@ vmtype=${vmname%%[0-9]*}
 mkdir -p "$vmdir"
 
 # Prepare the VM disk image
-qemu-img create -F qcow2 -b ../jammy-server-cloudimg-${arch}.img -f qcow2 "$vmdir/disk.img" 20G
+qemu-img create -F qcow2 -b ../ubuntu-cloud.img -f qcow2 "$vmdir/disk.img" 20G
 
 # Prepare `cloud-init` config files
 cat << EOF > "$vmdir/meta-data"

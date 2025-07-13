@@ -107,8 +107,8 @@ Let's define some reusable shell variables to use throughout this chapter:
 ```bash
 arch=arm64
 
-etcd_version=3.5.15
-k8s_version=1.31.0
+etcd_version=3.6.2
+k8s_version=1.33.2
 
 vmaddr=$(ip addr show enp0s1 | grep -Po 'inet \K192\.168\.1\.\d+')
 vmname=$(hostname -s)
@@ -220,7 +220,7 @@ Download the binary and copy it to `/usr/local/bin`:
 
 ```bash
 wget -q --show-progress --https-only --timestamping \
-  "https://storage.googleapis.com/kubernetes-release/release/v${k8s_version}/bin/linux/${arch}/kube-apiserver"
+  "https://cdn.dl.k8s.io/release/v${k8s_version}/bin/linux/${arch}/kube-apiserver"
 chmod +x kube-apiserver
 sudo cp kube-apiserver /usr/local/bin
 ```
@@ -639,7 +639,7 @@ Download the binary and install it in appropriate system dir:
 
 ```bash
 wget -q --show-progress --https-only --timestamping \
-  "https://storage.googleapis.com/kubernetes-release/release/v${k8s_version}/bin/linux/${arch}/kube-controller-manager"
+  "https://cdn.dl.k8s.io/release/v${k8s_version}/bin/linux/${arch}/kube-controller-manager"
 chmod +x kube-controller-manager
 sudo cp kube-controller-manager /usr/local/bin
 ```
@@ -703,7 +703,7 @@ Download the binary and install it in appropriate system dir:
 
 ```bash
 wget -q --show-progress --https-only --timestamping \
-  "https://storage.googleapis.com/kubernetes-release/release/v${k8s_version}/bin/linux/${arch}/kube-scheduler"
+  "https://cdn.dl.k8s.io/release/v${k8s_version}/bin/linux/${arch}/kube-scheduler"
 chmod +x kube-scheduler
 sudo cp kube-scheduler /usr/local/bin
 ```
