@@ -483,7 +483,7 @@ requires some additional, automated preconfiguration (e.g. to set up remote SSH 
 Let's download a Plucky cloud image for AArch64:
 
 ```
-wget https://cloud-images.ubuntu.com/plucky/current/plucky-server-cloudimg-arm64.img -o ubuntu-cloud.img
+wget -O ubuntu-cloud.img https://cloud-images.ubuntu.com/plucky/current/plucky-server-cloudimg-arm64.img
 ```
 
 This file is in QCOW2 format.
