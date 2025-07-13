@@ -408,7 +408,7 @@ some scripting. Write out the `controlX-csr.json` and `workerX-csr.json` files:
 ```bash
 vmnames=(control{0,1,2} worker{0,1,2})
 
-vmid=0
+vmid=1
 for vmname in ${vmnames[@]}; do 
 cat <<EOF > "$vmname-csr.json"
 {
@@ -429,7 +429,7 @@ cat <<EOF > "$vmname-csr.json"
   "hosts": [
     "$vmname",
     "$vmname.kubenet",
-    "192.168.1.$((11 + $vmid))"
+    "192.168.1.$((10 + $vmid))"
   ]
 }
 EOF
