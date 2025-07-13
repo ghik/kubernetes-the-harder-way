@@ -107,8 +107,8 @@ Let's define some reusable shell variables to use throughout this chapter:
 ```bash
 arch=arm64
 
-etcd_version=3.5.15
-k8s_version=1.31.0
+etcd_version=3.6.2
+k8s_version=1.33.2
 
 vmaddr=$(ip addr show enp0s1 | grep -Po 'inet \K192\.168\.1\.\d+')
 vmname=$(hostname -s)
