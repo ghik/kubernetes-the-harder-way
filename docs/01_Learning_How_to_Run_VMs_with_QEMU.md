@@ -205,33 +205,28 @@ We haven't provided any drive with an actual operating system though, so nothing
 So far we have a VM with a monitor console, serial console and a UEFI flash drive. Let's add a CDROM drive with a Live CD Ubuntu
 distribution to finally have a working operating system!
 
-Let's download a Live CD image for Ubuntu Jammy:
-
-> [!WARNING]  
-> Unfortunately, as of Jan 2025 Ubuntu no longer publishes LiveCD images for ARM64 architecture that this chapter refers to,
-> and at this moment it is not possible to replicate the hands-on instructions. Despite that, just reading through it may
-> still be valuable for learning.
+Let's download a Live CD image for Ubuntu Plucky:
 
 ```
-wget https://cdimage.ubuntu.com/jammy/daily-live/current/jammy-desktop-arm64.iso
+wget https://cdimage.ubuntu.com/releases/plucky/release/ubuntu-25.04-desktop-arm64.iso -O ubuntu-livecd.iso
 ```
 
 The shortest option to mount it as a CD-ROM is:
 
 ```
--cdrom jammy-desktop-arm64.iso
+-cdrom ubuntu-livecd.iso
 ```
 
 which has a longer version:
 
 ```
--drive file=jammy-desktop-arm64.iso,index=2,media=cdrom
+-drive file=ubuntu-livecd.iso,index=2,media=cdrom
 ```
 
 ...which can be further split into a separate "backend" (`-blockdev`) and "frontend" (`-device`):
 
 ```
--blockdev node-name=cdrom,driver=file,read-only=on,filename=jammy-desktop-arm64.iso \
+-blockdev node-name=cdrom,driver=file,read-only=on,filename=ubuntu-livecd.iso \
 -device virtio-blk-pci,drive=cdrom
 ```
 
@@ -277,7 +272,7 @@ qemu-system-aarch64 \
     -mon monitor \
     -serial vc \
     -bios /opt/homebrew/share/qemu/edk2-aarch64-code.fd \
-    -cdrom jammy-desktop-arm64.iso
+    -cdrom ubuntu-livecd.iso
 ```
 
 If you now go to the serial console (using `Ctrl`+`Opt`+`2` in the QEMU window), you'll see that UEFI has picked up the 
@@ -359,7 +354,7 @@ sudo qemu-system-aarch64 \
     -mon monitor \
     -serial vc \
     -bios /opt/homebrew/share/qemu/edk2-aarch64-code.fd \
-    -cdrom jammy-desktop-arm64.iso \
+    -cdrom ubuntu-livecd.iso \
     -nic vmnet-shared
 ```
 
@@ -388,7 +383,7 @@ sudo qemu-system-aarch64 \
     -mon monitor \
     -serial vc \
     -bios /opt/homebrew/share/qemu/edk2-aarch64-code.fd \
-    -cdrom jammy-desktop-arm64.iso \
+    -cdrom ubuntu-livecd.iso \
     -nic vmnet-shared \
     -device virtio-gpu-pci \
     -display cocoa,show-cursor=on \
@@ -453,7 +448,7 @@ sudo qemu-system-aarch64 \
     -mon monitor \
     -serial vc \
     -bios /opt/homebrew/share/qemu/edk2-aarch64-code.fd \
-    -cdrom jammy-desktop-arm64.iso \
+    -cdrom ubuntu-livecd.iso \
     -nic vmnet-shared \
     -hda ubuntu.img \
     -device virtio-gpu-pci \
@@ -485,10 +480,10 @@ in order to prepare a more server-like distribution. Here's what's going to chan
 Cloud image is a disk image with a preinstalled Ubuntu distribution. It is optimized for server usage (headless) and
 requires some additional, automated preconfiguration (e.g. to set up remote SSH access).
 
-Let's download a Jammy cloud image for AArch64:
+Let's download a Plucky cloud image for AArch64:
 
 ```
-wget https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-arm64.img
+wget https://cloud-images.ubuntu.com/plucky/current/plucky-server-cloudimg-arm64.img -o ubuntu-cloud.img
 ```
 
 This file is in QCOW2 format.
@@ -512,7 +507,7 @@ of VM's state from the past.
 Let's create an image backed by the Ubuntu cloud image that we have just downloaded:
 
 ```
-qemu-img create -F qcow2 -b jammy-server-cloudimg-arm64.img -f qcow2 ubuntu0.img 128G
+qemu-img create -F qcow2 -b ubuntu-cloud.img -f qcow2 ubuntu0.img 128G
 ```
 
 > [!NOTE]
@@ -613,7 +608,7 @@ We can deal with this in two ways:
 * Reset the VM to its initial state. We can do that simply by reformatting its image file, using the same
   command that was used to create it, i.e.
   ```
-  qemu-img create -F qcow2 -b jammy-server-cloudimg-arm64.img -f qcow2 ubuntu0.img 128G
+  qemu-img create -F qcow2 -b ubuntu-cloud.img -f qcow2 ubuntu0.img 128G
   ```
   This is where the QCOW2 format comes in handy - we effectively removed only the "diff" over the original cloud image.
 
