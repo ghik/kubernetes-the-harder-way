@@ -208,6 +208,11 @@ After first steps with QEMU, it's time to launch an actual operating system.
 
 Let's download a Live CD image for Ubuntu Jammy:
 
+> [!WARNING]  
+> Unfortunately, as of Jan 2025 Ubuntu no longer publishes LiveCD images for ARM64 architecture that this chapter refers to,
+> and at this moment it is not possible to replicate the hands-on instructions. Despite that, just reading through it may
+> still be valuable for learning.
+
 ```
 wget https://cdimage.ubuntu.com/jammy/daily-live/current/jammy-desktop-amd64.iso
 ```
@@ -524,7 +529,7 @@ touch cloud-init/{user-data,meta-data}
 
 These files can configure a multitude of things, including passwords, SSH keys, CA certificates, auto-installed packages, system configuration files, etc.
 Various settings are provided by different _modules_ - refer to the [documentation](https://canonical-cloud-init.readthedocs-hosted.com/en/latest/reference/modules.html)
-fore more details. In this section we are only interested in a minimal configuration that will allow us to log into our machine. We'll set up an initial
+for more details. In this section we are only interested in a minimal configuration that will allow us to log into our machine. We'll set up an initial
 password for the `ubuntu` user. We can do it by putting this setting into `user-data`:
 
 ```
