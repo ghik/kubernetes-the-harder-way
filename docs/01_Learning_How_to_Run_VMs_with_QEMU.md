@@ -208,7 +208,7 @@ distribution to finally have a working operating system!
 Let's download a Live CD image for Ubuntu Plucky:
 
 ```
-wget https://cdimage.ubuntu.com/releases/plucky/release/ubuntu-25.04-desktop-arm64.iso -O ubuntu-livecd.iso
+wget -O ubuntu-livecd.iso https://cdimage.ubuntu.com/releases/plucky/release/ubuntu-25.04-desktop-arm64.iso
 ```
 
 The shortest option to mount it as a CD-ROM is:
