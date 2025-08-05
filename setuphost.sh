@@ -20,7 +20,7 @@ network:
   version: 2
   bridges:
     kubr0:
-      addresses: [192.168.1.1/24]
+      addresses: [192.168.42.1/24]
 EOF
 chmod 600 /etc/netplan/99-kubenet.yaml
 netplan apply
@@ -42,7 +42,7 @@ fi
 
 iptables -t nat -N KUBENET_NAT
 iptables -t nat -A POSTROUTING -j KUBENET_NAT
-iptables -t nat -A KUBENET_NAT ! -o kubr0 -s 192.168.1.0/24 -j MASQUERADE
+iptables -t nat -A KUBENET_NAT ! -o kubr0 -s 192.168.42.0/24 -j MASQUERADE
 EOF
 chmod +x /usr/local/bin/kubenet-nat.sh
 
@@ -69,15 +69,15 @@ fi
 sedi '/#setuphost_generated_start/,/#setuphost_generated_end/d' /etc/hosts
 cat <<EOF | tee -a /etc/hosts
 #setuphost_generated_start
-192.168.1.1   vmhost
-192.168.1.10  gateway
-192.168.1.11  control0
-192.168.1.12  control1
-192.168.1.13  control2
-192.168.1.14  worker0
-192.168.1.15  worker1
-192.168.1.16  worker2
-192.168.1.21  kubernetes
+192.168.42.1   vmhost
+192.168.42.10  gateway
+192.168.42.11  control0
+192.168.42.12  control1
+192.168.42.13  control2
+192.168.42.14  worker0
+192.168.42.15  worker1
+192.168.42.16  worker2
+192.168.42.21  kubernetes
 #setuphost_generated_end
 EOF
 
@@ -93,14 +93,14 @@ sedi '/#setuphost_generated_start/,/#setuphost_generated_end/d' "$dnsmasq_config
 
 cat <<EOF | tee -a "$dnsmasq_config"
 #setuphost_generated_start
-dhcp-range=192.168.1.2,192.168.1.20,12h
-dhcp-host=52:52:52:00:00:00,192.168.1.10
-dhcp-host=52:52:52:00:00:01,192.168.1.11
-dhcp-host=52:52:52:00:00:02,192.168.1.12
-dhcp-host=52:52:52:00:00:03,192.168.1.13
-dhcp-host=52:52:52:00:00:04,192.168.1.14
-dhcp-host=52:52:52:00:00:05,192.168.1.15
-dhcp-host=52:52:52:00:00:06,192.168.1.16
+dhcp-range=192.168.42.2,192.168.42.20,12h
+dhcp-host=52:52:52:00:00:00,192.168.42.10
+dhcp-host=52:52:52:00:00:01,192.168.42.11
+dhcp-host=52:52:52:00:00:02,192.168.42.12
+dhcp-host=52:52:52:00:00:03,192.168.42.13
+dhcp-host=52:52:52:00:00:04,192.168.42.14
+dhcp-host=52:52:52:00:00:05,192.168.42.15
+dhcp-host=52:52:52:00:00:06,192.168.42.16
 dhcp-authoritative
 domain=kubenet
 expand-hosts
@@ -125,14 +125,14 @@ case $(uname -s) in
   Darwin)
     user=$(stat -f '%Su' "$dir")
     group=$(stat -f '%Sg' "$dir")
-    export="$(realpath "$dir")/nfs-pvs -network 192.168.1.0 -mask 255.255.255.0 -maproot=$user -alldirs"
+    export="$(realpath "$dir")/nfs-pvs -network 192.168.42.0 -mask 255.255.255.0 -maproot=$user -alldirs"
     ;;
   Linux)
     uid=$(stat -c '%u' "$dir")
     gid=$(stat -c '%g' "$dir")
     user=$(stat -c '%U' "$dir")
     group=$(stat -c '%G' "$dir")
-    export="$(realpath "$dir")/nfs-pvs 192.168.1.0/24(rw,root_squash,anonuid=$uid,anongid=$gid,no_subtree_check)"
+    export="$(realpath "$dir")/nfs-pvs 192.168.42.0/24(rw,root_squash,anonuid=$uid,anongid=$gid,no_subtree_check)"
     ;;
 esac
 

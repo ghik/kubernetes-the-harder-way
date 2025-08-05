@@ -24,7 +24,7 @@ case $(uname -s) in
       qemu-system-aarch64 \
           -nographic \
           -machine virt \
-          -nic vmnet-shared,start-address=192.168.1.1,end-address=192.168.1.20,subnet-mask=255.255.255.0 \
+          -nic vmnet-shared,start-address=192.168.42.1,end-address=192.168.42.20,subnet-mask=255.255.255.0 \
           </dev/null >/dev/null 2>&1 &
       qemu_pid=$!
 
