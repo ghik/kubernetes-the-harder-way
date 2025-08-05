@@ -1,6 +1,6 @@
 #cloud-config
 ssh_authorized_keys:
-  - $(<~/.ssh/id_rsa.pub)
+  - $(<~/.ssh/id_ed25519.pub)
 
 package_update: true
 package_upgrade: true

@@ -71,10 +71,10 @@ Download the base image:
 wget -O ubuntu-cloud.img https://cloud-images.ubuntu.com/plucky/current/plucky-server-cloudimg-amd64.img
 ```
 
-Make sure you have an SSH public key (`~/.ssh/id_rsa.pub`). If not, generate with:
+Make sure you have an SSH public key (`~/.ssh/id_ed25519.pub`). If not, generate with:
 
 ```bash
-ssh-keygen
+ssh-keygen -t ed25519
 ```
 
 Set up VM images and configs:
