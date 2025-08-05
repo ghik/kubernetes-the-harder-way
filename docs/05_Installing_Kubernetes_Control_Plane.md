@@ -110,7 +110,7 @@ arch=amd64
 etcd_version=3.6.2
 k8s_version=1.33.2
 
-vmaddr=$(ip addr show enp0s1 | grep -Po 'inet \K192\.168\.1\.\d+')
+vmaddr=$(ip addr show enp0s1 | grep -Po 'inet \K192\.168\.42\.\d+')
 vmname=$(hostname -s)
 ```
 
