@@ -20,7 +20,7 @@ case $(uname -s) in
   Darwin)
     brew services restart dnsmasq
 
-    if ! lsof -ni4TCP:53 | grep -q '192\.168\.1\.1'; then
+    if ! lsof -ni4TCP:53 | grep -q '192\.168\.42\.1'; then
       qemu-system-aarch64 \
           -nographic \
           -machine virt \
