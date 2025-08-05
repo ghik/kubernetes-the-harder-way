@@ -9,6 +9,7 @@ source "$dir/variables.sh"
 sudo -v
 
 export USE_CILIUM
+export HOMEBREW_NO_AUTO_UPDATE=1
 
 case $(uname -s) in
   Darwin)
