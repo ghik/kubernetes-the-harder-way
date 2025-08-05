@@ -448,12 +448,12 @@ You should see an output like this:
 
 ```
 NAME      STATUS   ROLES    AGE   VERSION   INTERNAL-IP    EXTERNAL-IP   OS-IMAGE             KERNEL-VERSION      CONTAINER-RUNTIME
-control0  Ready    <none>   59s   v1.28.3   192.168.1.11   <none>        Ubuntu 22.04.3 LTS   5.15.0-83-generic   containerd://1.7.7
-control1  Ready    <none>   59s   v1.28.3   192.168.1.12   <none>        Ubuntu 22.04.3 LTS   5.15.0-83-generic   containerd://1.7.7
-control2  Ready    <none>   59s   v1.28.3   192.168.1.13   <none>        Ubuntu 22.04.3 LTS   5.15.0-83-generic   containerd://1.7.7
-worker0   Ready    <none>   59s   v1.28.3   192.168.1.14   <none>        Ubuntu 22.04.3 LTS   5.15.0-83-generic   containerd://1.7.7
-worker1   Ready    <none>   59s   v1.28.3   192.168.1.15   <none>        Ubuntu 22.04.3 LTS   5.15.0-83-generic   containerd://1.7.7
-worker2   Ready    <none>   59s   v1.28.3   192.168.1.16   <none>        Ubuntu 22.04.3 LTS   5.15.0-83-generic   containerd://1.7.7
+control0  Ready    <none>   59s   v1.28.3   192.168.42.11   <none>        Ubuntu 22.04.3 LTS   5.15.0-83-generic   containerd://1.7.7
+control1  Ready    <none>   59s   v1.28.3   192.168.42.12   <none>        Ubuntu 22.04.3 LTS   5.15.0-83-generic   containerd://1.7.7
+control2  Ready    <none>   59s   v1.28.3   192.168.42.13   <none>        Ubuntu 22.04.3 LTS   5.15.0-83-generic   containerd://1.7.7
+worker0   Ready    <none>   59s   v1.28.3   192.168.42.14   <none>        Ubuntu 22.04.3 LTS   5.15.0-83-generic   containerd://1.7.7
+worker1   Ready    <none>   59s   v1.28.3   192.168.42.15   <none>        Ubuntu 22.04.3 LTS   5.15.0-83-generic   containerd://1.7.7
+worker2   Ready    <none>   59s   v1.28.3   192.168.42.16   <none>        Ubuntu 22.04.3 LTS   5.15.0-83-generic   containerd://1.7.7
 ```
 
 At this point our Kubernetes deployment is starting to become functional.
@@ -559,7 +559,7 @@ We need to remedy this by adding appropriate routes on the host machine:
 
 ```bash
 for vmid in $(seq 1 6); do
-  sudo route -n add -net 10.${vmid}.0.0/16 192.168.1.$((10 + $vmid))
+  sudo route -n add -net 10.${vmid}.0.0/16 192.168.42.$((10 + $vmid))
 done
 ```
 

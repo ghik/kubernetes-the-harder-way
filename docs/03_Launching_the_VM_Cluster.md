@@ -89,7 +89,7 @@ qemu-system-aarch64 \
     -smp $vcpus \
     -m $memory \
     -bios "/opt/homebrew/share/qemu/edk2-aarch64-code.fd" \
-    -nic vmnet-shared,start-address=192.168.1.1,end-address=192.168.1.20,subnet-mask=255.255.255.0,"mac=$mac" \
+    -nic vmnet-shared,start-address=192.168.42.1,end-address=192.168.42.20,subnet-mask=255.255.255.0,"mac=$mac" \
     -hda "$vmdir/disk.img" \
     -drive file="$vmdir/cidata.iso",driver=raw,if=virtio
 ```

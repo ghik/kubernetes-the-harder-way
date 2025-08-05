@@ -22,5 +22,5 @@ add_route() {
 }
 
 for vmid in $(seq 1 6); do
-  add_route 10.${vmid}.0.0/16 192.168.1.$((10 + $vmid))
+  add_route 10.${vmid}.0.0/16 192.168.42.$((10 + $vmid))
 done

@@ -37,7 +37,7 @@ case $(uname -s) in
   Darwin)
     efi="/opt/homebrew/share/qemu/edk2-${qemu_arch}-code.fd"
     machine="virt,accel=hvf,highmem=on"
-    nic="vmnet-shared,start-address=192.168.1.1,end-address=192.168.1.20,subnet-mask=255.255.255.0"
+    nic="vmnet-shared,start-address=192.168.42.1,end-address=192.168.42.20,subnet-mask=255.255.255.0"
     ;;
   Linux)
     efi="/usr/share/qemu/OVMF.fd"

@@ -48,7 +48,7 @@ ExecStart=/usr/local/bin/etcd \\
   --listen-client-urls https://${vmaddr}:2379,https://127.0.0.1:2379 \\
   --advertise-client-urls https://${vmaddr}:2379 \\
   --initial-cluster-token etcd-cluster-0 \\
-  --initial-cluster control0=https://192.168.1.11:2380,control1=https://192.168.1.12:2380,control2=https://192.168.1.13:2380 \\
+  --initial-cluster control0=https://192.168.42.11:2380,control1=https://192.168.42.12:2380,control2=https://192.168.42.13:2380 \\
   --initial-cluster-state new \\
   --data-dir=/var/lib/etcd
 Restart=on-failure
@@ -102,7 +102,7 @@ ExecStart=/usr/local/bin/kube-apiserver \\
   --etcd-cafile=/var/lib/kubernetes/ca.pem \\
   --etcd-certfile=/var/lib/kubernetes/kubernetes.pem \\
   --etcd-keyfile=/var/lib/kubernetes/kubernetes-key.pem \\
-  --etcd-servers=https://192.168.1.11:2379,https://192.168.1.12:2379,https://192.168.1.13:2379 \\
+  --etcd-servers=https://192.168.42.11:2379,https://192.168.42.12:2379,https://192.168.42.13:2379 \\
   --event-ttl=1h \\
   --encryption-provider-config=/var/lib/kubernetes/encryption-config.yaml \\
   --kubelet-certificate-authority=/var/lib/kubernetes/ca.pem \\
@@ -111,7 +111,7 @@ ExecStart=/usr/local/bin/kube-apiserver \\
   --runtime-config='api/all=true' \\
   --service-account-key-file=/var/lib/kubernetes/service-account.pem \\
   --service-account-signing-key-file=/var/lib/kubernetes/service-account-key.pem \\
-  --service-account-issuer=https://192.168.1.21:6443 \\
+  --service-account-issuer=https://192.168.42.21:6443 \\
   --service-cluster-ip-range=10.32.0.0/16 \\
   --service-node-port-range=30000-32767 \\
   --tls-cert-file=/var/lib/kubernetes/kubernetes.pem \\

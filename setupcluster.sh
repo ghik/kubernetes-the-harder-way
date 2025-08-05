@@ -23,7 +23,7 @@ helm install -n kube-system coredns coredns/coredns \
   --wait --timeout 3m
 
 helm install -n kube-system nfs-provisioner nfs-provisioner/nfs-subdir-external-provisioner \
-  --set nfs.server=192.168.1.1 \
+  --set nfs.server=192.168.42.1 \
   --set nfs.path="$(realpath "$dir")/nfs-pvs" \
   --set storageClass.defaultClass=true
 
@@ -38,7 +38,7 @@ metadata:
   namespace: kube-system
 spec:
   addresses:
-    - 192.168.1.30-192.168.1.254
+    - 192.168.42.30-192.168.42.254
 ---
 apiVersion: metallb.io/v1beta1
 kind: L2Advertisement

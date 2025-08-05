@@ -259,7 +259,7 @@ Let's gain some more control. First, we set the network address range and mask.
 We can do this by adding the following properties to `-nic` option:
 
 ```
--nic vmnet-shared,start-address=192.168.1.1,end-address=192.168.1.20,subnet-mask=255.255.255.0
+-nic vmnet-shared,start-address=192.168.42.1,end-address=192.168.42.20,subnet-mask=255.255.255.0
 ```
 
 The host machine will always get the first address from the pool while the rest will get assigned to our VMs.
@@ -299,20 +299,20 @@ In other words, our machines will get MACs in the range `52:52:52:00:00:00` to `
 Now it's time to configure `dnsmasq`'s DHCP server:
 * define a DHCP address range (the same as in the QEMU option)
 * associate fixed IPs with VM MACs - in order for them to look nice, we choose the range
-  from `192.168.1.10` to `192.168.1.16` (i.e. `192.168.1.$((10 + $vmid))` in shell script syntax)
+  from `192.168.42.10` to `192.168.42.16` (i.e. `192.168.42.$((10 + $vmid))` in shell script syntax)
 * make the server _authoritative_
 
 This is the resulting configuration:
 
 ```
-dhcp-range=192.168.1.2,192.168.1.20,12h
-dhcp-host=52:52:52:00:00:00,192.168.1.10
-dhcp-host=52:52:52:00:00:01,192.168.1.11
-dhcp-host=52:52:52:00:00:02,192.168.1.12
-dhcp-host=52:52:52:00:00:03,192.168.1.13
-dhcp-host=52:52:52:00:00:04,192.168.1.14
-dhcp-host=52:52:52:00:00:05,192.168.1.15
-dhcp-host=52:52:52:00:00:06,192.168.1.16
+dhcp-range=192.168.42.2,192.168.42.20,12h
+dhcp-host=52:52:52:00:00:00,192.168.42.10
+dhcp-host=52:52:52:00:00:01,192.168.42.11
+dhcp-host=52:52:52:00:00:02,192.168.42.12
+dhcp-host=52:52:52:00:00:03,192.168.42.13
+dhcp-host=52:52:52:00:00:04,192.168.42.14
+dhcp-host=52:52:52:00:00:05,192.168.42.15
+dhcp-host=52:52:52:00:00:06,192.168.42.16
 dhcp-authoritative
 ```
 
@@ -329,15 +329,15 @@ To assign domain names to IPs, we can simply use `/etc/hosts` on the host machin
 will pick it up:
 
 ```
-192.168.1.1   vmhost
-192.168.1.10  gateway
-192.168.1.11  control0
-192.168.1.12  control1
-192.168.1.13  control2
-192.168.1.14  worker0
-192.168.1.15  worker1
-192.168.1.16  worker2
-192.168.1.21  kubernetes
+192.168.42.1   vmhost
+192.168.42.10  gateway
+192.168.42.11  control0
+192.168.42.12  control1
+192.168.42.13  control2
+192.168.42.14  worker0
+192.168.42.15  worker1
+192.168.42.16  worker2
+192.168.42.21  kubernetes
 ```
 
 > [!NOTE]
@@ -390,7 +390,7 @@ if ! lsof -ni4TCP:53 | grep -q '192\.168\.1\.1'; then
   qemu-system-aarch64 \
       -nographic \
       -machine virt \
-      -nic vmnet-shared,start-address=192.168.1.1,end-address=192.168.1.20,subnet-mask=255.255.255.0 \
+      -nic vmnet-shared,start-address=192.168.42.1,end-address=192.168.42.20,subnet-mask=255.255.255.0 \
       </dev/null >/dev/null 2>&1 &
   qemu_pid=$!
   sleep 1
@@ -427,7 +427,7 @@ sudo qemu-system-aarch64 \
     -smp 2 \
     -m 2G \
     -bios /opt/homebrew/share/qemu/edk2-aarch64-code.fd \
-    -nic vmnet-shared,start-address=192.168.1.1,end-address=192.168.1.20,subnet-mask=255.255.255.0,mac=52:52:52:00:00:00 \
+    -nic vmnet-shared,start-address=192.168.42.1,end-address=192.168.42.20,subnet-mask=255.255.255.0,mac=52:52:52:00:00:00 \
     -hda gateway/disk.img \
     -drive file=gateway/cidata.iso,driver=raw,if=virtio
 ```
@@ -439,7 +439,7 @@ ubuntu@gateway:~$ ip addr
 ...
 2: enp0s1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
     link/ether 52:52:52:00:00:00 brd ff:ff:ff:ff:ff:ff
-    inet 192.168.1.10/24 metric 100 brd 192.168.1.255 scope global dynamic enp0s1
+    inet 192.168.42.10/24 metric 100 brd 192.168.42.255 scope global dynamic enp0s1
        valid_lft 23542sec preferred_lft 23542sec
     inet6 fd33:42e1:ab3f:c1b5:5052:52ff:fe00:0/64 scope global dynamic mngtmpaddr noprefixroute
        valid_lft 2591949sec preferred_lft 604749sec
@@ -451,9 +451,9 @@ Run `ip route` to see if the VM got the right default gateway:
 
 ```
 ubuntu@gateway:~$ ip route
-default via 192.168.1.1 dev enp0s1 proto dhcp src 192.168.1.10 metric 100
-192.168.1.0/24 dev enp0s1 proto kernel scope link src 192.168.1.10 metric 100
-192.168.1.1 dev enp0s1 proto dhcp scope link src 192.168.1.10 metric 100
+default via 192.168.42.1 dev enp0s1 proto dhcp src 192.168.42.10 metric 100
+192.168.42.0/24 dev enp0s1 proto kernel scope link src 192.168.42.10 metric 100
+192.168.42.1 dev enp0s1 proto dhcp scope link src 192.168.42.10 metric 100
 ```
 
 Finally, let's validate the DNS configuration with `resolvectl status`:
@@ -467,8 +467,8 @@ resolv.conf mode: stub
 Link 2 (enp0s1)
     Current Scopes: DNS
          Protocols: +DefaultRoute +LLMNR -mDNS -DNSOverTLS DNSSEC=no/unsupported
-Current DNS Server: 192.168.1.1
-       DNS Servers: 192.168.1.1 fe80::5ce9:1eff:fe18:5b64%65535
+Current DNS Server: 192.168.42.1
+       DNS Servers: 192.168.42.1 fe80::5ce9:1eff:fe18:5b64%65535
         DNS Domain: kubenet
 ```
 
@@ -476,7 +476,7 @@ You can also test DNS resolution with `resolvectl query` (or other like `nslooku
 
 ```
 ubuntu@gateway:~$ resolvectl query worker0
-worker0: 192.168.1.14                          -- link: enp0s1
+worker0: 192.168.42.14                          -- link: enp0s1
          (worker0.kubenet)
 ```
 
@@ -526,7 +526,7 @@ Run your VM and try connecting with SSH. You'll be asked if you trust this VM:
 
 ```
 $ ssh ubuntu@gateway
-The authenticity of host 'gateway (192.168.1.10)' can't be established.
+The authenticity of host 'gateway (192.168.42.10)' can't be established.
 ED25519 key fingerprint is SHA256:1ee+avZjtffo7DbiKq3xds1AqK6So0ezcBLYwd09iUw.
 This key is not known by any other names
 Are you sure you want to continue connecting (yes/no/[fingerprint])?

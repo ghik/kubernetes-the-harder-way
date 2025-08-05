@@ -64,12 +64,12 @@ After CNI is gone and `kubelet` is restarted, it will detect that something is w
 ```
 $ kubectl get nodes
 NAME       STATUS     ROLES    AGE   VERSION   INTERNAL-IP    EXTERNAL-IP   OS-IMAGE             KERNEL-VERSION      CONTAINER-RUNTIME
-control0   NotReady   <none>   13m   v1.28.3   192.168.1.11   <none>        Ubuntu 22.04.3 LTS   5.15.0-83-generic   containerd://1.7.7
-control1   NotReady   <none>   13m   v1.28.3   192.168.1.12   <none>        Ubuntu 22.04.3 LTS   5.15.0-83-generic   containerd://1.7.7
-control2   NotReady   <none>   13m   v1.28.3   192.168.1.13   <none>        Ubuntu 22.04.3 LTS   5.15.0-83-generic   containerd://1.7.7
-worker0    NotReady   <none>   13m   v1.28.3   192.168.1.14   <none>        Ubuntu 22.04.3 LTS   5.15.0-83-generic   containerd://1.7.7
-worker1    NotReady   <none>   13m   v1.28.3   192.168.1.15   <none>        Ubuntu 22.04.3 LTS   5.15.0-83-generic   containerd://1.7.7
-worker2    NotReady   <none>   13m   v1.28.3   192.168.1.16   <none>        Ubuntu 22.04.3 LTS   5.15.0-83-generic   containerd://1.7.7
+control0   NotReady   <none>   13m   v1.28.3   192.168.42.11   <none>        Ubuntu 22.04.3 LTS   5.15.0-83-generic   containerd://1.7.7
+control1   NotReady   <none>   13m   v1.28.3   192.168.42.12   <none>        Ubuntu 22.04.3 LTS   5.15.0-83-generic   containerd://1.7.7
+control2   NotReady   <none>   13m   v1.28.3   192.168.42.13   <none>        Ubuntu 22.04.3 LTS   5.15.0-83-generic   containerd://1.7.7
+worker0    NotReady   <none>   13m   v1.28.3   192.168.42.14   <none>        Ubuntu 22.04.3 LTS   5.15.0-83-generic   containerd://1.7.7
+worker1    NotReady   <none>   13m   v1.28.3   192.168.42.15   <none>        Ubuntu 22.04.3 LTS   5.15.0-83-generic   containerd://1.7.7
+worker2    NotReady   <none>   13m   v1.28.3   192.168.42.16   <none>        Ubuntu 22.04.3 LTS   5.15.0-83-generic   containerd://1.7.7
 ```
 
 This is a good starting point for installing Cilium. Alternatively, you can leave old CNI config files in place and 
@@ -115,14 +115,14 @@ Wait until all of `cilium-*` and `cilium-operator-*` are up and running.
 
 ```
 $ kubectl get pods -n kube-system -o wide | grep cilium
-cilium-4hnmx                                                      1/1     Running   0          12m     192.168.1.13   control2   <none>           <none>
-cilium-6s7sg                                                      1/1     Running   0          12m     192.168.1.11   control0   <none>           <none>
-cilium-84csz                                                      1/1     Running   0          12m     192.168.1.15   worker1    <none>           <none>
-cilium-gnrnq                                                      1/1     Running   0          12m     192.168.1.14   worker0    <none>           <none>
-cilium-operator-b78cfddc-ht829                                    1/1     Running   0          12m     192.168.1.13   control2   <none>           <none>
-cilium-operator-b78cfddc-vz7gv                                    1/1     Running   0          4m31s   192.168.1.11   control0   <none>           <none>
-cilium-rk84w                                                      1/1     Running   0          12m     192.168.1.12   control1   <none>           <none>
-cilium-wl49h                                                      1/1     Running   0          12m     192.168.1.16   worker2    <none>           <none>
+cilium-4hnmx                                                      1/1     Running   0          12m     192.168.42.13   control2   <none>           <none>
+cilium-6s7sg                                                      1/1     Running   0          12m     192.168.42.11   control0   <none>           <none>
+cilium-84csz                                                      1/1     Running   0          12m     192.168.42.15   worker1    <none>           <none>
+cilium-gnrnq                                                      1/1     Running   0          12m     192.168.42.14   worker0    <none>           <none>
+cilium-operator-b78cfddc-ht829                                    1/1     Running   0          12m     192.168.42.13   control2   <none>           <none>
+cilium-operator-b78cfddc-vz7gv                                    1/1     Running   0          4m31s   192.168.42.11   control0   <none>           <none>
+cilium-rk84w                                                      1/1     Running   0          12m     192.168.42.12   control1   <none>           <none>
+cilium-wl49h                                                      1/1     Running   0          12m     192.168.42.16   worker2    <none>           <none>
 ```
 
 As you can see, IPs of these pods are equal to their nodes' IPs, 

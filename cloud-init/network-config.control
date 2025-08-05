@@ -4,7 +4,7 @@ network:
     lo:
       match:
         name: lo
-      addresses: [192.168.1.21/32]
+      addresses: [192.168.42.21/32]
     eth:
       match:
         name: enp*
