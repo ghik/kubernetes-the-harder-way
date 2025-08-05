@@ -28,8 +28,8 @@ instance-id: $vmname
 local-hostname: $vmname
 EOF
 
-if [[ ! -f ~/.ssh/id_rsa.pub ]]; then
-  echo "No SSH public key found for current user. Generate it with ssh-keygen." >&2
+if [[ ! -f ~/.ssh/id_ed25519.pub ]]; then
+  echo "No SSH public key found for current user. Generate it with 'ssh-keygen -t ed25519'" >&2
   exit 1
 fi
 
