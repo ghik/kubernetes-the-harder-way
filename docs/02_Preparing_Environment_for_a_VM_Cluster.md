@@ -401,9 +401,10 @@ if ! lsof -ni4TCP:53 | grep -q '192\.168\.42\.1'; then
 fi
 ```
 
-Run it in order for the DHCP & DNS settings from previous sections to take effect:
+Give it executable permissions and run it in order for the DHCP & DNS settings from previous sections to take effect:
 
 ```bash
+chmod u+x restartdnsmasq.sh
 sudo ./restartdnsmasq.sh
 ```
 
