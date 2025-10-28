@@ -409,6 +409,7 @@ chmod u+x restartdnsmasq.sh
 Run it in order for the DHCP & DNS settings from previous sections to take effect:
 
 ```bash
+chmod u+x restartdnsmasq.sh
 sudo ./restartdnsmasq.sh
 ```
 
