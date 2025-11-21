@@ -30,8 +30,13 @@ cd "$dir/auth"
 ./setuplocalkubeconfig.sh
 cd ..
 
-wget -P "$dir" -q --show-progress --https-only --timestamping -O ubuntu-cloud.img \
-  https://cloud-images.ubuntu.com/plucky/current/plucky-server-cloudimg-${arch}.img
+image_path="$dir/ubuntu-cloud.img"
+if [[ ! -f "$image_path" ]]; then
+  wget -q --show-progress --https-only --timestamping -O "$image_path" \
+    https://cloud-images.ubuntu.com/plucky/current/plucky-server-cloudimg-${arch}.img
+else
+  echo "Ubuntu cloud image already exists at $image_path; skipping download."
+fi
 
 "$dir/vmsetupall.sh"
 sudo -E "$dir/setuphost.sh"
