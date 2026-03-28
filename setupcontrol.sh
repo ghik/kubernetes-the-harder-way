@@ -67,9 +67,9 @@ systemctl start etcd
 mkdir -p /etc/kubernetes/config
 
 wget -q --show-progress --https-only --timestamping \
-  https://cdn.dl.k8s.io/release/v${k8s_version}/bin/linux/${arch}/kube-apiserver \
-  https://cdn.dl.k8s.io/release/v${k8s_version}/bin/linux/${arch}/kube-controller-manager \
-  https://cdn.dl.k8s.io/release/v${k8s_version}/bin/linux/${arch}/kube-scheduler \
+  https://dl.k8s.io/release/v${k8s_version}/bin/linux/${arch}/kube-apiserver \
+  https://dl.k8s.io/release/v${k8s_version}/bin/linux/${arch}/kube-controller-manager \
+  https://dl.k8s.io/release/v${k8s_version}/bin/linux/${arch}/kube-scheduler \
 
 chmod +x kube-apiserver kube-controller-manager kube-scheduler
 cp kube-apiserver kube-controller-manager kube-scheduler /usr/local/bin/
