@@ -220,7 +220,7 @@ Download the binary and copy it to `/usr/local/bin`:
 
 ```bash
 wget -q --show-progress --https-only --timestamping \
-  "https://cdn.dl.k8s.io/release/v${k8s_version}/bin/linux/${arch}/kube-apiserver"
+  "https://dl.k8s.io/release/v${k8s_version}/bin/linux/${arch}/kube-apiserver"
 chmod +x kube-apiserver
 sudo cp kube-apiserver /usr/local/bin
 ```
@@ -645,7 +645,7 @@ Download the binary and install it in appropriate system dir:
 
 ```bash
 wget -q --show-progress --https-only --timestamping \
-  "https://cdn.dl.k8s.io/release/v${k8s_version}/bin/linux/${arch}/kube-controller-manager"
+  "https://dl.k8s.io/release/v${k8s_version}/bin/linux/${arch}/kube-controller-manager"
 chmod +x kube-controller-manager
 sudo cp kube-controller-manager /usr/local/bin
 ```
@@ -709,7 +709,7 @@ Download the binary and install it in appropriate system dir:
 
 ```bash
 wget -q --show-progress --https-only --timestamping \
-  "https://cdn.dl.k8s.io/release/v${k8s_version}/bin/linux/${arch}/kube-scheduler"
+  "https://dl.k8s.io/release/v${k8s_version}/bin/linux/${arch}/kube-scheduler"
 chmod +x kube-scheduler
 sudo cp kube-scheduler /usr/local/bin
 ```

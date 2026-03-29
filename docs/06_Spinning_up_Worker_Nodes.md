@@ -341,7 +341,7 @@ Download and install the `kubelet` binary:
 
 ```bash
 wget -q --show-progress --https-only --timestamping \
-  https://cdn.dl.k8s.io/release/v${k8s_version}/bin/linux/${arch}/kubelet
+  https://dl.k8s.io/release/v${k8s_version}/bin/linux/${arch}/kubelet
   
 chmod +x kubelet
 sudo cp kubelet /usr/local/bin/
@@ -664,7 +664,7 @@ Download and install the binary:
 
 ```bash
 wget -q --show-progress --https-only --timestamping \
-  https://cdn.dl.k8s.io/release/v${k8s_version}/bin/linux/${arch}/kube-proxy
+  https://dl.k8s.io/release/v${k8s_version}/bin/linux/${arch}/kube-proxy
 
 chmod +x kube-proxy
 sudo cp kube-proxy /usr/local/bin/

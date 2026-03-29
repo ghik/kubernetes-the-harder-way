@@ -33,7 +33,7 @@ wget -q --show-progress --https-only --timestamping \
   https://github.com/kubernetes-sigs/cri-tools/releases/download/v${cri_version}/${crictl_archive} \
   https://github.com/opencontainers/runc/releases/download/v${runc_version}/runc.${arch} \
   https://github.com/containerd/containerd/releases/download/v${containerd_version}/${containerd_archive} \
-  https://cdn.dl.k8s.io/release/v${k8s_version}/bin/linux/${arch}/kubelet
+  https://dl.k8s.io/release/v${k8s_version}/bin/linux/${arch}/kubelet
 
 mkdir -p \
   /opt/cni/bin \
@@ -53,7 +53,7 @@ cp containerd/bin/* /bin/
 if [[ -z $USE_CILIUM ]]; then
   wget -q --show-progress --https-only --timestamping \
     https://github.com/containernetworking/plugins/releases/download/v${cni_plugins_version}/${cni_plugins_archive} \
-    https://cdn.dl.k8s.io/release/v${k8s_version}/bin/linux/${arch}/kube-proxy
+    https://dl.k8s.io/release/v${k8s_version}/bin/linux/${arch}/kube-proxy
 
   mkdir -p /var/lib/kube-proxy
   chmod +x kube-proxy
