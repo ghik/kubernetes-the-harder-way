@@ -133,6 +133,28 @@ The easiest way to do it is simply by deleting them, and letting them be respawn
 (e.g. a `Deployment` or `StatefulSet`). Restarted pods should get new IP addresses that follow a new CIDR scheme,
 managed by Cilium.
 
+To see the Cilium managed CIDR scheme per pod, grab the podCIDR config from the `ciliumnodes` resource that we just installed. You should see something like:
+```
+$ kubectl get ciliumnodes -o custom-columns=NAME:.metadata.name,POD-CIDR:.spec.ipam.podCIDRs
+NAME       POD-CIDR
+control0   [10.0.1.0/24]
+control1   [10.0.2.0/24]
+control2   [10.0.3.0/24]
+worker0    [10.0.4.0/24]
+worker1    [10.0.5.0/24]
+worker2    [10.0.0.0/24]
+```
+
+Delete the pods with the old IPs
+```
+$ kubectl delete pods --all -n default 
+$ kubectl delete pods nfs-provisioner-nfs-subdir-external-provisioner-5587895c955hlj2  coredns-7b96b7cd6c-r5gf4  coredns-7b96b7cd6c-g75n6 -n kube-system
+```
+
+Then list all pods to see their new IP address, they should coorespond with the Cilium managed CIDR:
+```
+$ kubectl get pods -A -o wide
+```
 ## Cleaning up
 
 Cilium implements Kubernetes overlay network with IP encapsulation between nodes, and with eBPF programs instead of

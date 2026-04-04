@@ -342,4 +342,4 @@ In this chapter we, have installed essential services necessary to run typical w
 * a dynamic storage provisioner
 * a load balancer for Kubernetes services
 
-Next: [Siplifying Network Setup with Cilium](08_Simplifying_Network_Setup_with_Cilium.md) (optional)
+Next: [Simplifying Network Setup with Cilium](08_Simplifying_Network_Setup_with_Cilium.md) (optional)
